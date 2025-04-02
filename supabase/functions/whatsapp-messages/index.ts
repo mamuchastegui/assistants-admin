@@ -29,38 +29,33 @@ serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url);
-    const path = url.pathname.split('/').pop();
-
-    // Obtener mensajes de WhatsApp
-    if (req.method === 'GET' && path === 'messages') {
-      return await getWhatsAppMessages(req);
-    }
-    
-    // Obtener configuraciones de asistentes
-    if (req.method === 'GET' && path === 'assistants') {
-      return await getAssistantConfigs(req);
-    }
-    
-    // Obtener tenants
-    if (req.method === 'GET' && path === 'tenants') {
-      return await getTenants(req);
-    }
-
-    // Obtener threads
-    if (req.method === 'GET' && path === 'threads') {
-      return await getThreads(req);
-    }
-
-    // Actualizar configuración de asistente
-    if (req.method === 'POST' && path === 'update-assistant') {
+    // Procesar la solicitud según el método
+    if (req.method === 'POST') {
       const body = await req.json();
-      return await updateAssistantConfig(body);
+      const action = body.action;
+
+      switch (action) {
+        case 'getMessages':
+          return await getMessages(body);
+        case 'getAssistants':
+          return await getAssistantConfigs();
+        case 'updateAssistant':
+          return await updateAssistantConfig(body.config);
+        case 'getTenants':
+          return await getTenants();
+        case 'getThreads':
+          return await getThreads(body);
+        default:
+          return new Response(
+            JSON.stringify({ error: "Acción no reconocida" }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+          );
+      }
     }
 
     return new Response(
-      JSON.stringify({ error: "Endpoint no encontrado" }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
+      JSON.stringify({ error: "Método no permitido" }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 405 }
     );
   } catch (error) {
     console.error("Error:", error.message);
@@ -72,15 +67,14 @@ serve(async (req) => {
 });
 
 // Obtener mensajes de WhatsApp
-async function getWhatsAppMessages(req) {
+async function getMessages(params) {
   const client = await connectToMongoDB();
   const db = client.database("whatsapp_db");
   const messagesCollection = db.collection("messages");
   
   // Parámetros de paginación
-  const url = new URL(req.url);
-  const limit = parseInt(url.searchParams.get("limit") || "20");
-  const skip = parseInt(url.searchParams.get("skip") || "0");
+  const limit = parseInt(params.limit || "20");
+  const skip = parseInt(params.skip || "0");
   
   // Obtener mensajes con paginación
   const messages = await messagesCollection
@@ -96,7 +90,7 @@ async function getWhatsAppMessages(req) {
 }
 
 // Obtener configuraciones de asistentes
-async function getAssistantConfigs(req) {
+async function getAssistantConfigs() {
   const client = await connectToMongoDB();
   const db = client.database("whatsapp_db");
   const assistantsCollection = db.collection("assistant_configs");
@@ -112,23 +106,23 @@ async function getAssistantConfigs(req) {
 }
 
 // Actualizar configuración de asistente
-async function updateAssistantConfig(data) {
+async function updateAssistantConfig(config) {
   const client = await connectToMongoDB();
   const db = client.database("whatsapp_db");
   const assistantsCollection = db.collection("assistant_configs");
   
   let result;
-  if (data._id) {
+  if (config._id) {
     // Actualizar existente
-    const id = new ObjectId(data._id);
-    delete data._id; // Eliminar el _id del objeto para evitar errores
+    const id = new ObjectId(config._id);
+    delete config._id; // Eliminar el _id del objeto para evitar errores
     result = await assistantsCollection.updateOne(
       { _id: id },
-      { $set: data }
+      { $set: config }
     );
   } else {
     // Crear nuevo
-    result = await assistantsCollection.insertOne(data);
+    result = await assistantsCollection.insertOne(config);
   }
   
   await client.close();
@@ -140,7 +134,7 @@ async function updateAssistantConfig(data) {
 }
 
 // Obtener tenants
-async function getTenants(req) {
+async function getTenants() {
   const client = await connectToMongoDB();
   const db = client.database("whatsapp_db");
   const tenantsCollection = db.collection("tenants");
@@ -156,15 +150,14 @@ async function getTenants(req) {
 }
 
 // Obtener threads
-async function getThreads(req) {
+async function getThreads(params) {
   const client = await connectToMongoDB();
   const db = client.database("whatsapp_db");
   const threadsCollection = db.collection("threads");
   
   // Parámetros de paginación
-  const url = new URL(req.url);
-  const limit = parseInt(url.searchParams.get("limit") || "20");
-  const skip = parseInt(url.searchParams.get("skip") || "0");
+  const limit = parseInt(params.limit || "20");
+  const skip = parseInt(params.skip || "0");
   
   // Obtener threads con paginación
   const threads = await threadsCollection

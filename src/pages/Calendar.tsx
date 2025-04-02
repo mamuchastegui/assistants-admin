@@ -11,10 +11,10 @@ const Calendar = () => {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-3xl font-bold tracking-tight">Calendario</h1>
-            <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200">Conectado a Supabase</Badge>
+            <Badge className="bg-green-100 text-green-800 hover:bg-green-200">Conectado a LocalStorage</Badge>
           </div>
           <p className="text-muted-foreground">
-            Gestiona los turnos y la disponibilidad de tu negocio. Los cambios se guardan automáticamente en Supabase.
+            Gestiona los turnos y la disponibilidad de tu negocio. Los cambios se guardan automáticamente en localStorage.
           </p>
         </div>
         

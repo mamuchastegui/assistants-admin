@@ -17,52 +17,60 @@ export interface Appointment {
 
 export type AppointmentInput = Omit<Appointment, 'id' | 'created_at' | 'updated_at'>;
 
-// Simulación del servicio de Supabase (esto se reemplazará con la integración real de Supabase)
-// Nota: Esta es una simulación temporal hasta que se conecte con Supabase
-
-let appointments: Appointment[] = [
-  {
-    id: "1",
-    client: "Ana García",
-    service: "Corte de pelo",
-    date: "2023-07-15",
-    time: "09:00",
-    duration: 30,
-    status: "confirmed",
-    notes: "Primera visita",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: "2",
-    client: "Carlos Rodríguez",
-    service: "Tinte",
-    date: "2023-07-15",
-    time: "10:00",
-    duration: 60,
-    status: "confirmed",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: "3",
-    client: "Laura Martínez",
-    service: "Manicura",
-    date: "2023-07-16",
-    time: "11:00",
-    duration: 45,
-    status: "confirmed",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+// Función para inicializar datos de ejemplo si no existen en localStorage
+const initializeAppointmentsIfNeeded = () => {
+  if (!localStorage.getItem('appointments')) {
+    const initialAppointments = [
+      {
+        id: "1",
+        client: "Ana García",
+        service: "Corte de pelo",
+        date: "2023-07-15",
+        time: "09:00",
+        duration: 30,
+        status: "confirmed",
+        notes: "Primera visita",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      },
+      {
+        id: "2",
+        client: "Carlos Rodríguez",
+        service: "Tinte",
+        date: "2023-07-15",
+        time: "10:00",
+        duration: 60,
+        status: "confirmed",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      },
+      {
+        id: "3",
+        client: "Laura Martínez",
+        service: "Manicura",
+        date: "2023-07-16",
+        time: "11:00",
+        duration: 45,
+        status: "confirmed",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+    ];
+    localStorage.setItem('appointments', JSON.stringify(initialAppointments));
   }
-];
+};
 
-// Una vez que se conecte con Supabase, estas funciones se actualizarán para usar la API de Supabase
+// Inicializar datos
+initializeAppointmentsIfNeeded();
+
+// Funciones de servicio que usan localStorage
 export const fetchAppointments = async (): Promise<Appointment[]> => {
   try {
     // Simulando una petición a la API
     await new Promise(resolve => setTimeout(resolve, 500));
-    return appointments;
+    
+    const storedAppointments = localStorage.getItem('appointments');
+    return storedAppointments ? JSON.parse(storedAppointments) : [];
   } catch (error) {
     console.error("Error fetching appointments:", error);
     toast.error("No se pudieron cargar los turnos");
@@ -85,7 +93,13 @@ export const createAppointment = async (appointment: AppointmentInput): Promise<
       updated_at: new Date().toISOString()
     };
     
-    appointments.push(newAppointment);
+    // Obtener los turnos actuales y añadir el nuevo
+    const currentAppointments = await fetchAppointments();
+    const updatedAppointments = [...currentAppointments, newAppointment];
+    
+    // Guardar en localStorage
+    localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
+    
     toast.success("Turno creado correctamente");
     return newAppointment;
   } catch (error) {
@@ -103,18 +117,26 @@ export const updateAppointment = async (id: string, updatedFields: Partial<Appoi
     // Simulando una petición a la API
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    const index = appointments.findIndex(app => app.id === id);
+    // Obtener los turnos actuales
+    const currentAppointments = await fetchAppointments();
+    const index = currentAppointments.findIndex(app => app.id === id);
+    
     if (index === -1) {
       throw new Error(`Appointment with ID ${id} not found`);
     }
     
+    // Actualizar el turno
     const updatedAppointment: Appointment = {
-      ...appointments[index],
+      ...currentAppointments[index],
       ...updatedFields,
       updated_at: new Date().toISOString()
     };
     
-    appointments[index] = updatedAppointment;
+    currentAppointments[index] = updatedAppointment;
+    
+    // Guardar en localStorage
+    localStorage.setItem('appointments', JSON.stringify(currentAppointments));
+    
     toast.success("Turno actualizado correctamente");
     return updatedAppointment;
   } catch (error) {
@@ -129,12 +151,16 @@ export const deleteAppointment = async (id: string): Promise<boolean> => {
     // Simulando una petición a la API
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    const initialLength = appointments.length;
-    appointments = appointments.filter(app => app.id !== id);
+    // Obtener los turnos actuales
+    const currentAppointments = await fetchAppointments();
+    const filteredAppointments = currentAppointments.filter(app => app.id !== id);
     
-    if (appointments.length === initialLength) {
+    if (filteredAppointments.length === currentAppointments.length) {
       throw new Error(`Appointment with ID ${id} not found`);
     }
+    
+    // Guardar en localStorage
+    localStorage.setItem('appointments', JSON.stringify(filteredAppointments));
     
     toast.success("Turno eliminado correctamente");
     return true;

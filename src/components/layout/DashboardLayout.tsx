@@ -1,8 +1,35 @@
 
 import React from "react";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import { cn } from "@/lib/utils";
+
+interface DashboardLayoutContentProps {
+  children: React.ReactNode;
+}
+
+const DashboardLayoutContent: React.FC<DashboardLayoutContentProps> = ({ children }) => {
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex w-full">
+      <Sidebar />
+      <div className={cn(
+        "flex flex-col flex-1 transition-all duration-300",
+        isCollapsed ? "md:ml-16" : "md:ml-64"
+      )}>
+        <Header>
+          <SidebarTrigger className="md:hidden" />
+        </Header>
+        <main className="flex-1 p-6 overflow-auto">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+};
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -11,17 +38,9 @@ interface DashboardLayoutProps {
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-gray-50 flex w-full">
-        <Sidebar />
-        <div className="flex flex-col flex-1">
-          <Header>
-            <SidebarTrigger className="md:hidden" />
-          </Header>
-          <main className="flex-1 p-6 overflow-auto">
-            {children}
-          </main>
-        </div>
-      </div>
+      <DashboardLayoutContent>
+        {children}
+      </DashboardLayoutContent>
     </SidebarProvider>
   );
 };

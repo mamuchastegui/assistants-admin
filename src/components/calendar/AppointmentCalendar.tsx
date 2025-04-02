@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +20,6 @@ import {
   mapAppointmentToAirtable
 } from "@/services/airtableService";
 
-// Definición del tipo Appointment para uso interno
 interface Appointment {
   id: string;
   time: string;
@@ -33,7 +31,6 @@ interface Appointment {
   status?: string;
 }
 
-// Formulario para crear/editar turnos
 interface AppointmentFormData {
   client: string;
   service: string;
@@ -95,13 +92,11 @@ const AppointmentCalendar: React.FC = () => {
   
   const queryClient = useQueryClient();
   
-  // Consulta para obtener turnos
   const { data: airtableAppointments, isLoading, refetch } = useQuery({
     queryKey: ['appointments'],
     queryFn: fetchAppointments,
   });
   
-  // Mutación para crear turnos
   const createMutation = useMutation({
     mutationFn: (data: ReturnType<typeof mapAppointmentToAirtable>) => {
       return createAppointment(data);
@@ -113,7 +108,6 @@ const AppointmentCalendar: React.FC = () => {
     },
   });
   
-  // Mutación para actualizar turnos
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<ReturnType<typeof mapAppointmentToAirtable>> }) => {
       return updateAppointment(id, data);
@@ -125,7 +119,6 @@ const AppointmentCalendar: React.FC = () => {
     },
   });
   
-  // Mutación para eliminar turnos
   const deleteMutation = useMutation({
     mutationFn: (id: string) => {
       return deleteAppointment(id);
@@ -135,17 +128,15 @@ const AppointmentCalendar: React.FC = () => {
     },
   });
 
-  // Filtrar citas para la fecha seleccionada
   const filteredAppointments: Appointment[] = React.useMemo(() => {
     if (!airtableAppointments) return [];
     
     const formattedDate = format(selectedDate, "yyyy-MM-dd");
     
     return airtableAppointments
-      .filter(app => app.fields.Date === formattedDate)
+      .filter(app => app.fields.date === formattedDate)
       .map(mapAirtableToAppointment)
       .sort((a, b) => {
-        // Ordenar por hora
         return a.time.localeCompare(b.time);
       });
   }, [airtableAppointments, selectedDate]);
@@ -205,7 +196,7 @@ const AppointmentCalendar: React.FC = () => {
       time: formData.time,
       duration: parseInt(formData.duration),
       notes: formData.notes,
-      status: "Confirmado"
+      status: "confirmed"
     });
     
     createMutation.mutate(appointmentData);
@@ -221,7 +212,7 @@ const AppointmentCalendar: React.FC = () => {
       time: formData.time,
       duration: parseInt(formData.duration),
       notes: formData.notes,
-      status: "Confirmado"
+      status: "confirmed"
     });
     
     updateMutation.mutate({ 
@@ -437,7 +428,6 @@ const AppointmentCalendar: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Edit Appointment Dialog */}
       <Dialog open={isEditAppointmentOpen} onOpenChange={setIsEditAppointmentOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>

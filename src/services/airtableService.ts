@@ -8,13 +8,15 @@ const AIRTABLE_TABLE_NAME = "ClientAppointments";
 export interface AirtableAppointment {
   id: string;
   fields: {
-    Name: string;
-    Service: string;
-    Date: string; // Formato ISO "2023-07-15"
-    Time: string; // Formato "09:00"
-    Duration: number;
-    Notes?: string;
-    Status?: string;
+    name: string;
+    service: string;
+    date: string; // Formato ISO "2023-07-15"
+    hour: string; // Hora formateada como "09:00"
+    duration: number;
+    notes?: string;
+    status?: string;
+    assistant_id?: string;
+    last_updated?: string;
   };
 }
 
@@ -59,6 +61,8 @@ export const createAppointment = async (appointment: Omit<AirtableAppointment['f
     );
 
     if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Error details:", errorData);
       throw new Error(`Error al crear turno: ${response.statusText}`);
     }
 
@@ -89,6 +93,8 @@ export const updateAppointment = async (id: string, fields: Partial<AirtableAppo
     );
 
     if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Error details:", errorData);
       throw new Error(`Error al actualizar turno: ${response.statusText}`);
     }
 
@@ -131,13 +137,13 @@ export const deleteAppointment = async (id: string): Promise<boolean> => {
 export const mapAirtableToAppointment = (airtableAppointment: AirtableAppointment) => {
   return {
     id: airtableAppointment.id,
-    time: airtableAppointment.fields.Time,
-    client: airtableAppointment.fields.Name,
-    service: airtableAppointment.fields.Service,
-    duration: airtableAppointment.fields.Duration,
-    date: airtableAppointment.fields.Date,
-    notes: airtableAppointment.fields.Notes,
-    status: airtableAppointment.fields.Status,
+    time: airtableAppointment.fields.hour || "",
+    client: airtableAppointment.fields.name || "",
+    service: airtableAppointment.fields.service || "",
+    duration: airtableAppointment.fields.duration || 30,
+    date: airtableAppointment.fields.date || "",
+    notes: airtableAppointment.fields.notes,
+    status: airtableAppointment.fields.status,
   };
 };
 
@@ -152,12 +158,12 @@ export const mapAppointmentToAirtable = (appointment: {
   status?: string;
 }) => {
   return {
-    Name: appointment.client,
-    Service: appointment.service,
-    Date: appointment.date,
-    Time: appointment.time,
-    Duration: appointment.duration,
-    Notes: appointment.notes,
-    Status: appointment.status,
+    name: appointment.client,
+    service: appointment.service,
+    date: appointment.date,
+    hour: appointment.time,
+    duration: appointment.duration,
+    notes: appointment.notes,
+    status: appointment.status || "free",
   };
 };

@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -8,36 +8,100 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { MessageSquare, Save, Plus, Trash2 } from "lucide-react";
+import { MessageSquare, Save, Plus, Trash2, Loader2 } from "lucide-react";
+import { useAssistantConfig } from "@/hooks/useAssistantConfig";
+import WhatsAppMessages from "@/components/whatsapp/WhatsAppMessages";
+import { toast } from "sonner";
 
 const AssistantConfig: React.FC = () => {
-  const [quickResponses, setQuickResponses] = useState([
-    { id: 1, trigger: "hola", response: "¡Hola! ¿En qué puedo ayudarte hoy?" },
-    { id: 2, trigger: "horarios", response: "Nuestro horario de atención es de lunes a viernes de 9:00 a 20:00 y sábados de 10:00 a 18:00." },
-    { id: 3, trigger: "precios", response: "Puedes consultar nuestros precios en nuestra página web o te puedo dar información sobre algún servicio específico." },
-  ]);
+  const { config, loading, saving, saveConfig } = useAssistantConfig();
+  const [localConfig, setLocalConfig] = useState(config);
+  const [activeTab, setActiveTab] = useState("general");
+
+  useEffect(() => {
+    if (config && !localConfig) {
+      setLocalConfig(config);
+    }
+  }, [config, localConfig]);
+
+  const handleInputChange = (field: string, value: string | boolean) => {
+    if (!localConfig) return;
+    
+    setLocalConfig({
+      ...localConfig,
+      [field]: value
+    });
+  };
+
+  const handleQuickResponseChange = (id: number, field: "trigger" | "response", value: string) => {
+    if (!localConfig) return;
+    
+    setLocalConfig({
+      ...localConfig,
+      quickResponses: localConfig.quickResponses.map(qr => 
+        qr.id === id ? { ...qr, [field]: value } : qr
+      )
+    });
+  };
 
   const addQuickResponse = () => {
-    const newId = quickResponses.length ? Math.max(...quickResponses.map(qr => qr.id)) + 1 : 1;
-    setQuickResponses([...quickResponses, { id: newId, trigger: "", response: "" }]);
+    if (!localConfig) return;
+    
+    const newId = localConfig.quickResponses.length 
+      ? Math.max(...localConfig.quickResponses.map(qr => qr.id)) + 1 
+      : 1;
+    
+    setLocalConfig({
+      ...localConfig,
+      quickResponses: [...localConfig.quickResponses, { id: newId, trigger: "", response: "" }]
+    });
   };
 
   const removeQuickResponse = (id: number) => {
-    setQuickResponses(quickResponses.filter(qr => qr.id !== id));
+    if (!localConfig) return;
+    
+    setLocalConfig({
+      ...localConfig,
+      quickResponses: localConfig.quickResponses.filter(qr => qr.id !== id)
+    });
   };
 
-  const updateQuickResponse = (id: number, field: "trigger" | "response", value: string) => {
-    setQuickResponses(quickResponses.map(qr => 
-      qr.id === id ? { ...qr, [field]: value } : qr
-    ));
+  const handleSave = async () => {
+    if (!localConfig) return;
+    
+    const success = await saveConfig(localConfig);
+    if (success) {
+      toast.success("Configuración guardada correctamente");
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[300px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!localConfig) {
+    return (
+      <div className="text-center py-10">
+        <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground opacity-50 mb-4" />
+        <p className="text-muted-foreground mb-4">No se pudo cargar la configuración</p>
+        <Button onClick={() => window.location.reload()}>
+          Reintentar
+        </Button>
+      </div>
+    );
+  }
 
   return (
-    <Tabs defaultValue="general" className="space-y-4">
-      <TabsList className="grid w-full grid-cols-3">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <TabsList className="grid w-full grid-cols-4">
         <TabsTrigger value="general">General</TabsTrigger>
         <TabsTrigger value="messages">Mensajes Automáticos</TabsTrigger>
         <TabsTrigger value="quick">Respuestas Rápidas</TabsTrigger>
+        <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
       </TabsList>
       
       <TabsContent value="general" className="space-y-4">
@@ -51,13 +115,21 @@ const AssistantConfig: React.FC = () => {
           <CardContent className="space-y-4">
             <div className="grid w-full items-center gap-1.5">
               <Label htmlFor="assistant-name">Nombre del Asistente</Label>
-              <Input id="assistant-name" defaultValue="Asistente Virtual" />
+              <Input 
+                id="assistant-name" 
+                value={localConfig.name}
+                onChange={(e) => handleInputChange("name", e.target.value)}
+              />
               <p className="text-sm text-muted-foreground">Este nombre se mostrará a tus clientes en WhatsApp</p>
             </div>
             
             <div className="grid w-full items-center gap-1.5">
               <Label htmlFor="business-description">Descripción del Negocio</Label>
-              <Textarea id="business-description" defaultValue="Somos una peluquería con más de 10 años de experiencia ofreciendo servicios de calidad." />
+              <Textarea 
+                id="business-description" 
+                value={localConfig.businessDescription}
+                onChange={(e) => handleInputChange("businessDescription", e.target.value)}
+              />
               <p className="text-sm text-muted-foreground">Este texto se usará para que el asistente conozca tu negocio</p>
             </div>
             
@@ -69,7 +141,11 @@ const AssistantConfig: React.FC = () => {
                   <h4 className="font-medium">Modo Activo</h4>
                   <p className="text-sm text-muted-foreground">Activa o desactiva tu asistente virtual</p>
                 </div>
-                <Switch id="active-mode" defaultChecked />
+                <Switch 
+                  id="active-mode" 
+                  checked={localConfig.isActive}
+                  onCheckedChange={(checked) => handleInputChange("isActive", checked)}
+                />
               </div>
               
               <div className="flex items-center justify-between">
@@ -77,7 +153,11 @@ const AssistantConfig: React.FC = () => {
                   <h4 className="font-medium">Notificaciones al Propietario</h4>
                   <p className="text-sm text-muted-foreground">Recibe notificaciones cuando un cliente interactúe</p>
                 </div>
-                <Switch id="notifications" defaultChecked />
+                <Switch 
+                  id="notifications" 
+                  checked={localConfig.notifyOwner}
+                  onCheckedChange={(checked) => handleInputChange("notifyOwner", checked)}
+                />
               </div>
               
               <div className="flex items-center justify-between">
@@ -85,12 +165,24 @@ const AssistantConfig: React.FC = () => {
                   <h4 className="font-medium">Intervención Humana</h4>
                   <p className="text-sm text-muted-foreground">Permitir que tomes el control de la conversación cuando sea necesario</p>
                 </div>
-                <Switch id="human-intervention" defaultChecked />
+                <Switch 
+                  id="human-intervention" 
+                  checked={localConfig.allowHumanIntervention}
+                  onCheckedChange={(checked) => handleInputChange("allowHumanIntervention", checked)}
+                />
               </div>
             </div>
             
-            <Button className="w-full mt-4">
-              <Save className="mr-2 h-4 w-4" />
+            <Button 
+              className="w-full mt-4" 
+              onClick={handleSave}
+              disabled={saving}
+            >
+              {saving ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}
               Guardar Configuración
             </Button>
           </CardContent>
@@ -111,7 +203,8 @@ const AssistantConfig: React.FC = () => {
               <Textarea 
                 id="welcome-message" 
                 rows={3}
-                defaultValue="¡Hola! Soy el asistente virtual de [Nombre del Negocio]. ¿En qué puedo ayudarte hoy?" 
+                value={localConfig.welcomeMessage}
+                onChange={(e) => handleInputChange("welcomeMessage", e.target.value)}
               />
               <p className="text-sm text-muted-foreground">Este mensaje se enviará cuando un cliente escriba por primera vez</p>
             </div>
@@ -121,7 +214,8 @@ const AssistantConfig: React.FC = () => {
               <Textarea 
                 id="away-message" 
                 rows={3}
-                defaultValue="Gracias por tu mensaje. En este momento estamos fuera de horario de atención. Te responderemos cuando regresemos." 
+                value={localConfig.awayMessage}
+                onChange={(e) => handleInputChange("awayMessage", e.target.value)}
               />
               <p className="text-sm text-muted-foreground">Este mensaje se enviará cuando recibas mensajes fuera del horario de atención</p>
             </div>
@@ -131,7 +225,8 @@ const AssistantConfig: React.FC = () => {
               <Textarea 
                 id="booking-confirmation" 
                 rows={3}
-                defaultValue="¡Tu reserva ha sido confirmada! Te esperamos el [fecha] a las [hora]. Si necesitas hacer algún cambio, házmelo saber." 
+                value={localConfig.bookingConfirmation}
+                onChange={(e) => handleInputChange("bookingConfirmation", e.target.value)}
               />
               <p className="text-sm text-muted-foreground">Este mensaje se enviará cuando se confirme una reserva</p>
             </div>
@@ -141,7 +236,8 @@ const AssistantConfig: React.FC = () => {
               <Textarea 
                 id="reminder-message" 
                 rows={3}
-                defaultValue="¡Hola! Te recordamos que tienes una cita mañana a las [hora]. ¡Te esperamos!" 
+                value={localConfig.reminderMessage}
+                onChange={(e) => handleInputChange("reminderMessage", e.target.value)}
               />
               <p className="text-sm text-muted-foreground">Este mensaje se enviará como recordatorio 24h antes de la cita</p>
             </div>
@@ -151,13 +247,22 @@ const AssistantConfig: React.FC = () => {
               <Textarea 
                 id="followup-message" 
                 rows={3}
-                defaultValue="¡Hola! Esperamos que hayas disfrutado de nuestro servicio. Nos encantaría conocer tu opinión. ¿Podrías calificarnos del 1 al 5?" 
+                value={localConfig.followupMessage}
+                onChange={(e) => handleInputChange("followupMessage", e.target.value)}
               />
               <p className="text-sm text-muted-foreground">Este mensaje se enviará después de que el cliente haya recibido el servicio</p>
             </div>
             
-            <Button className="w-full mt-4">
-              <Save className="mr-2 h-4 w-4" />
+            <Button 
+              className="w-full mt-4"
+              onClick={handleSave}
+              disabled={saving}
+            >
+              {saving ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}
               Guardar Mensajes
             </Button>
           </CardContent>
@@ -180,7 +285,7 @@ const AssistantConfig: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {quickResponses.map((qr) => (
+              {localConfig.quickResponses.map((qr) => (
                 <div key={qr.id} className="grid grid-cols-1 gap-4 p-4 border rounded-lg">
                   <div className="grid grid-cols-6 gap-4">
                     <div className="col-span-5">
@@ -188,7 +293,7 @@ const AssistantConfig: React.FC = () => {
                       <Input 
                         id={`trigger-${qr.id}`}
                         value={qr.trigger}
-                        onChange={(e) => updateQuickResponse(qr.id, "trigger", e.target.value)}
+                        onChange={(e) => handleQuickResponseChange(qr.id, "trigger", e.target.value)}
                         placeholder="Ej: horarios, precios, ubicación"
                       />
                     </div>
@@ -208,7 +313,7 @@ const AssistantConfig: React.FC = () => {
                     <Textarea 
                       id={`response-${qr.id}`}
                       value={qr.response}
-                      onChange={(e) => updateQuickResponse(qr.id, "response", e.target.value)}
+                      onChange={(e) => handleQuickResponseChange(qr.id, "response", e.target.value)}
                       rows={3}
                       placeholder="Escribe la respuesta que se enviará automáticamente"
                     />
@@ -216,7 +321,7 @@ const AssistantConfig: React.FC = () => {
                 </div>
               ))}
               
-              {quickResponses.length === 0 && (
+              {localConfig.quickResponses.length === 0 && (
                 <div className="text-center py-10">
                   <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground opacity-50 mb-4" />
                   <p className="text-muted-foreground mb-4">No hay respuestas rápidas configuradas</p>
@@ -228,14 +333,26 @@ const AssistantConfig: React.FC = () => {
               )}
             </div>
             
-            {quickResponses.length > 0 && (
-              <Button className="w-full mt-6">
-                <Save className="mr-2 h-4 w-4" />
+            {localConfig.quickResponses.length > 0 && (
+              <Button 
+                className="w-full mt-6"
+                onClick={handleSave}
+                disabled={saving}
+              >
+                {saving ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="mr-2 h-4 w-4" />
+                )}
                 Guardar Respuestas
               </Button>
             )}
           </CardContent>
         </Card>
+      </TabsContent>
+      
+      <TabsContent value="whatsapp" className="space-y-4">
+        <WhatsAppMessages />
       </TabsContent>
     </Tabs>
   );

@@ -2,7 +2,7 @@
 import React from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Datos de ejemplo para mostrar en la tabla
 const ordersMock = [

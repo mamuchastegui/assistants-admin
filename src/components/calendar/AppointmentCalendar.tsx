@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Dialog } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 
 // Import components
 import CalendarSidebar from "./CalendarSidebar";
@@ -73,6 +73,7 @@ const AppointmentCalendar: React.FC = () => {
             onPrevDay={handlePrevDay}
             onNextDay={handleNextDay}
             onResetForm={resetForm}
+            onOpenNewDialog={() => setIsNewAppointmentOpen(true)}
           />
         </CardHeader>
         <CardContent>

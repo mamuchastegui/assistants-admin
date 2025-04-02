@@ -14,15 +14,15 @@ import CalendarSidebar from "./CalendarSidebar";
 import AppointmentList from "./appointment/AppointmentList";
 import AppointmentForm from "./appointment/AppointmentForm";
 
-// Import services
+// Import services - Cambiado de airtableService a supabaseService
 import {
   fetchAppointments,
   createAppointment,
   updateAppointment,
   deleteAppointment,
-  mapAirtableToAppointment,
-  mapAppointmentToAirtable
-} from "@/services/airtableService";
+  Appointment,
+  AppointmentInput
+} from "@/services/supabaseService";
 
 // Types
 interface AppointmentFormData {
@@ -31,17 +31,6 @@ interface AppointmentFormData {
   time: string;
   duration: string;
   notes?: string;
-}
-
-interface Appointment {
-  id: string;
-  time: string;
-  client: string;
-  service: string;
-  duration: number;
-  date: string;
-  notes?: string;
-  status?: string;
 }
 
 const AppointmentCalendar: React.FC = () => {
@@ -61,13 +50,13 @@ const AppointmentCalendar: React.FC = () => {
   const queryClient = useQueryClient();
   
   // Queries and Mutations
-  const { data: airtableAppointments, isLoading, refetch } = useQuery({
+  const { data: appointments, isLoading, refetch } = useQuery({
     queryKey: ['appointments'],
     queryFn: fetchAppointments,
   });
   
   const createMutation = useMutation({
-    mutationFn: (data: ReturnType<typeof mapAppointmentToAirtable>) => {
+    mutationFn: (data: AppointmentInput) => {
       console.log("Mutation data:", data);
       return createAppointment(data);
     },
@@ -79,7 +68,7 @@ const AppointmentCalendar: React.FC = () => {
   });
   
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<ReturnType<typeof mapAppointmentToAirtable>> }) => {
+    mutationFn: ({ id, data }: { id: string; data: Partial<AppointmentInput> }) => {
       return updateAppointment(id, data);
     },
     onSuccess: () => {
@@ -100,17 +89,16 @@ const AppointmentCalendar: React.FC = () => {
 
   // Filter appointments for selected date
   const filteredAppointments: Appointment[] = React.useMemo(() => {
-    if (!airtableAppointments) return [];
+    if (!appointments) return [];
     
     const formattedDate = format(selectedDate, "yyyy-MM-dd");
     
-    return airtableAppointments
-      .filter(app => app.fields.date === formattedDate)
-      .map(mapAirtableToAppointment)
+    return appointments
+      .filter(app => app.date === formattedDate)
       .sort((a, b) => {
         return a.time.localeCompare(b.time);
       });
-  }, [airtableAppointments, selectedDate]);
+  }, [appointments, selectedDate]);
 
   // Event handlers
   const handleDateSelect = (date: Date | undefined) => {
@@ -161,7 +149,7 @@ const AppointmentCalendar: React.FC = () => {
 
   const handleSaveNew = () => {
     const dateStr = format(selectedDate, "yyyy-MM-dd");
-    const appointmentData = mapAppointmentToAirtable({
+    const appointmentData: AppointmentInput = {
       client: formData.client,
       service: formData.service,
       date: dateStr,
@@ -169,7 +157,7 @@ const AppointmentCalendar: React.FC = () => {
       duration: parseInt(formData.duration),
       notes: formData.notes,
       status: "confirmed"
-    });
+    };
     
     console.log("Saving new appointment:", appointmentData);
     createMutation.mutate(appointmentData);
@@ -178,7 +166,7 @@ const AppointmentCalendar: React.FC = () => {
   const handleSaveEdit = () => {
     if (!currentAppointment) return;
     
-    const appointmentData = mapAppointmentToAirtable({
+    const appointmentData: Partial<AppointmentInput> = {
       client: formData.client,
       service: formData.service,
       date: format(selectedDate, "yyyy-MM-dd"),
@@ -186,7 +174,7 @@ const AppointmentCalendar: React.FC = () => {
       duration: parseInt(formData.duration),
       notes: formData.notes,
       status: "confirmed"
-    });
+    };
     
     console.log("Saving edit to appointment:", appointmentData);
     updateMutation.mutate({ 
@@ -195,9 +183,9 @@ const AppointmentCalendar: React.FC = () => {
     });
   };
 
-  const syncWithAirtable = () => {
+  const syncWithDatabase = () => {
     refetch();
-    toast.success("Sincronizando con Airtable...");
+    toast.success("Sincronizando con la base de datos...");
   };
 
   return (
@@ -206,7 +194,7 @@ const AppointmentCalendar: React.FC = () => {
       <CalendarSidebar
         selectedDate={selectedDate}
         onDateSelect={handleDateSelect}
-        onSyncWithAirtable={syncWithAirtable}
+        onSyncWithDatabase={syncWithDatabase}
         isLoading={isLoading}
       />
 

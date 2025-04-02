@@ -9,14 +9,14 @@ import { es } from "date-fns/locale";
 interface CalendarSidebarProps {
   selectedDate: Date;
   onDateSelect: (date: Date | undefined) => void;
-  onSyncWithAirtable: () => void;
+  onSyncWithDatabase: () => void;
   isLoading: boolean;
 }
 
 const CalendarSidebar: React.FC<CalendarSidebarProps> = ({
   selectedDate,
   onDateSelect,
-  onSyncWithAirtable,
+  onSyncWithDatabase,
   isLoading
 }) => {
   return (
@@ -38,7 +38,7 @@ const CalendarSidebar: React.FC<CalendarSidebarProps> = ({
         <div className="mt-4">
           <Button 
             className="w-full" 
-            onClick={onSyncWithAirtable}
+            onClick={onSyncWithDatabase}
             disabled={isLoading}
           >
             {isLoading ? (
@@ -46,7 +46,7 @@ const CalendarSidebar: React.FC<CalendarSidebarProps> = ({
             ) : (
               <RefreshCw className="mr-2 h-4 w-4" />
             )}
-            Sincronizar con Airtable
+            Sincronizar con Base de Datos
           </Button>
         </div>
       </CardContent>

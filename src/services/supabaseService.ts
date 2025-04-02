@@ -1,5 +1,6 @@
 
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 // Interfaces para los datos
 export interface Appointment {
@@ -17,60 +18,20 @@ export interface Appointment {
 
 export type AppointmentInput = Omit<Appointment, 'id' | 'created_at' | 'updated_at'>;
 
-// Función para inicializar datos de ejemplo si no existen en localStorage
-const initializeAppointmentsIfNeeded = () => {
-  if (!localStorage.getItem('appointments')) {
-    const initialAppointments = [
-      {
-        id: "1",
-        client: "Ana García",
-        service: "Corte de pelo",
-        date: "2023-07-15",
-        time: "09:00",
-        duration: 30,
-        status: "confirmed",
-        notes: "Primera visita",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      },
-      {
-        id: "2",
-        client: "Carlos Rodríguez",
-        service: "Tinte",
-        date: "2023-07-15",
-        time: "10:00",
-        duration: 60,
-        status: "confirmed",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      },
-      {
-        id: "3",
-        client: "Laura Martínez",
-        service: "Manicura",
-        date: "2023-07-16",
-        time: "11:00",
-        duration: 45,
-        status: "confirmed",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }
-    ];
-    localStorage.setItem('appointments', JSON.stringify(initialAppointments));
-  }
-};
-
-// Inicializar datos
-initializeAppointmentsIfNeeded();
-
-// Funciones de servicio que usan localStorage
+// Función para obtener todos los turnos
 export const fetchAppointments = async (): Promise<Appointment[]> => {
   try {
-    // Simulando una petición a la API
-    await new Promise(resolve => setTimeout(resolve, 500));
+    const { data, error } = await supabase
+      .from('appointments')
+      .select('*')
+      .order('date', { ascending: true })
+      .order('time', { ascending: true });
+      
+    if (error) {
+      throw error;
+    }
     
-    const storedAppointments = localStorage.getItem('appointments');
-    return storedAppointments ? JSON.parse(storedAppointments) : [];
+    return data || [];
   } catch (error) {
     console.error("Error fetching appointments:", error);
     toast.error("No se pudieron cargar los turnos");
@@ -78,30 +39,27 @@ export const fetchAppointments = async (): Promise<Appointment[]> => {
   }
 };
 
+// Función para crear un nuevo turno
 export const createAppointment = async (appointment: AppointmentInput): Promise<Appointment | null> => {
   try {
-    // Log the appointment data being sent
-    console.log("Creating appointment with data:", appointment);
+    const now = new Date().toISOString();
     
-    // Simulando una petición a la API
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const newAppointment: Appointment = {
-      ...appointment,
-      id: Math.random().toString(36).substring(2, 11),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    
-    // Obtener los turnos actuales y añadir el nuevo
-    const currentAppointments = await fetchAppointments();
-    const updatedAppointments = [...currentAppointments, newAppointment];
-    
-    // Guardar en localStorage
-    localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
+    const { data, error } = await supabase
+      .from('appointments')
+      .insert({
+        ...appointment,
+        created_at: now,
+        updated_at: now
+      })
+      .select('*')
+      .single();
+      
+    if (error) {
+      throw error;
+    }
     
     toast.success("Turno creado correctamente");
-    return newAppointment;
+    return data;
   } catch (error) {
     console.error("Error creating appointment:", error);
     toast.error("No se pudo crear el turno");
@@ -109,36 +67,25 @@ export const createAppointment = async (appointment: AppointmentInput): Promise<
   }
 };
 
+// Función para actualizar un turno existente
 export const updateAppointment = async (id: string, updatedFields: Partial<AppointmentInput>): Promise<Appointment | null> => {
   try {
-    // Log the update data being sent
-    console.log("Updating appointment with data:", updatedFields);
-    
-    // Simulando una petición a la API
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Obtener los turnos actuales
-    const currentAppointments = await fetchAppointments();
-    const index = currentAppointments.findIndex(app => app.id === id);
-    
-    if (index === -1) {
-      throw new Error(`Appointment with ID ${id} not found`);
+    const { data, error } = await supabase
+      .from('appointments')
+      .update({
+        ...updatedFields,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select('*')
+      .single();
+      
+    if (error) {
+      throw error;
     }
     
-    // Actualizar el turno
-    const updatedAppointment: Appointment = {
-      ...currentAppointments[index],
-      ...updatedFields,
-      updated_at: new Date().toISOString()
-    };
-    
-    currentAppointments[index] = updatedAppointment;
-    
-    // Guardar en localStorage
-    localStorage.setItem('appointments', JSON.stringify(currentAppointments));
-    
     toast.success("Turno actualizado correctamente");
-    return updatedAppointment;
+    return data;
   } catch (error) {
     console.error("Error updating appointment:", error);
     toast.error("No se pudo actualizar el turno");
@@ -146,21 +93,17 @@ export const updateAppointment = async (id: string, updatedFields: Partial<Appoi
   }
 };
 
+// Función para eliminar un turno
 export const deleteAppointment = async (id: string): Promise<boolean> => {
   try {
-    // Simulando una petición a la API
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Obtener los turnos actuales
-    const currentAppointments = await fetchAppointments();
-    const filteredAppointments = currentAppointments.filter(app => app.id !== id);
-    
-    if (filteredAppointments.length === currentAppointments.length) {
-      throw new Error(`Appointment with ID ${id} not found`);
+    const { error } = await supabase
+      .from('appointments')
+      .delete()
+      .eq('id', id);
+      
+    if (error) {
+      throw error;
     }
-    
-    // Guardar en localStorage
-    localStorage.setItem('appointments', JSON.stringify(filteredAppointments));
     
     toast.success("Turno eliminado correctamente");
     return true;

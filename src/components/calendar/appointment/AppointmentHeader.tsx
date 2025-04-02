@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CardTitle, CardDescription } from "@/components/ui/card";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Database } from "lucide-react";
 import { DialogTrigger } from "@/components/ui/dialog";
 
 interface AppointmentHeaderProps {
@@ -23,7 +23,10 @@ const AppointmentHeader: React.FC<AppointmentHeaderProps> = ({
   return (
     <div className="flex flex-row items-center justify-between pb-2">
       <div>
-        <CardTitle>Turnos</CardTitle>
+        <div className="flex items-center space-x-1">
+          <CardTitle>Turnos</CardTitle>
+          <Database className="h-4 w-4 text-blue-500" />
+        </div>
         <CardDescription>
           {format(selectedDate, "EEEE d 'de' MMMM, yyyy", { locale: es })}
         </CardDescription>

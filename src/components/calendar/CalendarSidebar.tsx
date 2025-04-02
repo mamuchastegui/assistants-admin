@@ -3,7 +3,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { Loader2, RefreshCw } from "lucide-react";
+import { Loader2, RefreshCw, Database } from "lucide-react";
 import { es } from "date-fns/locale";
 
 interface CalendarSidebarProps {
@@ -22,7 +22,10 @@ const CalendarSidebar: React.FC<CalendarSidebarProps> = ({
   return (
     <Card className="md:col-span-1">
       <CardHeader className="pb-0">
-        <CardTitle>Calendario</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Calendario</CardTitle>
+          <Database className="h-4 w-4 text-blue-500" />
+        </div>
         <CardDescription>
           Selecciona una fecha para ver o agregar turnos
         </CardDescription>
@@ -46,7 +49,7 @@ const CalendarSidebar: React.FC<CalendarSidebarProps> = ({
             ) : (
               <RefreshCw className="mr-2 h-4 w-4" />
             )}
-            Sincronizar con Base de Datos
+            Sincronizar con Supabase
           </Button>
         </div>
       </CardContent>

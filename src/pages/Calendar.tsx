@@ -3,10 +3,10 @@ import React from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import AppointmentCalendar from "@/components/calendar/AppointmentCalendar";
 import { Badge } from "@/components/ui/badge";
-import { isSupabaseAvailable } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 const Calendar = () => {
-  const supabaseConnected = isSupabaseAvailable();
+  const supabaseConnected = !!supabase;
 
   return (
     <DashboardLayout>

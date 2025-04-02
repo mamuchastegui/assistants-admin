@@ -18,7 +18,7 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
             <Menu className="h-5 w-5" />
           </Button>
           <div className="ml-2 md:ml-0 md:hidden lg:flex lg:items-center">
-            <span className="text-lg font-semibold">Savvy Virtual</span>
+            <span className="text-lg font-semibold">CONDAMIND Assistants</span>
           </div>
         </div>
         

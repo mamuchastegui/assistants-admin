@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      appointments: {
+        Row: {
+          client: string
+          created_at: string | null
+          date: string
+          duration: number
+          id: string
+          notes: string | null
+          service: string
+          status: string | null
+          time: string
+          updated_at: string | null
+        }
+        Insert: {
+          client: string
+          created_at?: string | null
+          date: string
+          duration: number
+          id?: string
+          notes?: string | null
+          service: string
+          status?: string | null
+          time: string
+          updated_at?: string | null
+        }
+        Update: {
+          client?: string
+          created_at?: string | null
+          date?: string
+          duration?: number
+          id?: string
+          notes?: string | null
+          service?: string
+          status?: string | null
+          time?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       budget_categories: {
         Row: {
           budgeted: number

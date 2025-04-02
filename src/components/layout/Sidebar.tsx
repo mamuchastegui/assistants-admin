@@ -42,9 +42,9 @@ const Sidebar = () => {
           isCollapsed && "justify-center"
         )}>
           <span className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white font-bold">
-            SV
+            CM
           </span>
-          {!isCollapsed && <span className="text-lg font-semibold">Savvy Virtual</span>}
+          {!isCollapsed && <span className="text-lg font-semibold">CONDAMIND Assistants</span>}
         </div>
         <Button 
           variant="ghost" 

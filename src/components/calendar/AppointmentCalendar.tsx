@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,26 +7,49 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { format } from "date-fns";
+import { format, parse, isValid } from "date-fns";
 import { es } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Clock, Plus, RefreshCw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, Plus, RefreshCw, Loader2 } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import {
+  fetchAppointments,
+  createAppointment,
+  updateAppointment,
+  deleteAppointment,
+  mapAirtableToAppointment,
+  mapAppointmentToAirtable
+} from "@/services/airtableService";
 
-// Esta simulación sería reemplazada por la integración con Airtable
-const fakeAppointments = [
-  { id: 1, time: "09:00", client: "Ana García", service: "Corte de pelo", duration: 30 },
-  { id: 2, time: "10:30", client: "Luis Martínez", service: "Tinte", duration: 60 },
-  { id: 3, time: "13:00", client: "Sofía Rodríguez", service: "Manicura", duration: 45 },
-  { id: 4, time: "15:30", client: "Carlos López", service: "Afeitado", duration: 30 },
-];
-
-interface AppointmentProps {
-  id: number;
+// Definición del tipo Appointment para uso interno
+interface Appointment {
+  id: string;
   time: string;
   client: string;
   service: string;
   duration: number;
-  onEdit: (id: number) => void;
-  onDelete: (id: number) => void;
+  date: string;
+  notes?: string;
+  status?: string;
+}
+
+// Formulario para crear/editar turnos
+interface AppointmentFormData {
+  client: string;
+  service: string;
+  time: string;
+  duration: string;
+  notes?: string;
+}
+
+interface AppointmentProps {
+  id: string;
+  time: string;
+  client: string;
+  service: string;
+  duration: number;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
 }
 
 const Appointment: React.FC<AppointmentProps> = ({ 
@@ -58,35 +81,158 @@ const Appointment: React.FC<AppointmentProps> = ({
 };
 
 const AppointmentCalendar: React.FC = () => {
-  const [date, setDate] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [appointments, setAppointments] = useState(fakeAppointments);
   const [isNewAppointmentOpen, setIsNewAppointmentOpen] = useState(false);
   const [isEditAppointmentOpen, setIsEditAppointmentOpen] = useState(false);
-  const [currentAppointment, setCurrentAppointment] = useState<number | null>(null);
+  const [currentAppointment, setCurrentAppointment] = useState<string | null>(null);
+  const [formData, setFormData] = useState<AppointmentFormData>({
+    client: "",
+    service: "",
+    time: "09:00",
+    duration: "30",
+    notes: "",
+  });
   
-  // En un caso real, esto se conectaría a Airtable para sincronizar los turnos
-  const syncWithAirtable = () => {
-    console.log("Sincronizando con Airtable...");
-    // Simulación de actualización exitosa
-    setTimeout(() => {
-      console.log("Sincronización completada");
-    }, 1000);
-  };
+  const queryClient = useQueryClient();
+  
+  // Consulta para obtener turnos
+  const { data: airtableAppointments, isLoading, refetch } = useQuery({
+    queryKey: ['appointments'],
+    queryFn: fetchAppointments,
+  });
+  
+  // Mutación para crear turnos
+  const createMutation = useMutation({
+    mutationFn: (data: ReturnType<typeof mapAppointmentToAirtable>) => {
+      return createAppointment(data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      setIsNewAppointmentOpen(false);
+      resetForm();
+    },
+  });
+  
+  // Mutación para actualizar turnos
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<ReturnType<typeof mapAppointmentToAirtable>> }) => {
+      return updateAppointment(id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      setIsEditAppointmentOpen(false);
+      resetForm();
+    },
+  });
+  
+  // Mutación para eliminar turnos
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => {
+      return deleteAppointment(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+    },
+  });
 
-  const handleEdit = (id: number) => {
-    setCurrentAppointment(id);
-    setIsEditAppointmentOpen(true);
-  };
-
-  const handleDelete = (id: number) => {
-    setAppointments(appointments.filter(appointment => appointment.id !== id));
-  };
+  // Filtrar citas para la fecha seleccionada
+  const filteredAppointments: Appointment[] = React.useMemo(() => {
+    if (!airtableAppointments) return [];
+    
+    const formattedDate = format(selectedDate, "yyyy-MM-dd");
+    
+    return airtableAppointments
+      .filter(app => app.fields.Date === formattedDate)
+      .map(mapAirtableToAppointment)
+      .sort((a, b) => {
+        // Ordenar por hora
+        return a.time.localeCompare(b.time);
+      });
+  }, [airtableAppointments, selectedDate]);
 
   const handleDateSelect = (date: Date | undefined) => {
-    if (date) {
+    if (date && isValid(date)) {
       setSelectedDate(date);
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      client: "",
+      service: "",
+      time: "09:00",
+      duration: "30",
+      notes: "",
+    });
+  };
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({ ...prev, [id.replace('edit-', '')]: value }));
+  };
+
+  const handleSelectChange = (value: string, field: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleEdit = (id: string) => {
+    const appointment = filteredAppointments.find(app => app.id === id);
+    if (appointment) {
+      setFormData({
+        client: appointment.client,
+        service: appointment.service,
+        time: appointment.time,
+        duration: appointment.duration.toString(),
+        notes: appointment.notes || "",
+      });
+      setCurrentAppointment(id);
+      setIsEditAppointmentOpen(true);
+    }
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm("¿Estás seguro de que deseas eliminar este turno?")) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const handleSaveNew = () => {
+    const dateStr = format(selectedDate, "yyyy-MM-dd");
+    const appointmentData = mapAppointmentToAirtable({
+      client: formData.client,
+      service: formData.service,
+      date: dateStr,
+      time: formData.time,
+      duration: parseInt(formData.duration),
+      notes: formData.notes,
+      status: "Confirmado"
+    });
+    
+    createMutation.mutate(appointmentData);
+  };
+
+  const handleSaveEdit = () => {
+    if (!currentAppointment) return;
+    
+    const appointmentData = mapAppointmentToAirtable({
+      client: formData.client,
+      service: formData.service,
+      date: format(selectedDate, "yyyy-MM-dd"),
+      time: formData.time,
+      duration: parseInt(formData.duration),
+      notes: formData.notes,
+      status: "Confirmado"
+    });
+    
+    updateMutation.mutate({ 
+      id: currentAppointment, 
+      data: appointmentData 
+    });
+  };
+
+  const syncWithAirtable = () => {
+    refetch();
+    toast.success("Sincronizando con Airtable...");
   };
 
   return (
@@ -107,8 +253,16 @@ const AppointmentCalendar: React.FC = () => {
             className={`pointer-events-auto border rounded-md p-3`}
           />
           <div className="mt-4">
-            <Button className="w-full" onClick={syncWithAirtable}>
-              <RefreshCw className="mr-2 h-4 w-4" />
+            <Button 
+              className="w-full" 
+              onClick={syncWithAirtable}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="mr-2 h-4 w-4" />
+              )}
               Sincronizar con Airtable
             </Button>
           </div>
@@ -132,7 +286,7 @@ const AppointmentCalendar: React.FC = () => {
             </Button>
             <Dialog open={isNewAppointmentOpen} onOpenChange={setIsNewAppointmentOpen}>
               <DialogTrigger asChild>
-                <Button size="sm">
+                <Button size="sm" onClick={resetForm}>
                   <Plus className="h-4 w-4 mr-2" />
                   Nuevo Turno
                 </Button>
@@ -163,7 +317,8 @@ const AppointmentCalendar: React.FC = () => {
                     <Input
                       id="time"
                       type="time"
-                      defaultValue="09:00"
+                      value={formData.time}
+                      onChange={handleFormChange}
                       className="col-span-3"
                     />
                   </div>
@@ -174,6 +329,8 @@ const AppointmentCalendar: React.FC = () => {
                     <Input
                       id="client"
                       placeholder="Nombre del cliente"
+                      value={formData.client}
+                      onChange={handleFormChange}
                       className="col-span-3"
                     />
                   </div>
@@ -181,15 +338,18 @@ const AppointmentCalendar: React.FC = () => {
                     <Label htmlFor="service" className="text-right">
                       Servicio
                     </Label>
-                    <Select>
+                    <Select 
+                      value={formData.service} 
+                      onValueChange={(value) => handleSelectChange(value, 'service')}
+                    >
                       <SelectTrigger className="col-span-3">
                         <SelectValue placeholder="Seleccionar servicio" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="haircut">Corte de pelo</SelectItem>
-                        <SelectItem value="coloring">Tinte</SelectItem>
-                        <SelectItem value="manicure">Manicura</SelectItem>
-                        <SelectItem value="shaving">Afeitado</SelectItem>
+                        <SelectItem value="Corte de pelo">Corte de pelo</SelectItem>
+                        <SelectItem value="Tinte">Tinte</SelectItem>
+                        <SelectItem value="Manicura">Manicura</SelectItem>
+                        <SelectItem value="Afeitado">Afeitado</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -197,7 +357,10 @@ const AppointmentCalendar: React.FC = () => {
                     <Label htmlFor="duration" className="text-right">
                       Duración
                     </Label>
-                    <Select>
+                    <Select 
+                      value={formData.duration} 
+                      onValueChange={(value) => handleSelectChange(value, 'duration')}
+                    >
                       <SelectTrigger className="col-span-3">
                         <SelectValue placeholder="Seleccionar duración" />
                       </SelectTrigger>
@@ -210,9 +373,26 @@ const AppointmentCalendar: React.FC = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="notes" className="text-right">
+                      Notas
+                    </Label>
+                    <Input
+                      id="notes"
+                      placeholder="Notas adicionales"
+                      value={formData.notes}
+                      onChange={handleFormChange}
+                      className="col-span-3"
+                    />
+                  </div>
                 </div>
                 <DialogFooter>
-                  <Button type="submit" onClick={() => setIsNewAppointmentOpen(false)}>
+                  <Button 
+                    type="submit" 
+                    onClick={handleSaveNew}
+                    disabled={createMutation.isPending}
+                  >
+                    {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Guardar
                   </Button>
                 </DialogFooter>
@@ -221,33 +401,39 @@ const AppointmentCalendar: React.FC = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-1">
-            {appointments.length > 0 ? (
-              appointments.map((appointment) => (
-                <Appointment
-                  key={appointment.id}
-                  id={appointment.id}
-                  time={appointment.time}
-                  client={appointment.client}
-                  service={appointment.service}
-                  duration={appointment.duration}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                />
-              ))
-            ) : (
-              <div className="text-center py-10">
-                <p className="text-gray-500 mb-4">No hay turnos para esta fecha</p>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setIsNewAppointmentOpen(true)}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Agregar Turno
-                </Button>
-              </div>
-            )}
-          </div>
+          {isLoading ? (
+            <div className="flex justify-center items-center h-40">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {filteredAppointments.length > 0 ? (
+                filteredAppointments.map((appointment) => (
+                  <Appointment
+                    key={appointment.id}
+                    id={appointment.id}
+                    time={appointment.time}
+                    client={appointment.client}
+                    service={appointment.service}
+                    duration={appointment.duration}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                ))
+              ) : (
+                <div className="text-center py-10">
+                  <p className="text-gray-500 mb-4">No hay turnos para esta fecha</p>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsNewAppointmentOpen(true)}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Agregar Turno
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -261,7 +447,6 @@ const AppointmentCalendar: React.FC = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            {/* Appointment edit form with filled values */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="edit-date" className="text-right">
                 Fecha
@@ -280,8 +465,8 @@ const AppointmentCalendar: React.FC = () => {
               <Input
                 id="edit-time"
                 type="time"
-                defaultValue={currentAppointment ? 
-                  appointments.find(a => a.id === currentAppointment)?.time : "09:00"}
+                value={formData.time}
+                onChange={handleFormChange}
                 className="col-span-3"
               />
             </div>
@@ -291,8 +476,8 @@ const AppointmentCalendar: React.FC = () => {
               </Label>
               <Input
                 id="edit-client"
-                defaultValue={currentAppointment ? 
-                  appointments.find(a => a.id === currentAppointment)?.client : ""}
+                value={formData.client}
+                onChange={handleFormChange}
                 className="col-span-3"
               />
             </div>
@@ -300,16 +485,18 @@ const AppointmentCalendar: React.FC = () => {
               <Label htmlFor="edit-service" className="text-right">
                 Servicio
               </Label>
-              <Select>
+              <Select 
+                value={formData.service} 
+                onValueChange={(value) => handleSelectChange(value, 'service')}
+              >
                 <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder={currentAppointment ? 
-                    appointments.find(a => a.id === currentAppointment)?.service : "Seleccionar servicio"} />
+                  <SelectValue placeholder="Seleccionar servicio" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="haircut">Corte de pelo</SelectItem>
-                  <SelectItem value="coloring">Tinte</SelectItem>
-                  <SelectItem value="manicure">Manicura</SelectItem>
-                  <SelectItem value="shaving">Afeitado</SelectItem>
+                  <SelectItem value="Corte de pelo">Corte de pelo</SelectItem>
+                  <SelectItem value="Tinte">Tinte</SelectItem>
+                  <SelectItem value="Manicura">Manicura</SelectItem>
+                  <SelectItem value="Afeitado">Afeitado</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -317,10 +504,12 @@ const AppointmentCalendar: React.FC = () => {
               <Label htmlFor="edit-duration" className="text-right">
                 Duración
               </Label>
-              <Select>
+              <Select 
+                value={formData.duration} 
+                onValueChange={(value) => handleSelectChange(value, 'duration')}
+              >
                 <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder={currentAppointment ? 
-                    `${appointments.find(a => a.id === currentAppointment)?.duration} minutos` : "Seleccionar duración"} />
+                  <SelectValue placeholder="Seleccionar duración" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="15">15 minutos</SelectItem>
@@ -331,9 +520,26 @@ const AppointmentCalendar: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-notes" className="text-right">
+                Notas
+              </Label>
+              <Input
+                id="edit-notes"
+                placeholder="Notas adicionales"
+                value={formData.notes}
+                onChange={handleFormChange}
+                className="col-span-3"
+              />
+            </div>
           </div>
           <DialogFooter>
-            <Button type="submit" onClick={() => setIsEditAppointmentOpen(false)}>
+            <Button 
+              type="submit" 
+              onClick={handleSaveEdit}
+              disabled={updateMutation.isPending}
+            >
+              {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Guardar Cambios
             </Button>
           </DialogFooter>

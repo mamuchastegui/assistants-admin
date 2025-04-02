@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,8 +31,11 @@ export function useWhatsAppMessages(limit = 20) {
       setError(null);
 
       const { data, error } = await supabase.functions.invoke('whatsapp-messages', {
-        body: { action: 'getMessages' },
-        query: { limit: limit.toString(), skip: skipMessages.toString() }
+        body: { 
+          action: 'getMessages',
+          limit: limit.toString(),
+          skip: skipMessages.toString() 
+        }
       });
 
       if (error) throw new Error(error.message);

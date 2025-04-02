@@ -12,7 +12,7 @@ export interface AirtableAppointment {
     service: string;
     date: string; // Formato ISO "2023-07-15"
     hour: string; // Hora formateada como "09:00"
-    duration: number;
+    duration_minutes?: number; // Renamed from duration to match Airtable schema
     notes?: string;
     status?: string;
     assistant_id?: string;
@@ -46,6 +46,9 @@ export const fetchAppointments = async (): Promise<AirtableAppointment[]> => {
 
 export const createAppointment = async (appointment: Omit<AirtableAppointment['fields'], 'id'>): Promise<AirtableAppointment | null> => {
   try {
+    // Log the appointment data being sent
+    console.log("Creating appointment with data:", appointment);
+    
     const response = await fetch(
       `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}`,
       {
@@ -78,6 +81,9 @@ export const createAppointment = async (appointment: Omit<AirtableAppointment['f
 
 export const updateAppointment = async (id: string, fields: Partial<AirtableAppointment['fields']>): Promise<AirtableAppointment | null> => {
   try {
+    // Log the update data being sent
+    console.log("Updating appointment with data:", fields);
+    
     const response = await fetch(
       `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}/${id}`,
       {
@@ -140,7 +146,7 @@ export const mapAirtableToAppointment = (airtableAppointment: AirtableAppointmen
     time: airtableAppointment.fields.hour || "",
     client: airtableAppointment.fields.name || "",
     service: airtableAppointment.fields.service || "",
-    duration: airtableAppointment.fields.duration || 30,
+    duration: airtableAppointment.fields.duration_minutes || 30,
     date: airtableAppointment.fields.date || "",
     notes: airtableAppointment.fields.notes,
     status: airtableAppointment.fields.status,
@@ -162,8 +168,8 @@ export const mapAppointmentToAirtable = (appointment: {
     service: appointment.service,
     date: appointment.date,
     hour: appointment.time,
-    duration: appointment.duration,
+    duration_minutes: appointment.duration,
     notes: appointment.notes,
-    status: appointment.status || "free",
+    status: appointment.status || "confirmed",
   };
 };

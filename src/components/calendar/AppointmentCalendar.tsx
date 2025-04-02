@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format, parse, isValid } from "date-fns";
 import { es } from "date-fns/locale";
@@ -99,6 +101,7 @@ const AppointmentCalendar: React.FC = () => {
   
   const createMutation = useMutation({
     mutationFn: (data: ReturnType<typeof mapAppointmentToAirtable>) => {
+      console.log("Mutation data:", data);
       return createAppointment(data);
     },
     onSuccess: () => {
@@ -199,6 +202,7 @@ const AppointmentCalendar: React.FC = () => {
       status: "confirmed"
     });
     
+    console.log("Saving new appointment:", appointmentData);
     createMutation.mutate(appointmentData);
   };
 
@@ -215,6 +219,7 @@ const AppointmentCalendar: React.FC = () => {
       status: "confirmed"
     });
     
+    console.log("Saving edit to appointment:", appointmentData);
     updateMutation.mutate({ 
       id: currentAppointment, 
       data: appointmentData 

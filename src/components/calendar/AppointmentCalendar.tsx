@@ -1,18 +1,20 @@
 
-import React, { useState, useEffect } from "react";
-import { Calendar } from "@/components/ui/calendar";
+import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { format, parse, isValid } from "date-fns";
+import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Clock, Plus, RefreshCw, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+
+// Import components
+import CalendarSidebar from "./CalendarSidebar";
+import AppointmentList from "./appointment/AppointmentList";
+import AppointmentForm from "./appointment/AppointmentForm";
+
+// Import services
 import {
   fetchAppointments,
   createAppointment,
@@ -21,6 +23,15 @@ import {
   mapAirtableToAppointment,
   mapAppointmentToAirtable
 } from "@/services/airtableService";
+
+// Types
+interface AppointmentFormData {
+  client: string;
+  service: string;
+  time: string;
+  duration: string;
+  notes?: string;
+}
 
 interface Appointment {
   id: string;
@@ -33,53 +44,8 @@ interface Appointment {
   status?: string;
 }
 
-interface AppointmentFormData {
-  client: string;
-  service: string;
-  time: string;
-  duration: string;
-  notes?: string;
-}
-
-interface AppointmentProps {
-  id: string;
-  time: string;
-  client: string;
-  service: string;
-  duration: number;
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
-}
-
-const Appointment: React.FC<AppointmentProps> = ({ 
-  id, time, client, service, duration, onEdit, onDelete 
-}) => {
-  return (
-    <div className="p-3 mb-2 bg-white rounded-md border border-gray-200 hover:border-primary transition-colors">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center space-x-2">
-          <Clock className="h-4 w-4 text-gray-500" />
-          <span className="font-medium">{time}</span>
-          <span className="text-xs text-gray-500">{duration} min</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="sm" onClick={() => onEdit(id)}>
-            Editar
-          </Button>
-          <Button variant="ghost" size="sm" className="text-destructive" onClick={() => onDelete(id)}>
-            Eliminar
-          </Button>
-        </div>
-      </div>
-      <div className="mt-2">
-        <p className="font-medium">{client}</p>
-        <p className="text-sm text-gray-600">{service}</p>
-      </div>
-    </div>
-  );
-};
-
 const AppointmentCalendar: React.FC = () => {
+  // State
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isNewAppointmentOpen, setIsNewAppointmentOpen] = useState(false);
   const [isEditAppointmentOpen, setIsEditAppointmentOpen] = useState(false);
@@ -94,6 +60,7 @@ const AppointmentCalendar: React.FC = () => {
   
   const queryClient = useQueryClient();
   
+  // Queries and Mutations
   const { data: airtableAppointments, isLoading, refetch } = useQuery({
     queryKey: ['appointments'],
     queryFn: fetchAppointments,
@@ -131,6 +98,7 @@ const AppointmentCalendar: React.FC = () => {
     },
   });
 
+  // Filter appointments for selected date
   const filteredAppointments: Appointment[] = React.useMemo(() => {
     if (!airtableAppointments) return [];
     
@@ -144,8 +112,9 @@ const AppointmentCalendar: React.FC = () => {
       });
   }, [airtableAppointments, selectedDate]);
 
+  // Event handlers
   const handleDateSelect = (date: Date | undefined) => {
-    if (date && isValid(date)) {
+    if (date) {
       setSelectedDate(date);
     }
   };
@@ -233,38 +202,15 @@ const AppointmentCalendar: React.FC = () => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <Card className="md:col-span-1">
-        <CardHeader className="pb-0">
-          <CardTitle>Calendario</CardTitle>
-          <CardDescription>
-            Selecciona una fecha para ver o agregar turnos
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-4">
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={handleDateSelect}
-            locale={es}
-            className={`pointer-events-auto border rounded-md p-3`}
-          />
-          <div className="mt-4">
-            <Button 
-              className="w-full" 
-              onClick={syncWithAirtable}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <RefreshCw className="mr-2 h-4 w-4" />
-              )}
-              Sincronizar con Airtable
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Calendar sidebar */}
+      <CalendarSidebar
+        selectedDate={selectedDate}
+        onDateSelect={handleDateSelect}
+        onSyncWithAirtable={syncWithAirtable}
+        isLoading={isLoading}
+      />
 
+      {/* Appointments list */}
       <Card className="md:col-span-2">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
@@ -287,258 +233,43 @@ const AppointmentCalendar: React.FC = () => {
                   Nuevo Turno
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Nuevo Turno</DialogTitle>
-                  <DialogDescription>
-                    Completa los detalles para crear un nuevo turno
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="date" className="text-right">
-                      Fecha
-                    </Label>
-                    <Input
-                      id="date"
-                      value={format(selectedDate, "dd/MM/yyyy")}
-                      className="col-span-3"
-                      readOnly
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="time" className="text-right">
-                      Hora
-                    </Label>
-                    <Input
-                      id="time"
-                      type="time"
-                      value={formData.time}
-                      onChange={handleFormChange}
-                      className="col-span-3"
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="client" className="text-right">
-                      Cliente
-                    </Label>
-                    <Input
-                      id="client"
-                      placeholder="Nombre del cliente"
-                      value={formData.client}
-                      onChange={handleFormChange}
-                      className="col-span-3"
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="service" className="text-right">
-                      Servicio
-                    </Label>
-                    <Select 
-                      value={formData.service} 
-                      onValueChange={(value) => handleSelectChange(value, 'service')}
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Seleccionar servicio" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Corte de pelo">Corte de pelo</SelectItem>
-                        <SelectItem value="Tinte">Tinte</SelectItem>
-                        <SelectItem value="Manicura">Manicura</SelectItem>
-                        <SelectItem value="Afeitado">Afeitado</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="duration" className="text-right">
-                      Duración
-                    </Label>
-                    <Select 
-                      value={formData.duration} 
-                      onValueChange={(value) => handleSelectChange(value, 'duration')}
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Seleccionar duración" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="15">15 minutos</SelectItem>
-                        <SelectItem value="30">30 minutos</SelectItem>
-                        <SelectItem value="45">45 minutos</SelectItem>
-                        <SelectItem value="60">1 hora</SelectItem>
-                        <SelectItem value="90">1 hora 30 minutos</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="notes" className="text-right">
-                      Notas
-                    </Label>
-                    <Input
-                      id="notes"
-                      placeholder="Notas adicionales"
-                      value={formData.notes}
-                      onChange={handleFormChange}
-                      className="col-span-3"
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button 
-                    type="submit" 
-                    onClick={handleSaveNew}
-                    disabled={createMutation.isPending}
-                  >
-                    {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Guardar
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
+              <AppointmentForm
+                title="Nuevo Turno"
+                description="Completa los detalles para crear un nuevo turno"
+                formData={formData}
+                selectedDate={selectedDate}
+                isLoading={createMutation.isPending}
+                onFormChange={handleFormChange}
+                onSelectChange={handleSelectChange}
+                onSubmit={handleSaveNew}
+              />
             </Dialog>
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center items-center h-40">
-              <Loader2 className="h-10 w-10 animate-spin text-primary" />
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {filteredAppointments.length > 0 ? (
-                filteredAppointments.map((appointment) => (
-                  <Appointment
-                    key={appointment.id}
-                    id={appointment.id}
-                    time={appointment.time}
-                    client={appointment.client}
-                    service={appointment.service}
-                    duration={appointment.duration}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
-                ))
-              ) : (
-                <div className="text-center py-10">
-                  <p className="text-gray-500 mb-4">No hay turnos para esta fecha</p>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setIsNewAppointmentOpen(true)}
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Agregar Turno
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
+          <AppointmentList
+            appointments={filteredAppointments}
+            isLoading={isLoading}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onAddNew={() => setIsNewAppointmentOpen(true)}
+          />
         </CardContent>
       </Card>
 
+      {/* Edit appointment dialog */}
       <Dialog open={isEditAppointmentOpen} onOpenChange={setIsEditAppointmentOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Editar Turno</DialogTitle>
-            <DialogDescription>
-              Actualiza los detalles del turno
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-date" className="text-right">
-                Fecha
-              </Label>
-              <Input
-                id="edit-date"
-                value={format(selectedDate, "dd/MM/yyyy")}
-                className="col-span-3"
-                readOnly
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-time" className="text-right">
-                Hora
-              </Label>
-              <Input
-                id="edit-time"
-                type="time"
-                value={formData.time}
-                onChange={handleFormChange}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-client" className="text-right">
-                Cliente
-              </Label>
-              <Input
-                id="edit-client"
-                value={formData.client}
-                onChange={handleFormChange}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-service" className="text-right">
-                Servicio
-              </Label>
-              <Select 
-                value={formData.service} 
-                onValueChange={(value) => handleSelectChange(value, 'service')}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Seleccionar servicio" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Corte de pelo">Corte de pelo</SelectItem>
-                  <SelectItem value="Tinte">Tinte</SelectItem>
-                  <SelectItem value="Manicura">Manicura</SelectItem>
-                  <SelectItem value="Afeitado">Afeitado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-duration" className="text-right">
-                Duración
-              </Label>
-              <Select 
-                value={formData.duration} 
-                onValueChange={(value) => handleSelectChange(value, 'duration')}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Seleccionar duración" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="15">15 minutos</SelectItem>
-                  <SelectItem value="30">30 minutos</SelectItem>
-                  <SelectItem value="45">45 minutos</SelectItem>
-                  <SelectItem value="60">1 hora</SelectItem>
-                  <SelectItem value="90">1 hora 30 minutos</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-notes" className="text-right">
-                Notas
-              </Label>
-              <Input
-                id="edit-notes"
-                placeholder="Notas adicionales"
-                value={formData.notes}
-                onChange={handleFormChange}
-                className="col-span-3"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button 
-              type="submit" 
-              onClick={handleSaveEdit}
-              disabled={updateMutation.isPending}
-            >
-              {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Guardar Cambios
-            </Button>
-          </DialogFooter>
-        </DialogContent>
+        <AppointmentForm
+          title="Editar Turno"
+          description="Actualiza los detalles del turno"
+          formData={formData}
+          selectedDate={selectedDate}
+          isLoading={updateMutation.isPending}
+          onFormChange={handleFormChange}
+          onSelectChange={handleSelectChange}
+          onSubmit={handleSaveEdit}
+          idPrefix="edit"
+        />
       </Dialog>
     </div>
   );

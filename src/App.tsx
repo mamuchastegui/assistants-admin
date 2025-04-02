@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Calendar from "./pages/Calendar";
 import Assistant from "./pages/Assistant";
 import Integrations from "./pages/Integrations";
+import Orders from "./pages/Orders";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/assistant" element={<Assistant />} />
           <Route path="/integrations" element={<Integrations />} />
+          <Route path="/orders" element={<Orders />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

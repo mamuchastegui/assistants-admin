@@ -10,7 +10,8 @@ import {
   Zap,
   Bell,
   ShoppingBag,
-  ChevronLeft
+  ChevronLeft,
+  Utensils
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ const Sidebar = () => {
     { name: "Asistente", icon: MessageSquare, path: "/assistant" },
     { name: "Integraciones", icon: Zap, path: "/integrations" },
     { name: "Promociones", icon: ShoppingBag, path: "/promotions" },
+    { name: "Pedidos", icon: Utensils, path: "/orders" },
     { name: "Notificaciones", icon: Bell, path: "/notifications" },
     { name: "Configuración", icon: Settings, path: "/settings" },
   ];

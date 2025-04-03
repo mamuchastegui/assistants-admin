@@ -1,13 +1,15 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { format, parseISO } from "date-fns";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import CreateOrderModal from "@/components/orders/CreateOrderModal";
 
 // Interfaz para los pedidos según la respuesta de la API
 interface Order {
@@ -84,6 +86,8 @@ const getStatusClass = (status: string) => {
 };
 
 const Orders = () => {
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  
   // Usar React Query para obtener los datos
   const { data: orders, isLoading, error, isError } = useQuery({
     queryKey: ['orders'],
@@ -113,6 +117,10 @@ const Orders = () => {
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <h2 className="text-3xl font-bold tracking-tight">Pedidos de Catering</h2>
+          <Button onClick={() => setCreateModalOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Nuevo Pedido
+          </Button>
         </div>
         
         <div className="grid gap-4 md:grid-cols-3">
@@ -234,6 +242,11 @@ const Orders = () => {
           </CardContent>
         </Card>
       </div>
+      
+      <CreateOrderModal 
+        open={createModalOpen}
+        onOpenChange={setCreateModalOpen}
+      />
     </DashboardLayout>
   );
 };

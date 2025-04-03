@@ -1,59 +1,118 @@
 
 import React from "react";
+import { useQuery } from "@tanstack/react-query";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { format, parseISO } from "date-fns";
+import { Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
-// Datos de ejemplo para mostrar en la tabla
-const ordersMock = [
-  {
-    id: "1",
-    customerName: "Juan Pérez",
-    items: "Pizza Margarita, Refresco",
-    total: "$18.50",
-    status: "Entregado",
-    date: "2023-10-15 14:30",
-  },
-  {
-    id: "2",
-    customerName: "María López",
-    items: "Hamburguesa Doble, Papas Fritas, Agua",
-    total: "$15.75",
-    status: "En preparación",
-    date: "2023-10-15 15:45",
-  },
-  {
-    id: "3",
-    customerName: "Carlos Rodríguez",
-    items: "Ensalada César, Jugo Natural",
-    total: "$12.25",
-    status: "En camino",
-    date: "2023-10-15 16:20",
-  },
-  {
-    id: "4",
-    customerName: "Ana García",
-    items: "Pasta Alfredo, Vino Tinto",
-    total: "$27.50",
-    status: "Pendiente",
-    date: "2023-10-15 18:00",
-  },
-  {
-    id: "5",
-    customerName: "Roberto Sánchez",
-    items: "Tacos (4), Nachos, Cerveza",
-    total: "$22.75",
-    status: "Cancelado",
-    date: "2023-10-15 19:15",
-  },
-];
+// Interfaz para los pedidos según la respuesta de la API
+interface Order {
+  id: string;
+  client_name: string;
+  event_date: string;
+  number_of_people: number;
+  menu_type: string;
+  special_requirements: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface OrdersResponse {
+  response: Order[];
+}
+
+// Función para obtener los pedidos desde la API
+const fetchOrders = async (): Promise<Order[]> => {
+  try {
+    const response = await fetch('https://api.condamind.com/v1/catering/orders', {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Error al cargar los pedidos: ${response.status}`);
+    }
+    
+    const data: OrdersResponse = await response.json();
+    return data.response;
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    toast.error("No se pudieron cargar los pedidos");
+    throw error;
+  }
+};
+
+// Función para formatear la fecha
+const formatDate = (dateString: string) => {
+  try {
+    return format(parseISO(dateString), "dd/MM/yyyy HH:mm");
+  } catch (error) {
+    return dateString;
+  }
+};
+
+// Función para traducir el estado
+const translateStatus = (status: string) => {
+  const statusMap: Record<string, string> = {
+    'pending': 'Pendiente',
+    'confirmed': 'Confirmado',
+    'in_progress': 'En preparación',
+    'delivered': 'Entregado',
+    'cancelled': 'Cancelado'
+  };
+  
+  return statusMap[status] || status;
+};
+
+// Función para obtener la clase CSS según el estado
+const getStatusClass = (status: string) => {
+  const statusClassMap: Record<string, string> = {
+    'pending': 'bg-yellow-100 text-yellow-800',
+    'confirmed': 'bg-blue-100 text-blue-800',
+    'in_progress': 'bg-purple-100 text-purple-800',
+    'delivered': 'bg-green-100 text-green-800',
+    'cancelled': 'bg-red-100 text-red-800'
+  };
+  
+  return statusClassMap[status] || 'bg-gray-100 text-gray-800';
+};
 
 const Orders = () => {
+  // Usar React Query para obtener los datos
+  const { data: orders, isLoading, error, isError } = useQuery({
+    queryKey: ['orders'],
+    queryFn: fetchOrders,
+  });
+
+  // Contar pedidos por estado
+  const countOrders = (status?: string) => {
+    if (!orders) return 0;
+    
+    if (!status) {
+      return orders.length;
+    }
+    
+    return orders.filter(order => order.status === status).length;
+  };
+
+  // Calcular ingresos totales (asumiendo un promedio de $150 por persona)
+  const calculateTotalRevenue = () => {
+    if (!orders) return 0;
+    
+    return orders.reduce((total, order) => total + (order.number_of_people * 150), 0);
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <h2 className="text-3xl font-bold tracking-tight">Pedidos de Comida</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Pedidos de Catering</h2>
         </div>
         
         <div className="grid gap-4 md:grid-cols-3">
@@ -62,8 +121,16 @@ const Orders = () => {
               <CardTitle className="text-sm font-medium">Total de Pedidos</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">124</div>
-              <p className="text-xs text-muted-foreground">+4% respecto al mes pasado</p>
+              {isLoading ? (
+                <Skeleton className="h-8 w-20" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">{countOrders()}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {countOrders('pending')} pendientes
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
           
@@ -72,18 +139,38 @@ const Orders = () => {
               <CardTitle className="text-sm font-medium">Pedidos Hoy</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12</div>
-              <p className="text-xs text-muted-foreground">-2% respecto a ayer</p>
+              {isLoading ? (
+                <Skeleton className="h-8 w-20" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">
+                    {orders?.filter(order => 
+                      formatDate(order.created_at).startsWith(format(new Date(), "dd/MM/yyyy"))
+                    ).length || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Pedidos del día
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Ingreso Total</CardTitle>
+              <CardTitle className="text-sm font-medium">Ingreso Estimado</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$1,482.50</div>
-              <p className="text-xs text-muted-foreground">+8% respecto al mes pasado</p>
+              {isLoading ? (
+                <Skeleton className="h-8 w-20" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">${calculateTotalRevenue().toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Basado en ${orders?.reduce((total, order) => total + order.number_of_people, 0) || 0} personas
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -92,44 +179,58 @@ const Orders = () => {
           <CardHeader>
             <CardTitle>Pedidos Recientes</CardTitle>
             <CardDescription>
-              Lista de los últimos pedidos realizados por los clientes.
+              Lista de los últimos pedidos de catering.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Productos</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Fecha</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {ordersMock.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">{order.id}</TableCell>
-                    <TableCell>{order.customerName}</TableCell>
-                    <TableCell>{order.items}</TableCell>
-                    <TableCell>{order.total}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        order.status === "Entregado" ? "bg-green-100 text-green-800" :
-                        order.status === "En preparación" ? "bg-blue-100 text-blue-800" :
-                        order.status === "En camino" ? "bg-yellow-100 text-yellow-800" :
-                        order.status === "Cancelado" ? "bg-red-100 text-red-800" :
-                        "bg-gray-100 text-gray-800"
-                      }`}>
-                        {order.status}
-                      </span>
-                    </TableCell>
-                    <TableCell>{order.date}</TableCell>
+            {isLoading ? (
+              <div className="flex justify-center items-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : isError ? (
+              <div className="text-center py-8 text-red-500">
+                Error al cargar los pedidos. Por favor intente nuevamente.
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Menú</TableHead>
+                    <TableHead>Personas</TableHead>
+                    <TableHead>Fecha del Evento</TableHead>
+                    <TableHead>Estado</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {orders && orders.length > 0 ? (
+                    orders.map((order) => (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-medium">{order.id.substring(0, 8)}...</TableCell>
+                        <TableCell>{order.client_name}</TableCell>
+                        <TableCell className="max-w-xs truncate" title={order.menu_type}>
+                          {order.menu_type}
+                        </TableCell>
+                        <TableCell>{order.number_of_people}</TableCell>
+                        <TableCell>{formatDate(order.event_date)}</TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded-full text-xs ${getStatusClass(order.status)}`}>
+                            {translateStatus(order.status)}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-4">
+                        No hay pedidos disponibles
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       </div>

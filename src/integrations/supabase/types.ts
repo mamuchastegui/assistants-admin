@@ -131,6 +131,42 @@ export type Database = {
           },
         ]
       }
+      catering_orders: {
+        Row: {
+          client_name: string
+          created_at: string | null
+          event_date: string
+          id: string
+          menu_type: string
+          number_of_people: number
+          special_requirements: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          client_name: string
+          created_at?: string | null
+          event_date: string
+          id?: string
+          menu_type: string
+          number_of_people: number
+          special_requirements?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          client_name?: string
+          created_at?: string | null
+          event_date?: string
+          id?: string
+          menu_type?: string
+          number_of_people?: number
+          special_requirements?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       goal_milestones: {
         Row: {
           completed: boolean | null

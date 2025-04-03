@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -11,7 +10,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import CreateOrderModal from "@/components/orders/CreateOrderModal";
 
-// Interfaz para los pedidos según la respuesta de la API
 interface Order {
   id: string;
   client_name: string;
@@ -28,7 +26,6 @@ interface OrdersResponse {
   response: Order[];
 }
 
-// Función para obtener los pedidos desde la API
 const fetchOrders = async (): Promise<Order[]> => {
   try {
     const response = await fetch('https://api.condamind.com/v1/catering/orders', {
@@ -50,7 +47,6 @@ const fetchOrders = async (): Promise<Order[]> => {
   }
 };
 
-// Función para formatear la fecha
 const formatDate = (dateString: string) => {
   try {
     return format(parseISO(dateString), "dd/MM/yyyy HH:mm");
@@ -59,7 +55,6 @@ const formatDate = (dateString: string) => {
   }
 };
 
-// Función para traducir el estado
 const translateStatus = (status: string) => {
   const statusMap: Record<string, string> = {
     'pending': 'Pendiente',
@@ -72,7 +67,6 @@ const translateStatus = (status: string) => {
   return statusMap[status] || status;
 };
 
-// Función para obtener la clase CSS según el estado
 const getStatusClass = (status: string) => {
   const statusClassMap: Record<string, string> = {
     'pending': 'bg-yellow-100 text-yellow-800',
@@ -88,13 +82,11 @@ const getStatusClass = (status: string) => {
 const Orders = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   
-  // Usar React Query para obtener los datos
   const { data: orders, isLoading, error, isError } = useQuery({
     queryKey: ['orders'],
     queryFn: fetchOrders,
   });
 
-  // Contar pedidos por estado
   const countOrders = (status?: string) => {
     if (!orders) return 0;
     
@@ -105,11 +97,16 @@ const Orders = () => {
     return orders.filter(order => order.status === status).length;
   };
 
-  // Calcular ingresos totales (asumiendo un promedio de $150 por persona)
   const calculateTotalRevenue = () => {
     if (!orders) return 0;
     
-    return orders.reduce((total, order) => total + (order.number_of_people * 150), 0);
+    return orders.reduce((total, order) => total + (order.number_of_people * 12000), 0);
+  };
+
+  const calculateTotalPeople = () => {
+    if (!orders) return 0;
+    
+    return orders.reduce((total, order) => total + order.number_of_people, 0);
   };
 
   return (
@@ -175,7 +172,7 @@ const Orders = () => {
                 <>
                   <div className="text-2xl font-bold">${calculateTotalRevenue().toLocaleString()}</div>
                   <p className="text-xs text-muted-foreground">
-                    Basado en ${orders?.reduce((total, order) => total + order.number_of_people, 0) || 0} personas
+                    Basado en {calculateTotalPeople()} personas
                   </p>
                 </>
               )}

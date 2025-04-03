@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 const orderSchema = z.object({
   client_name: z.string().min(1, "El nombre del cliente es requerido"),
   event_date: z.string().min(1, "La fecha del evento es requerida"),
-  number_of_people: z.string().transform((val) => parseInt(val, 10)).refine((val) => !isNaN(val) && val > 0, "Debe ser un número mayor a 0"),
+  number_of_people: z.coerce.number().positive("Debe ser un número mayor a 0"),
   menu_type: z.string().min(1, "El tipo de menú es requerido"),
   special_requirements: z.string().optional(),
 });
@@ -35,7 +34,7 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
     defaultValues: {
       client_name: "",
       event_date: "",
-      number_of_people: "",
+      number_of_people: undefined,
       menu_type: "",
       special_requirements: "",
     },
@@ -51,7 +50,7 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
         body: JSON.stringify({
           client_name: data.client_name,
           event_date: data.event_date,
-          number_of_people: parseInt(data.number_of_people as unknown as string, 10),
+          number_of_people: data.number_of_people,
           menu_type: data.menu_type,
           special_requirements: data.special_requirements || "",
         }),
@@ -125,7 +124,7 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
                 <FormItem>
                   <FormLabel>Número de Personas</FormLabel>
                   <FormControl>
-                    <Input type="number" min="1" placeholder="Cantidad de personas" {...field} />
+                    <Input type="number" min="1" placeholder="Cantidad de personas" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

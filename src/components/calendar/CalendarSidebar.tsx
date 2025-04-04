@@ -31,13 +31,15 @@ const CalendarSidebar: React.FC<CalendarSidebarProps> = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-4">
-        <Calendar
-          mode="single"
-          selected={selectedDate}
-          onSelect={onDateSelect}
-          locale={es}
-          className={`pointer-events-auto border rounded-md p-3`}
-        />
+        <div className="relative">
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={onDateSelect}
+            locale={es}
+            className="border rounded-md p-3"
+          />
+        </div>
         <div className="mt-4">
           <Button 
             className="w-full" 

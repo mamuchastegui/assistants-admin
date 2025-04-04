@@ -113,28 +113,22 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
                 label="Configuración"
                 isChildItem={true}
               />
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className={cn(
-                  "justify-start",
-                  isCollapsed ? "w-8 h-8 p-0" : "w-full"
-                )}
-              >
-                <Users className={cn("h-4 w-4", isCollapsed ? "" : "mr-2")} />
-                {!isCollapsed && "Clientes API"}
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className={cn(
-                  "justify-start",
-                  isCollapsed ? "w-8 h-8 p-0" : "w-full"
-                )}
-              >
-                <LifeBuoy className={cn("h-4 w-4", isCollapsed ? "" : "mr-2")} />
-                {!isCollapsed && "Soporte"}
-              </Button>
+              <NavButton 
+                to="/clients"
+                onClose={onClose}
+                icon={<Users className="h-4 w-4" />}
+                collapsed={isCollapsed}
+                label="Clientes API"
+                isChildItem={true}
+              />
+              <NavButton 
+                to="/support"
+                onClose={onClose}
+                icon={<LifeBuoy className="h-4 w-4" />}
+                collapsed={isCollapsed}
+                label="Soporte"
+                isChildItem={true}
+              />
             </SidebarGroup>
           </div>
         </ScrollArea>
@@ -169,19 +163,42 @@ const NavButton = ({
     }
   };
   
+  if (collapsed) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <NavLink 
+              to={to} 
+              onClick={handleClick}
+              className={({isActive}) => cn(
+                "flex items-center justify-center rounded-md w-8 h-8 mx-auto",
+                isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent text-foreground/80 hover:text-foreground"
+              )}
+            >
+              {icon}
+            </NavLink>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            {label}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+  
   return (
     <NavLink 
       to={to} 
       onClick={handleClick}
       className={({isActive}) => cn(
         "flex items-center rounded-md px-2 py-1.5 text-sm font-medium",
-        isChildItem && !collapsed && "pl-6",
-        isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent text-foreground/80 hover:text-foreground",
-        collapsed && "justify-center" 
+        isChildItem && "pl-6",
+        isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent text-foreground/80 hover:text-foreground"
       )}
     >
-      <div className={cn(collapsed ? "" : "mr-2")}>{icon}</div>
-      {!collapsed && <span>{label}</span>}
+      <div className="mr-2">{icon}</div>
+      <span>{label}</span>
     </NavLink>
   );
 };
@@ -197,16 +214,15 @@ const SidebarGroup = ({ icon, title, children, collapsed = false }: SidebarGroup
   const [isOpen, setIsOpen] = useState(false);
   
   if (collapsed) {
-    // En modo colapsado, mostrar el ícono con tooltip
     return (
-      <div className="my-2 flex justify-center">
+      <div className="my-2">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="w-8 h-8 p-0 justify-center"
+                className="w-8 h-8 p-0 justify-center mx-auto"
                 onClick={() => setIsOpen(!isOpen)} 
               >
                 {icon}
@@ -217,11 +233,15 @@ const SidebarGroup = ({ icon, title, children, collapsed = false }: SidebarGroup
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+        {isOpen && (
+          <div className="absolute left-10 mt-0 bg-card rounded-md shadow-lg border p-2 min-w-[180px] z-50">
+            {children}
+          </div>
+        )}
       </div>
     );
   }
   
-  // En modo expandido, mostrar el collapsible completo
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="my-2">
       <CollapsibleTrigger asChild>

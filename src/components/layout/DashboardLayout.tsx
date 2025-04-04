@@ -17,14 +17,14 @@ const DashboardLayoutContent: React.FC<DashboardLayoutContentProps> = ({ childre
     <div className="min-h-screen bg-background flex flex-col md:flex-row w-full">
       <aside className={cn(
         "fixed top-16 bottom-0 md:top-0 left-0 z-40 transition-all duration-300 overflow-hidden bg-card border-r shadow-sm",
-        isCollapsed ? "w-10" : "w-64",
+        isCollapsed ? "w-[3rem]" : "w-64",
         "md:flex flex-shrink-0"
       )}>
         <Sidebar />
       </aside>
       <div className={cn(
         "flex flex-col flex-1 transition-all duration-300",
-        isCollapsed ? "md:ml-10" : "md:ml-64"
+        isCollapsed ? "md:ml-12" : "md:ml-64"
       )}>
         <Header>
           <SidebarTrigger className="h-8 w-8" />

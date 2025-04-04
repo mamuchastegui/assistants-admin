@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 
 interface MenuItem {
   id: string;
@@ -53,18 +53,30 @@ const MenuManagement = () => {
   const { data: menuItems, isLoading } = useQuery({
     queryKey: ["menu-items"],
     queryFn: async () => {
+      if (!supabase) {
+        console.error("Supabase client not initialized");
+        return [] as MenuItem[];
+      }
+
       const { data, error } = await supabase
         .from("menu_items")
         .select("*")
         .order("name", { ascending: true });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching menu items:", error);
+        throw error;
+      }
       return data as MenuItem[];
     },
   });
 
   const createMenuItemMutation = useMutation({
     mutationFn: async (data: MenuItemFormValues) => {
+      if (!supabase) {
+        throw new Error("Supabase client not initialized");
+      }
+
       if (isEditing) {
         const { error } = await supabase
           .from("menu_items")
@@ -111,6 +123,10 @@ const MenuManagement = () => {
 
   const deleteMenuItemMutation = useMutation({
     mutationFn: async (id: string) => {
+      if (!supabase) {
+        throw new Error("Supabase client not initialized");
+      }
+
       const { error } = await supabase
         .from("menu_items")
         .delete()

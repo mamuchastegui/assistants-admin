@@ -14,7 +14,7 @@ import {
   MessageSquare,
   Menu as MenuIcon
 } from "lucide-react";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SidebarProps {
   className?: string;
@@ -22,7 +22,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ className, onClose }: SidebarProps) {
-  const { isMobile } = useMobile();
+  const isMobile = useIsMobile();
 
   return (
     <div className={cn("pb-12 w-full", className)}>
@@ -105,7 +105,7 @@ interface NavButtonProps {
 }
 
 const NavButton = ({ to, children, icon, onClose }: NavButtonProps) => {
-  const { isMobile } = useMobile();
+  const isMobile = useIsMobile();
   
   const handleClick = () => {
     if (isMobile && onClose) {

@@ -5,14 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 
 interface StatsCategory {
   id: string;
@@ -50,29 +49,41 @@ const StatsCategories = () => {
     },
   });
 
-  const { data: statsCategories, isLoading } = useQuery({
+  const { data: categories, isLoading } = useQuery({
     queryKey: ["stats-categories"],
     queryFn: async () => {
+      if (!supabase) {
+        console.error("Supabase client not initialized");
+        return [] as StatsCategory[];
+      }
+
       const { data, error } = await supabase
         .from("stats_categories")
         .select("*")
         .order("name", { ascending: true });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching stats categories:", error);
+        throw error;
+      }
       return data as StatsCategory[];
     },
   });
 
-  const createStatsCategoryMutation = useMutation({
+  const createCategoryMutation = useMutation({
     mutationFn: async (data: StatsCategoryFormValues) => {
+      if (!supabase) {
+        throw new Error("Supabase client not initialized");
+      }
+
       if (isEditing) {
         const { error } = await supabase
           .from("stats_categories")
           .update({ 
             name: data.name,
             value: data.value,
-            icon: data.icon || null,
-            color: data.color || null,
+            icon: data.icon,
+            color: data.color,
             is_active: data.is_active,
             updated_at: new Date().toISOString(),
           })
@@ -86,8 +97,8 @@ const StatsCategories = () => {
           .insert({ 
             name: data.name,
             value: data.value,
-            icon: data.icon || null,
-            color: data.color || null,
+            icon: data.icon,
+            color: data.color,
             is_active: data.is_active,
           })
           .select("*")
@@ -104,13 +115,17 @@ const StatsCategories = () => {
       toast.success(isEditing ? "Categoría estadística actualizada" : "Categoría estadística añadida");
     },
     onError: (error) => {
-      console.error("Error en operación de categoría estadística:", error);
+      console.error("Error en operación de categoría:", error);
       toast.error("Ha ocurrido un error");
     },
   });
 
-  const deleteStatsCategoryMutation = useMutation({
+  const deleteCategoryMutation = useMutation({
     mutationFn: async (id: string) => {
+      if (!supabase) {
+        throw new Error("Supabase client not initialized");
+      }
+
       const { error } = await supabase
         .from("stats_categories")
         .delete()
@@ -124,32 +139,32 @@ const StatsCategories = () => {
       toast.success("Categoría estadística eliminada");
     },
     onError: (error) => {
-      console.error("Error eliminando categoría estadística:", error);
+      console.error("Error eliminando categoría:", error);
       toast.error("No se pudo eliminar la categoría");
     },
   });
 
   const onSubmit = (data: StatsCategoryFormValues) => {
-    createStatsCategoryMutation.mutate(data);
+    createCategoryMutation.mutate(data);
   };
 
-  const handleEditItem = (item: StatsCategory) => {
-    setIsEditing(item.id);
+  const handleEditCategory = (category: StatsCategory) => {
+    setIsEditing(category.id);
     form.reset({
-      name: item.name,
-      value: item.value,
-      icon: item.icon || "",
-      color: item.color || "",
-      is_active: item.is_active || true,
+      name: category.name,
+      value: category.value,
+      icon: category.icon || "",
+      color: category.color || "",
+      is_active: category.is_active || true,
     });
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Categorías Estadísticas</CardTitle>
+        <CardTitle>Gestión de Categorías Estadísticas</CardTitle>
         <CardDescription>
-          Agregue, edite o elimine categorías para estadísticas
+          Añade, edita o elimina categorías para las estadísticas
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -179,12 +194,9 @@ const StatsCategories = () => {
                   name="value"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Valor (identificador)</FormLabel>
+                      <FormLabel>Valor</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="sin_gluten"
-                          {...field}
-                        />
+                        <Input placeholder="sin_gluten" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -196,9 +208,9 @@ const StatsCategories = () => {
                   name="icon"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Icono (opcional)</FormLabel>
+                      <FormLabel>Ícono</FormLabel>
                       <FormControl>
-                        <Input placeholder="nombre-icono" {...field} />
+                        <Input placeholder="allergens" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -210,13 +222,9 @@ const StatsCategories = () => {
                   name="color"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Color (opcional)</FormLabel>
+                      <FormLabel>Color</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="text" 
-                          placeholder="#4f46e5" 
-                          {...field}
-                        />
+                        <Input placeholder="#4CAF50" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -238,9 +246,9 @@ const StatsCategories = () => {
                   )}
                   <Button 
                     type="submit" 
-                    disabled={createStatsCategoryMutation.isPending}
+                    disabled={createCategoryMutation.isPending}
                   >
-                    {createStatsCategoryMutation.isPending ? (
+                    {createCategoryMutation.isPending ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Guardando...
@@ -258,12 +266,12 @@ const StatsCategories = () => {
           </div>
           
           <div>
-            <h3 className="text-lg font-medium mb-4">Categorías disponibles</h3>
+            <h3 className="text-lg font-medium mb-4">Categorías estadísticas disponibles</h3>
             {isLoading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
-            ) : statsCategories && statsCategories.length > 0 ? (
+            ) : categories && categories.length > 0 ? (
               <div className="border rounded-md">
                 <Table>
                   <TableHeader>
@@ -274,24 +282,15 @@ const StatsCategories = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {statsCategories.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center space-x-2">
-                            <span>{item.name}</span>
-                            {item.color && (
-                              <Badge style={{ backgroundColor: item.color, color: "#fff" }}>
-                                {item.color}
-                              </Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>{item.value}</TableCell>
+                    {categories.map((category) => (
+                      <TableRow key={category.id}>
+                        <TableCell className="font-medium">{category.name}</TableCell>
+                        <TableCell>{category.value}</TableCell>
                         <TableCell className="text-right">
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleEditItem(item)}
+                            onClick={() => handleEditCategory(category)}
                             className="h-8 w-8 p-0 mr-1"
                           >
                             <Pencil className="h-4 w-4" />
@@ -301,11 +300,11 @@ const StatsCategories = () => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => deleteStatsCategoryMutation.mutate(item.id)}
+                            onClick={() => deleteCategoryMutation.mutate(category.id)}
                             className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                            disabled={deleteStatsCategoryMutation.isPending}
+                            disabled={deleteCategoryMutation.isPending}
                           >
-                            {deleteStatsCategoryMutation.isPending ? (
+                            {deleteCategoryMutation.isPending ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
                               <Trash2 className="h-4 w-4" />

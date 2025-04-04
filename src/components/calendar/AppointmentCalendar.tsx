@@ -56,7 +56,7 @@ const AppointmentCalendar: React.FC = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
       {/* Calendar sidebar */}
       <CalendarSidebar
         selectedDate={selectedDate}
@@ -67,7 +67,7 @@ const AppointmentCalendar: React.FC = () => {
 
       {/* Appointments list */}
       <Card className="md:col-span-2">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardHeader className="pb-2">
           <AppointmentHeader 
             selectedDate={selectedDate}
             onPrevDay={handlePrevDay}

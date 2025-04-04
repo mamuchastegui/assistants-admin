@@ -22,7 +22,7 @@ const AppointmentHeader: React.FC<AppointmentHeaderProps> = ({
   onOpenNewDialog
 }) => {
   return (
-    <div className="flex flex-row items-center justify-between pb-2">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-2 gap-3 sm:gap-0">
       <div>
         <div className="flex items-center space-x-1">
           <CardTitle>Turnos</CardTitle>
@@ -44,7 +44,8 @@ const AppointmentHeader: React.FC<AppointmentHeaderProps> = ({
           onOpenNewDialog();
         }}>
           <Plus className="h-4 w-4 mr-2" />
-          Nuevo Turno
+          <span className="hidden sm:inline">Nuevo Turno</span>
+          <span className="sm:hidden">Nuevo</span>
         </Button>
       </div>
     </div>

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -9,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import CreateOrderModal from "@/components/orders/CreateOrderModal";
+import { PageHeader } from "@/components/ui/page-header";
 
 interface Order {
   id: string;
@@ -112,15 +114,17 @@ const Orders = () => {
   return (
     <DashboardLayout>
       <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-3xl font-bold tracking-tight">Pedidos de Catering</h2>
-          <Button onClick={() => setCreateModalOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Nuevo Pedido
-          </Button>
-        </div>
+        <PageHeader
+          title="Pedidos de Catering"
+          actions={
+            <Button onClick={() => setCreateModalOpen(true)} size="sm" className="gap-2">
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Nuevo Pedido</span>
+            </Button>
+          }
+        />
         
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Total de Pedidos</CardTitle>
@@ -161,7 +165,7 @@ const Orders = () => {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="sm:col-span-2 lg:col-span-1">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Ingreso Estimado</CardTitle>
             </CardHeader>
@@ -180,14 +184,14 @@ const Orders = () => {
           </Card>
         </div>
         
-        <Card>
+        <Card className="overflow-hidden">
           <CardHeader>
             <CardTitle>Pedidos Recientes</CardTitle>
             <CardDescription>
               Lista de los últimos pedidos de catering.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0 sm:p-2">
             {isLoading ? (
               <div className="flex justify-center items-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -197,44 +201,46 @@ const Orders = () => {
                 Error al cargar los pedidos. Por favor intente nuevamente.
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Menú</TableHead>
-                    <TableHead>Personas</TableHead>
-                    <TableHead>Fecha del Evento</TableHead>
-                    <TableHead>Estado</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {orders && orders.length > 0 ? (
-                    orders.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell className="font-medium">{order.id.substring(0, 8)}...</TableCell>
-                        <TableCell>{order.client_name}</TableCell>
-                        <TableCell className="max-w-xs truncate" title={order.menu_type}>
-                          {order.menu_type}
-                        </TableCell>
-                        <TableCell>{order.number_of_people}</TableCell>
-                        <TableCell>{formatDate(order.event_date)}</TableCell>
-                        <TableCell>
-                          <span className={`px-2 py-1 rounded-full text-xs ${getStatusClass(order.status)}`}>
-                            {translateStatus(order.status)}
-                          </span>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[80px]">ID</TableHead>
+                      <TableHead>Cliente</TableHead>
+                      <TableHead className="hidden md:table-cell">Menú</TableHead>
+                      <TableHead className="w-[80px] text-center">Personas</TableHead>
+                      <TableHead className="hidden sm:table-cell">Fecha</TableHead>
+                      <TableHead>Estado</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {orders && orders.length > 0 ? (
+                      orders.map((order) => (
+                        <TableRow key={order.id}>
+                          <TableCell className="font-medium">{order.id.substring(0, 5)}...</TableCell>
+                          <TableCell className="max-w-[120px] truncate">{order.client_name}</TableCell>
+                          <TableCell className="hidden md:table-cell max-w-[150px] truncate" title={order.menu_type}>
+                            {order.menu_type}
+                          </TableCell>
+                          <TableCell className="text-center">{order.number_of_people}</TableCell>
+                          <TableCell className="hidden sm:table-cell whitespace-nowrap">{formatDate(order.event_date)}</TableCell>
+                          <TableCell>
+                            <span className={`px-2 py-1 rounded-full text-xs ${getStatusClass(order.status)}`}>
+                              {translateStatus(order.status)}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-4">
+                          No hay pedidos disponibles
                         </TableCell>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-4">
-                        No hay pedidos disponibles
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </CardContent>
         </Card>

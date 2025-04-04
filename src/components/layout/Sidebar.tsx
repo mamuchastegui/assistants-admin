@@ -25,10 +25,10 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
   const isMobile = useIsMobile();
 
   return (
-    <div className={cn("pb-12 w-full", className)}>
+    <div className={cn("pb-12 w-full max-w-64", className)}>
       <div className="space-y-4 py-4">
-        <div className="px-4 py-2">
-          <h2 className="mb-2 px-2 text-xl font-semibold tracking-tight">
+        <div className="px-3 py-2">
+          <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">
             Gonza Admin
           </h2>
           <div className="space-y-1">
@@ -70,8 +70,8 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
           </div>
         </div>
 
-        <ScrollArea className="h-[300px]">
-          <div className="space-y-1 px-4">
+        <ScrollArea className="h-[200px] md:h-[300px]">
+          <div className="space-y-1 px-3">
             <h4 className="px-2 text-sm font-semibold tracking-tight">
               Integraciones
             </h4>

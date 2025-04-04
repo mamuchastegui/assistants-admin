@@ -1,107 +1,129 @@
 
 import React from "react";
-import { Link } from "react-router-dom";
-import { 
-  CalendarDays, 
-  MessageSquare, 
-  Users, 
-  Settings, 
-  PieChart,
-  Zap,
-  Bell,
-  ShoppingBag,
-  ChevronLeft,
-  Utensils
-} from "lucide-react";
+import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useSidebar } from "@/components/ui/sidebar";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { 
+  Package, 
+  Users, 
+  Calendar, 
+  Settings, 
+  LifeBuoy, 
+  Home,
+  MessageSquare,
+  Menu as MenuIcon
+} from "lucide-react";
+import { useMobile } from "@/hooks/use-mobile";
 
-const Sidebar = () => {
-  const { toggleSidebar, state } = useSidebar();
-  const isCollapsed = state === "collapsed";
+interface SidebarProps {
+  className?: string;
+  onClose?: () => void;
+}
 
-  const menuItems = [
-    { name: "Dashboard", icon: PieChart, path: "/" },
-    { name: "Calendario", icon: CalendarDays, path: "/calendar" },
-    { name: "Clientes", icon: Users, path: "/customers" },
-    { name: "Asistente", icon: MessageSquare, path: "/assistant" },
-    { name: "Integraciones", icon: Zap, path: "/integrations" },
-    { name: "Promociones", icon: ShoppingBag, path: "/promotions" },
-    { name: "Pedidos", icon: Utensils, path: "/orders" },
-    { name: "Notificaciones", icon: Bell, path: "/notifications" },
-    { name: "Configuración", icon: Settings, path: "/settings" },
-  ];
+export default function Sidebar({ className, onClose }: SidebarProps) {
+  const { isMobile } = useMobile();
 
   return (
-    <aside className={cn(
-      "bg-white border-r border-gray-200 fixed inset-y-0 z-50 hidden md:flex md:flex-col transition-all duration-300",
-      isCollapsed ? "w-16" : "w-64"
-    )}>
-      <div className="p-4 border-b flex justify-between items-center">
-        <div className={cn(
-          "flex items-center space-x-2",
-          isCollapsed && "justify-center"
-        )}>
-          <span className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white font-bold">
-            CM
-          </span>
-          {!isCollapsed && <span className="text-lg font-semibold">CONDAMIND Assistants</span>}
+    <div className={cn("pb-12 w-full", className)}>
+      <div className="space-y-4 py-4">
+        <div className="px-4 py-2">
+          <h2 className="mb-2 px-2 text-xl font-semibold tracking-tight">
+            Gonza Admin
+          </h2>
+          <div className="space-y-1">
+            <NavButton
+              to="/"
+              onClose={onClose}
+              icon={<Home className="mr-2 h-4 w-4" />}
+            >
+              Inicio
+            </NavButton>
+            <NavButton
+              to="/calendar"
+              onClose={onClose}
+              icon={<Calendar className="mr-2 h-4 w-4" />}
+            >
+              Calendario
+            </NavButton>
+            <NavButton
+              to="/orders"
+              onClose={onClose}
+              icon={<Package className="mr-2 h-4 w-4" />}
+            >
+              Pedidos
+            </NavButton>
+            <NavButton
+              to="/menu"
+              onClose={onClose}
+              icon={<MenuIcon className="mr-2 h-4 w-4" />}
+            >
+              Menú y Categorías
+            </NavButton>
+            <NavButton
+              to="/assistant"
+              onClose={onClose}
+              icon={<MessageSquare className="mr-2 h-4 w-4" />}
+            >
+              Asistentes
+            </NavButton>
+          </div>
         </div>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="p-1" 
-          onClick={toggleSidebar}
-        >
-          <ChevronLeft className={cn(
-            "h-5 w-5 transition-transform",
-            isCollapsed && "rotate-180"
-          )} />
-        </Button>
+
+        <ScrollArea className="h-[300px]">
+          <div className="space-y-1 px-4">
+            <h4 className="px-2 text-sm font-semibold tracking-tight">
+              Integraciones
+            </h4>
+            <NavButton
+              to="/integrations"
+              onClose={onClose}
+              icon={<Settings className="mr-2 h-4 w-4" />}
+            >
+              Configuración
+            </NavButton>
+            <Button variant="ghost" size="sm" className="w-full justify-start">
+              <Users className="mr-2 h-4 w-4" />
+              Clientes API
+            </Button>
+            <Button variant="ghost" size="sm" className="w-full justify-start">
+              <LifeBuoy className="mr-2 h-4 w-4" />
+              Soporte
+            </Button>
+          </div>
+        </ScrollArea>
       </div>
-      <nav className="flex-1 pt-4 pb-4 overflow-y-auto">
-        <ul className="space-y-1 px-2">
-          {menuItems.map((item) => (
-            <li key={item.name}>
-              <Link
-                to={item.path}
-                className={cn(
-                  "flex items-center px-3 py-2 rounded-md text-sm font-medium group hover:bg-gray-100",
-                  window.location.pathname === item.path
-                    ? "bg-gray-100 text-primary"
-                    : "text-gray-700",
-                  isCollapsed ? "justify-center" : "space-x-3"
-                )}
-                title={isCollapsed ? item.name : ""}
-              >
-                <item.icon size={20} />
-                {!isCollapsed && <span>{item.name}</span>}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
-      <div className="p-4 border-t border-gray-200">
-        <div className={cn(
-          "flex items-center",
-          isCollapsed ? "justify-center" : "space-x-3"
-        )}>
-          <div className="h-8 w-8 rounded-full bg-gray-200"></div>
-          {!isCollapsed && (
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
-                Usuario Demo
-              </p>
-              <p className="text-xs text-gray-500 truncate">
-                demo@ejemplo.com
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-    </aside>
+    </div>
+  );
+}
+
+interface NavButtonProps {
+  to: string;
+  children: React.ReactNode;
+  icon?: React.ReactNode;
+  onClose?: () => void;
+}
+
+const NavButton = ({ to, children, icon, onClose }: NavButtonProps) => {
+  const { isMobile } = useMobile();
+  
+  const handleClick = () => {
+    if (isMobile && onClose) {
+      onClose();
+    }
+  };
+  
+  return (
+    <NavLink 
+      to={to} 
+      onClick={handleClick}
+      className={({isActive}) => cn(
+        "flex items-center rounded-md px-2 py-1.5 text-sm font-medium",
+        isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent text-foreground/80 hover:text-foreground"
+      )}
+    >
+      {icon}
+      {children}
+    </NavLink>
   );
 };
-
-export default Sidebar;

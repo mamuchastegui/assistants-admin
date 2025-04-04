@@ -1,4 +1,5 @@
-import React from "react";
+
+import React, { useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +10,16 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface MenuItem {
+  id: string;
+  name: string;
+  price: number | null;
+}
 
 const orderSchema = z.object({
   client_name: z.string().min(1, "El nombre del cliente es requerido"),
@@ -39,6 +49,27 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
       special_requirements: "",
     },
   });
+
+  // Consulta para obtener los tipos de menú
+  const { data: menuItems, isLoading: menuItemsLoading } = useQuery({
+    queryKey: ["menu-items-select"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("menu_items")
+        .select("id, name, price")
+        .order("name", { ascending: true });
+      
+      if (error) throw error;
+      return data as MenuItem[];
+    },
+  });
+
+  // Reset form when modal opens/closes
+  useEffect(() => {
+    if (!open) {
+      form.reset();
+    }
+  }, [open, form]);
 
   const createOrderMutation = useMutation({
     mutationFn: async (data: OrderFormValues) => {
@@ -138,7 +169,30 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
                 <FormItem>
                   <FormLabel>Tipo de Menú</FormLabel>
                   <FormControl>
-                    <Input placeholder="Tipo de menú" {...field} />
+                    {menuItemsLoading ? (
+                      <div className="flex items-center space-x-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="text-sm text-muted-foreground">Cargando menús...</span>
+                      </div>
+                    ) : menuItems && menuItems.length > 0 ? (
+                      <Select 
+                        onValueChange={field.onChange} 
+                        value={field.value}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccione un tipo de menú" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {menuItems.map((item) => (
+                            <SelectItem key={item.id} value={item.name}>
+                              {item.name} {item.price && `($${item.price.toLocaleString()})`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input placeholder="Tipo de menú" {...field} />
+                    )}
                   </FormControl>
                   <FormMessage />
                 </FormItem>

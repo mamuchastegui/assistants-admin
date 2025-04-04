@@ -14,9 +14,9 @@ const DashboardLayoutContent: React.FC<DashboardLayoutContentProps> = ({ childre
   const isCollapsed = state === "collapsed";
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row w-full">
+    <div className="min-h-screen bg-background flex flex-col md:flex-row w-full">
       <aside className={cn(
-        "fixed top-16 bottom-0 md:top-0 left-0 z-40 transition-all duration-300 overflow-hidden bg-white border-r shadow-sm",
+        "fixed top-16 bottom-0 md:top-0 left-0 z-40 transition-all duration-300 overflow-hidden bg-card border-r shadow-sm",
         isCollapsed ? "w-10" : "w-64",
         "md:flex flex-shrink-0"
       )}>

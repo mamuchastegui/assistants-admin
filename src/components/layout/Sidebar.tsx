@@ -22,6 +22,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface SidebarProps {
   className?: string;
@@ -174,7 +175,7 @@ const NavButton = ({
       onClick={handleClick}
       className={({isActive}) => cn(
         "flex items-center rounded-md px-2 py-1.5 text-sm font-medium",
-        isChildItem && "pl-6",
+        isChildItem && !collapsed && "pl-6",
         isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent text-foreground/80 hover:text-foreground",
         collapsed && "justify-center" 
       )}
@@ -196,17 +197,26 @@ const SidebarGroup = ({ icon, title, children, collapsed = false }: SidebarGroup
   const [isOpen, setIsOpen] = useState(false);
   
   if (collapsed) {
-    // En modo colapsado, solo mostrar el ícono con un tooltip
+    // En modo colapsado, mostrar el ícono con tooltip
     return (
-      <div className="my-2">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="w-8 h-8 p-0 justify-center"
-          onClick={() => setIsOpen(!isOpen)} 
-        >
-          {icon}
-        </Button>
+      <div className="my-2 flex justify-center">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-8 h-8 p-0 justify-center"
+                onClick={() => setIsOpen(!isOpen)} 
+              >
+                {icon}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              {title}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
     );
   }

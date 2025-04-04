@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Menu, Bell, Search } from "lucide-react";
+import { Bell, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 

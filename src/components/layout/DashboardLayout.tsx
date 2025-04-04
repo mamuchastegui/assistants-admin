@@ -15,13 +15,19 @@ const DashboardLayoutContent: React.FC<DashboardLayoutContentProps> = ({ childre
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row w-full">
-      <Sidebar />
+      <aside className={cn(
+        "fixed top-16 bottom-0 md:top-0 left-0 z-40 transition-all duration-300 overflow-hidden bg-white border-r shadow-sm",
+        isCollapsed ? "w-10" : "w-64",
+        "md:flex flex-shrink-0"
+      )}>
+        <Sidebar />
+      </aside>
       <div className={cn(
         "flex flex-col flex-1 transition-all duration-300",
-        isCollapsed ? "md:ml-16" : "md:ml-64"
+        isCollapsed ? "md:ml-10" : "md:ml-64"
       )}>
         <Header>
-          <SidebarTrigger className="md:hidden" />
+          <SidebarTrigger className="h-8 w-8" />
         </Header>
         <main className="flex-1 p-4 md:p-6 overflow-auto">
           {children}

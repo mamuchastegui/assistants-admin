@@ -46,7 +46,7 @@ const ChatThreadList: React.FC = () => {
     );
   }
 
-  if (threads.length === 0) {
+  if (!threads || threads.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <MessageSquare className="w-10 h-10 text-muted-foreground" />

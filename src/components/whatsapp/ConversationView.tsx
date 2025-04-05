@@ -2,7 +2,7 @@
 import React from "react";
 import { useChatThreads } from "@/hooks/useChatThreads";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Loader2, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
@@ -52,13 +52,13 @@ const ConversationView: React.FC = () => {
     );
   }
 
-  if (!conversation) {
+  if (!conversation || !conversation.conversation || conversation.conversation.length === 0) {
     return (
       <Card className="h-full">
         <CardContent className="flex items-center justify-center h-[600px]">
           <div className="text-center">
             <MessageSquare className="w-10 h-10 mx-auto text-muted-foreground" />
-            <p className="mt-4 text-muted-foreground">No se pudo cargar la conversación</p>
+            <p className="mt-4 text-muted-foreground">No hay mensajes en esta conversación</p>
           </div>
         </CardContent>
       </Card>

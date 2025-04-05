@@ -190,7 +190,7 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
       <div className="space-y-2 py-3">
         <div className="px-3">
           <div className="flex items-center justify-between mb-4">
-            {!isCollapsed && <h2 className="text-lg font-semibold tracking-tight">Gonza Admin</h2>}
+            {!isCollapsed && <h2 className="text-lg font-semibold tracking-tight">Admin</h2>}
           </div>
           
           <div className="space-y-3">
@@ -221,7 +221,7 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
                   <DropdownMenuItem asChild className="cursor-pointer">
                     <NavLink to="/menu">
                       <Package className="mr-2 h-4 w-4" />
-                      <span>Menú</span>
+                      <span>Menú Restaurant</span>
                     </NavLink>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer">
@@ -237,7 +237,7 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
                     to="/menu"
                     onClose={onClose}
                     icon={<Package className="h-4 w-4" />}
-                    label="Menú"
+                    label="Menú Restaurant"
                     isChildItem={true}
                   />
                   <NavButton

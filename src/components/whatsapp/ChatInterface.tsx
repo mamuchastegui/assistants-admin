@@ -1,6 +1,5 @@
 
 import React from "react";
-import { Card } from "@/components/ui/card";
 import ChatThreadList from "@/components/whatsapp/ChatThreadList";
 import ConversationView from "@/components/whatsapp/ConversationView";
 

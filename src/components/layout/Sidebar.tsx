@@ -161,11 +161,13 @@ const NavButton = ({
               to={to} 
               onClick={handleClick}
               className={({isActive}) => cn(
-                "flex items-center justify-center rounded-md w-8 h-8 mx-auto",
+                "flex items-center justify-center rounded-md h-10 w-10 mx-auto my-1",
                 isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent text-foreground/80 hover:text-foreground"
               )}
             >
-              {icon}
+              <div className="flex items-center justify-center">
+                {icon}
+              </div>
             </NavLink>
           </TooltipTrigger>
           <TooltipContent side="right">
@@ -204,17 +206,19 @@ const SidebarGroup = ({ icon, title, children, collapsed = false }: SidebarGroup
   
   if (collapsed) {
     return (
-      <div className="my-5">
+      <div className="py-2">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="w-8 h-8 p-0 flex justify-center mx-auto"
+                className="w-10 h-10 p-0 flex justify-center mx-auto"
                 onClick={() => setIsOpen(!isOpen)} 
               >
-                {icon}
+                <div className="flex items-center justify-center">
+                  {icon}
+                </div>
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">
@@ -223,7 +227,7 @@ const SidebarGroup = ({ icon, title, children, collapsed = false }: SidebarGroup
           </Tooltip>
         </TooltipProvider>
         {isOpen && (
-          <div className="absolute left-10 mt-0 bg-card rounded-md shadow-lg border p-2 min-w-[180px] z-50">
+          <div className="absolute left-16 mt-0 bg-card rounded-md shadow-lg border p-2 min-w-[180px] z-50">
             {children}
           </div>
         )}

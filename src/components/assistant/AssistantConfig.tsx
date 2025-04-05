@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { MessageSquare, Save, Plus, Trash2, Loader2 } from "lucide-react";
 import { useAssistantConfig } from "@/hooks/useAssistantConfig";
 import WhatsAppMessages from "@/components/whatsapp/WhatsAppMessages";
+import ChatInterface from "@/components/whatsapp/ChatInterface";
 import { toast } from "sonner";
 
 const AssistantConfig: React.FC = () => {
@@ -352,6 +353,15 @@ const AssistantConfig: React.FC = () => {
       </TabsContent>
       
       <TabsContent value="whatsapp" className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Conversaciones de WhatsApp</CardTitle>
+            <CardDescription>Visualiza y gestiona las conversaciones de tus clientes</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChatInterface />
+          </CardContent>
+        </Card>
         <WhatsAppMessages />
       </TabsContent>
     </Tabs>

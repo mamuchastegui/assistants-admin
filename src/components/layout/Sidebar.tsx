@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -69,26 +70,26 @@ const NavButton = ({
   
   if (collapsed) {
     return (
-      <TooltipProvider>
+      <TooltipProvider delayDuration={200}>
         <Tooltip>
           <TooltipTrigger asChild>
             <NavLink 
               to={to} 
               onClick={handleClick}
               className={({isActive}) => cn(
-                "flex items-center justify-center rounded-md h-10 w-10 mx-auto my-2",
+                "flex items-center justify-center rounded-md h-10 w-10 mx-auto my-2 transition-colors",
                 isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent text-foreground/80 hover:text-foreground"
               )}
             >
               <div className="flex items-center justify-center">
                 {React.cloneElement(icon as React.ReactElement, { 
-                  size: 20,
+                  size: 18,
                   strokeWidth: 1.5
                 })}
               </div>
             </NavLink>
           </TooltipTrigger>
-          <TooltipContent side="right">
+          <TooltipContent side="right" className="bg-popover text-popover-foreground">
             {label}
           </TooltipContent>
         </Tooltip>
@@ -101,12 +102,12 @@ const NavButton = ({
       to={to} 
       onClick={handleClick}
       className={({isActive}) => cn(
-        "flex items-center rounded-md px-3 py-2 text-sm font-medium",
+        "flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
         isChildItem && "pl-6",
         isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent text-foreground/80 hover:text-foreground"
       )}
     >
-      <div className="mr-2">
+      <div className="mr-2 flex items-center">
         {React.cloneElement(icon as React.ReactElement, { 
           size: 18,
           strokeWidth: 1.5
@@ -122,23 +123,23 @@ const MenuGroup = ({ icon, title, children, collapsed = false }: MenuGroupProps)
     return (
       <div className="py-3">
         <DropdownMenu>
-          <TooltipProvider>
+          <TooltipProvider delayDuration={200}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <DropdownMenuTrigger asChild>
                   <Button 
                     variant="ghost" 
                     size="icon"
-                    className="h-10 w-10 rounded-md mx-auto flex items-center justify-center"
+                    className="h-9 w-9 rounded-md mx-auto flex items-center justify-center"
                   >
                     {React.cloneElement(icon as React.ReactElement, { 
-                      size: 20,
+                      size: 18,
                       strokeWidth: 1.5
                     })}
                   </Button>
                 </DropdownMenuTrigger>
               </TooltipTrigger>
-              <TooltipContent side="right">
+              <TooltipContent side="right" className="bg-popover text-popover-foreground">
                 {title}
               </TooltipContent>
             </Tooltip>
@@ -146,7 +147,7 @@ const MenuGroup = ({ icon, title, children, collapsed = false }: MenuGroupProps)
           <DropdownMenuContent 
             side="right" 
             align="start" 
-            className="w-52 p-2"
+            className="w-52 p-1"
           >
             {children}
           </DropdownMenuContent>
@@ -169,8 +170,8 @@ const MenuGroup = ({ icon, title, children, collapsed = false }: MenuGroupProps)
               <span className="text-sm font-medium">{title}</span>
             </div>
           </AccordionTrigger>
-          <AccordionContent>
-            <div className="pl-2 pt-1">
+          <AccordionContent className="pt-1 pb-0">
+            <div className="pl-2">
               {children}
             </div>
           </AccordionContent>
@@ -193,7 +194,7 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
             {!isCollapsed && <h2 className="text-lg font-semibold tracking-tight">Admin</h2>}
           </div>
           
-          <div className="space-y-3">
+          <div className="space-y-4">
             <NavButton
               to="/"
               onClose={onClose}
@@ -210,7 +211,7 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
             />
           </div>
           
-          <div className="mt-6 border-t border-border pt-3">
+          <div className="mt-6 border-t border-border pt-4">
             <MenuGroup 
               icon={<Package />} 
               title="Administración"
@@ -219,13 +220,13 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
               {isCollapsed ? (
                 <>
                   <DropdownMenuItem asChild className="cursor-pointer">
-                    <NavLink to="/menu">
+                    <NavLink to="/menu" className="flex items-center w-full py-1.5">
                       <Package className="mr-2 h-4 w-4" />
                       <span>Menú Restaurant</span>
                     </NavLink>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer">
-                    <NavLink to="/orders">
+                    <NavLink to="/orders" className="flex items-center w-full py-1.5">
                       <Package className="mr-2 h-4 w-4" />
                       <span>Pedidos</span>
                     </NavLink>
@@ -260,7 +261,7 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
             >
               {isCollapsed ? (
                 <DropdownMenuItem asChild className="cursor-pointer">
-                  <NavLink to="/assistant">
+                  <NavLink to="/assistant" className="flex items-center w-full py-1.5">
                     <MessageSquare className="mr-2 h-4 w-4" />
                     <span>Asistentes</span>
                   </NavLink>
@@ -278,8 +279,8 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
           </div>
         </div>
 
-        <ScrollArea className="h-[200px] px-3">
-          <div className="space-y-3 mt-4 border-t border-border pt-3">
+        <ScrollArea className="flex-1 px-3 mt-4">
+          <div className="space-y-3 border-t border-border pt-4">
             {!isCollapsed && <h4 className="text-sm font-semibold px-1">Integraciones</h4>}
             <MenuGroup 
               icon={<Settings />} 
@@ -289,19 +290,19 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
               {isCollapsed ? (
                 <>
                   <DropdownMenuItem asChild className="cursor-pointer">
-                    <NavLink to="/integrations">
+                    <NavLink to="/integrations" className="flex items-center w-full py-1.5">
                       <Settings className="mr-2 h-4 w-4" />
                       <span>Configuración</span>
                     </NavLink>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer">
-                    <NavLink to="/clients">
+                    <NavLink to="/clients" className="flex items-center w-full py-1.5">
                       <Users className="mr-2 h-4 w-4" />
                       <span>Clientes API</span>
                     </NavLink>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer">
-                    <NavLink to="/support">
+                    <NavLink to="/support" className="flex items-center w-full py-1.5">
                       <LifeBuoy className="mr-2 h-4 w-4" />
                       <span>Soporte</span>
                     </NavLink>

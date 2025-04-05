@@ -20,13 +20,13 @@ const CalendarSidebar: React.FC<CalendarSidebarProps> = ({
   isLoading
 }) => {
   return (
-    <Card className="md:col-span-1 h-full">
+    <Card className="lg:col-span-1 h-full">
       <CardHeader className="pb-0">
         <div className="flex items-center justify-between">
-          <CardTitle>Calendario</CardTitle>
+          <CardTitle className="text-lg">Calendario</CardTitle>
           <Database className="h-4 w-4 text-primary" />
         </div>
-        <CardDescription>
+        <CardDescription className="text-xs md:text-sm">
           Selecciona una fecha para ver o agregar turnos
         </CardDescription>
       </CardHeader>
@@ -37,12 +37,12 @@ const CalendarSidebar: React.FC<CalendarSidebarProps> = ({
             selected={selectedDate}
             onSelect={onDateSelect}
             locale={es}
-            className="border rounded-md p-3 w-full max-w-[280px] pointer-events-auto"
+            className="border rounded-md p-1 md:p-3 w-full max-w-full md:max-w-[280px] pointer-events-auto"
           />
         </div>
         <div className="mt-4">
           <Button 
-            className="w-full" 
+            className="w-full text-sm" 
             onClick={onSyncWithDatabase}
             disabled={isLoading}
           >

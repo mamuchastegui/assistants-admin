@@ -3,19 +3,24 @@ import React from "react";
 import { Bell, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface HeaderProps {
   children?: React.ReactNode;
 }
 
 const Header: React.FC<HeaderProps> = ({ children }) => {
+  const isMobile = useIsMobile();
+  
   return (
     <header className="bg-card border-b border-border sticky top-0 z-30">
-      <div className="px-3 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
+      <div className="px-3 sm:px-4 lg:px-6 flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           {children}
           <div className="flex items-center">
-            <span className="text-base md:text-lg font-semibold">CONDAMIND Assistants</span>
+            <span className="text-base md:text-lg font-semibold truncate">
+              {isMobile ? "Admin" : "CONDAMIND Assistants"}
+            </span>
           </div>
         </div>
         
@@ -29,7 +34,7 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <Bell className="h-4 w-4" />
           </Button>

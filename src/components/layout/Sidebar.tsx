@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -16,8 +17,7 @@ import {
   Settings, 
   LifeBuoy, 
   Home,
-  MessageSquare,
-  ChevronRight
+  MessageSquare
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -76,7 +76,7 @@ const NavButton = ({
               to={to} 
               onClick={handleClick}
               className={({isActive}) => cn(
-                "flex items-center justify-center rounded-md h-10 w-10 mx-auto my-2 transition-colors",
+                "flex items-center justify-center rounded-md h-9 w-9 mx-auto my-1.5 transition-colors",
                 isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent text-foreground/80 hover:text-foreground"
               )}
             >
@@ -106,7 +106,7 @@ const NavButton = ({
         isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent text-foreground/80 hover:text-foreground"
       )}
     >
-      <div className="mr-2 flex items-center">
+      <div className="mr-2 flex items-center justify-center">
         {React.cloneElement(icon as React.ReactElement, { 
           size: 18,
           strokeWidth: 1.5
@@ -120,7 +120,7 @@ const NavButton = ({
 const MenuGroup = ({ icon, title, children, collapsed = false }: MenuGroupProps) => {
   if (collapsed) {
     return (
-      <div className="py-3">
+      <div className="py-2">
         <DropdownMenu>
           <TooltipProvider delayDuration={200}>
             <Tooltip>
@@ -156,7 +156,7 @@ const MenuGroup = ({ icon, title, children, collapsed = false }: MenuGroupProps)
   }
   
   return (
-    <div className="my-2">
+    <div className="my-1.5">
       <Accordion type="single" collapsible className="w-full border-none">
         <AccordionItem value="menu-group" className="border-none">
           <AccordionTrigger className="py-2 px-3 hover:bg-accent hover:no-underline rounded-md">
@@ -182,35 +182,41 @@ const MenuGroup = ({ icon, title, children, collapsed = false }: MenuGroupProps)
 
 export default function Sidebar({ className, onClose }: SidebarProps) {
   const isMobile = useIsMobile();
-  const { state } = useSidebar();
+  const { state, setOpenMobile } = useSidebar();
   const isCollapsed = state === "collapsed";
   
+  const handleNavClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+  
   return (
-    <div className={cn("pb-4 w-full h-full", className)}>
-      <div className="py-3 h-full flex flex-col">
+    <div className={cn("pb-3 w-full h-full flex flex-col", className)}>
+      <div className="py-2 h-full flex flex-col">
         <div className="px-3 flex-none">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-center md:justify-between mb-4">
             {!isCollapsed && <h2 className="text-lg font-semibold tracking-tight">Admin</h2>}
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-3">
             <NavButton
               to="/"
-              onClose={onClose}
+              onClose={handleNavClick}
               icon={<Home />}
               collapsed={isCollapsed}
               label="Inicio"
             />
             <NavButton
               to="/calendar"
-              onClose={onClose}
+              onClose={handleNavClick}
               icon={<Calendar />}
               collapsed={isCollapsed}
               label="Calendario"
             />
           </div>
           
-          <div className="mt-6 border-t border-border pt-4">
+          <div className="mt-5 border-t border-border pt-3">
             <MenuGroup 
               icon={<Package />} 
               title="Administración"
@@ -219,13 +225,13 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
               {isCollapsed ? (
                 <>
                   <DropdownMenuItem asChild className="cursor-pointer">
-                    <NavLink to="/menu" className="flex items-center w-full py-1.5">
+                    <NavLink to="/menu" onClick={handleNavClick} className="flex items-center w-full py-1.5">
                       <Package className="mr-2 h-4 w-4" />
                       <span>Menú</span>
                     </NavLink>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer">
-                    <NavLink to="/orders" className="flex items-center w-full py-1.5">
+                    <NavLink to="/orders" onClick={handleNavClick} className="flex items-center w-full py-1.5">
                       <Package className="mr-2 h-4 w-4" />
                       <span>Pedidos</span>
                     </NavLink>
@@ -235,14 +241,14 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
                 <>
                   <NavButton
                     to="/menu"
-                    onClose={onClose}
+                    onClose={handleNavClick}
                     icon={<Package className="h-4 w-4" />}
                     label="Menú"
                     isChildItem={true}
                   />
                   <NavButton
                     to="/orders"
-                    onClose={onClose}
+                    onClose={handleNavClick}
                     icon={<Package className="h-4 w-4" />}
                     label="Pedidos"
                     isChildItem={true}
@@ -252,7 +258,7 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
             </MenuGroup>
           </div>
           
-          <div className="mt-3">
+          <div className="mt-2">
             <MenuGroup 
               icon={<MessageSquare />} 
               title="Comunicación"
@@ -260,7 +266,7 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
             >
               {isCollapsed ? (
                 <DropdownMenuItem asChild className="cursor-pointer">
-                  <NavLink to="/assistant" className="flex items-center w-full py-1.5">
+                  <NavLink to="/assistant" onClick={handleNavClick} className="flex items-center w-full py-1.5">
                     <MessageSquare className="mr-2 h-4 w-4" />
                     <span>Asistentes</span>
                   </NavLink>
@@ -268,7 +274,7 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
               ) : (
                 <NavButton
                   to="/assistant"
-                  onClose={onClose}
+                  onClose={handleNavClick}
                   icon={<MessageSquare className="h-4 w-4" />}
                   label="Asistentes"
                   isChildItem={true}
@@ -278,8 +284,8 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
           </div>
         </div>
 
-        <ScrollArea className="flex-1 px-3 mt-4">
-          <div className="space-y-3 border-t border-border pt-4">
+        <ScrollArea className="flex-1 px-3 mt-3">
+          <div className="space-y-2 border-t border-border pt-3">
             {!isCollapsed && <h4 className="text-sm font-semibold px-1">Integraciones</h4>}
             <MenuGroup 
               icon={<Settings />} 
@@ -289,19 +295,19 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
               {isCollapsed ? (
                 <>
                   <DropdownMenuItem asChild className="cursor-pointer">
-                    <NavLink to="/integrations" className="flex items-center w-full py-1.5">
+                    <NavLink to="/integrations" onClick={handleNavClick} className="flex items-center w-full py-1.5">
                       <Settings className="mr-2 h-4 w-4" />
                       <span>Configuración</span>
                     </NavLink>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer">
-                    <NavLink to="/clients" className="flex items-center w-full py-1.5">
+                    <NavLink to="/clients" onClick={handleNavClick} className="flex items-center w-full py-1.5">
                       <Users className="mr-2 h-4 w-4" />
                       <span>Clientes API</span>
                     </NavLink>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer">
-                    <NavLink to="/support" className="flex items-center w-full py-1.5">
+                    <NavLink to="/support" onClick={handleNavClick} className="flex items-center w-full py-1.5">
                       <LifeBuoy className="mr-2 h-4 w-4" />
                       <span>Soporte</span>
                     </NavLink>
@@ -311,21 +317,21 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
                 <>
                   <NavButton
                     to="/integrations"
-                    onClose={onClose}
+                    onClose={handleNavClick}
                     icon={<Settings className="h-4 w-4" />}
                     label="Configuración"
                     isChildItem={true}
                   />
                   <NavButton 
                     to="/clients"
-                    onClose={onClose}
+                    onClose={handleNavClick}
                     icon={<Users className="h-4 w-4" />}
                     label="Clientes API"
                     isChildItem={true}
                   />
                   <NavButton 
                     to="/support"
-                    onClose={onClose}
+                    onClose={handleNavClick}
                     icon={<LifeBuoy className="h-4 w-4" />}
                     label="Soporte"
                     isChildItem={true}

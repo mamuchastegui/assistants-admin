@@ -10,17 +10,17 @@ const Calendar = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-bold tracking-tight">Calendario</h1>
+      <div className="space-y-4 md:space-y-6">
+        <div className="px-1">
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Calendario</h1>
             {supabaseConnected ? (
               <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200">Conectado a Supabase</Badge>
             ) : (
               <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">Modo LocalStorage</Badge>
             )}
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-sm md:text-base text-muted-foreground">
             {supabaseConnected 
               ? "Gestiona los turnos y la disponibilidad de tu negocio. Los datos se almacenan en la base de datos Supabase."
               : "Gestiona los turnos y la disponibilidad de tu negocio. Los datos se almacenan en localStorage (modo local)."}

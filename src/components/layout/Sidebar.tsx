@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -194,7 +193,7 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
             {!isCollapsed && <h2 className="text-lg font-semibold tracking-tight">Gonza Admin</h2>}
           </div>
           
-          <div className="space-y-1">
+          <div className="space-y-3">
             <NavButton
               to="/"
               onClose={onClose}

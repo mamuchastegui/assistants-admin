@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -191,7 +190,7 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
       <div className="py-3 h-full flex flex-col">
         <div className="px-3 flex-none">
           <div className="flex items-center justify-between mb-6">
-            {!isCollapsed && <h2 className="text-lg font-semibold tracking-tight">Gonza Admin</h2>}
+            {!isCollapsed && <h2 className="text-lg font-semibold tracking-tight">Admin</h2>}
           </div>
           
           <div className="space-y-4">

@@ -1,8 +1,15 @@
+
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
   Package, 
   Users, 
@@ -11,16 +18,16 @@ import {
   LifeBuoy, 
   Home,
   MessageSquare,
-  Menu as MenuIcon,
   ChevronRight
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSidebar } from "@/components/ui/sidebar";
 import { 
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface SidebarProps {
@@ -38,7 +45,7 @@ interface NavButtonProps {
   isChildItem?: boolean;
 }
 
-interface SidebarGroupProps {
+interface MenuGroupProps {
   icon: React.ReactNode;
   title: string;
   children?: React.ReactNode;
@@ -95,70 +102,82 @@ const NavButton = ({
       to={to} 
       onClick={handleClick}
       className={({isActive}) => cn(
-        "flex items-center rounded-md px-2 py-1.5 text-sm font-medium",
+        "flex items-center rounded-md px-3 py-2 text-sm font-medium",
         isChildItem && "pl-6",
         isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent text-foreground/80 hover:text-foreground"
       )}
     >
-      <div className="mr-2">{icon}</div>
+      <div className="mr-2">
+        {React.cloneElement(icon as React.ReactElement, { 
+          size: 18,
+          strokeWidth: 1.5
+        })}
+      </div>
       <span>{label}</span>
     </NavLink>
   );
 };
 
-const SidebarGroup = ({ icon, title, children, collapsed = false }: SidebarGroupProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  
+const MenuGroup = ({ icon, title, children, collapsed = false }: MenuGroupProps) => {
   if (collapsed) {
     return (
-      <div className="py-2">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="w-10 h-10 p-0 flex justify-center mx-auto"
-                onClick={() => setIsOpen(!isOpen)} 
-              >
-                <div className="flex items-center justify-center">
-                  {React.cloneElement(icon as React.ReactElement, { 
-                    size: 20,
-                    strokeWidth: 1.5
-                  })}
-                </div>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              {title}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        {isOpen && (
-          <div className="absolute left-16 mt-0 bg-card rounded-md shadow-lg border p-2 min-w-[180px] z-50">
+      <div className="py-3">
+        <DropdownMenu>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="h-10 w-10 rounded-md mx-auto flex items-center justify-center"
+                  >
+                    {React.cloneElement(icon as React.ReactElement, { 
+                      size: 20,
+                      strokeWidth: 1.5
+                    })}
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                {title}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <DropdownMenuContent 
+            side="right" 
+            align="start" 
+            className="w-52 p-2"
+          >
             {children}
-          </div>
-        )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     );
   }
   
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="my-2">
-      <CollapsibleTrigger asChild>
-        <Button variant="ghost" size="sm" className="w-full justify-start">
-          {icon}
-          <span className="ml-2">{title}</span>
-          <ChevronRight className={cn(
-            "h-4 w-4 ml-auto transition-transform", 
-            isOpen && "transform rotate-90"
-          )} />
-        </Button>
-      </CollapsibleTrigger>
-      <CollapsibleContent className="pt-1 pl-2">
-        {children}
-      </CollapsibleContent>
-    </Collapsible>
+    <div className="my-2">
+      <Accordion type="single" collapsible className="w-full border-none">
+        <AccordionItem value="menu-group" className="border-none">
+          <AccordionTrigger className="py-2 px-3 hover:bg-accent hover:no-underline rounded-md">
+            <div className="flex items-center">
+              {React.cloneElement(icon as React.ReactElement, { 
+                size: 18,
+                strokeWidth: 1.5,
+                className: "mr-2"
+              })}
+              <span className="text-sm font-medium">{title}</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="pl-2 pt-1">
+              {children}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    </div>
   );
 };
 
@@ -168,90 +187,153 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
   const isCollapsed = state === "collapsed";
   
   return (
-    <div className={cn("pb-12 w-full", className)}>
-      <div className="space-y-4 py-4">
-        <div className="px-3 py-2">
-          <div className="flex items-center justify-between mb-2">
-            {!isCollapsed && <h2 className="px-2 text-lg font-semibold tracking-tight">Gonza Admin</h2>}
+    <div className={cn("pb-6 w-full", className)}>
+      <div className="space-y-2 py-3">
+        <div className="px-3">
+          <div className="flex items-center justify-between mb-4">
+            {!isCollapsed && <h2 className="text-lg font-semibold tracking-tight">Gonza Admin</h2>}
           </div>
-          <div className="space-y-3">
+          
+          <div className="space-y-1">
             <NavButton
               to="/"
               onClose={onClose}
-              icon={<Home className="h-4 w-4" />}
+              icon={<Home />}
               collapsed={isCollapsed}
               label="Inicio"
             />
             <NavButton
               to="/calendar"
               onClose={onClose}
-              icon={<Calendar className="h-4 w-4" />}
+              icon={<Calendar />}
               collapsed={isCollapsed}
               label="Calendario"
             />
           </div>
           
-          <div className="mt-6">
-            <SidebarGroup 
-              icon={<Package className="h-4 w-4" />} 
+          <div className="mt-6 border-t border-border pt-3">
+            <MenuGroup 
+              icon={<Package />} 
               title="Administración"
               collapsed={isCollapsed}
-            />
+            >
+              {isCollapsed ? (
+                <>
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <NavLink to="/menu">
+                      <Package className="mr-2 h-4 w-4" />
+                      <span>Menú</span>
+                    </NavLink>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <NavLink to="/orders">
+                      <Package className="mr-2 h-4 w-4" />
+                      <span>Pedidos</span>
+                    </NavLink>
+                  </DropdownMenuItem>
+                </>
+              ) : (
+                <>
+                  <NavButton
+                    to="/menu"
+                    onClose={onClose}
+                    icon={<Package className="h-4 w-4" />}
+                    label="Menú"
+                    isChildItem={true}
+                  />
+                  <NavButton
+                    to="/orders"
+                    onClose={onClose}
+                    icon={<Package className="h-4 w-4" />}
+                    label="Pedidos"
+                    isChildItem={true}
+                  />
+                </>
+              )}
+            </MenuGroup>
           </div>
           
-          <div className="mt-6">
-            <SidebarGroup 
-              icon={<MessageSquare className="h-4 w-4" />} 
+          <div className="mt-3">
+            <MenuGroup 
+              icon={<MessageSquare />} 
               title="Comunicación"
               collapsed={isCollapsed}
             >
-              <NavButton
-                to="/assistant"
-                onClose={onClose}
-                icon={<MessageSquare className="h-4 w-4" />}
-                collapsed={isCollapsed}
-                label="Asistentes"
-                isChildItem={true}
-              />
-            </SidebarGroup>
+              {isCollapsed ? (
+                <DropdownMenuItem asChild className="cursor-pointer">
+                  <NavLink to="/assistant">
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    <span>Asistentes</span>
+                  </NavLink>
+                </DropdownMenuItem>
+              ) : (
+                <NavButton
+                  to="/assistant"
+                  onClose={onClose}
+                  icon={<MessageSquare className="h-4 w-4" />}
+                  label="Asistentes"
+                  isChildItem={true}
+                />
+              )}
+            </MenuGroup>
           </div>
         </div>
 
-        <ScrollArea className="h-[150px] md:h-[200px]">
-          <div className="space-y-1 px-3">
-            {!isCollapsed && <h4 className="px-2 text-sm font-semibold tracking-tight">Integraciones</h4>}
-            <div className="mt-3">
-              <SidebarGroup 
-                icon={<Settings className="h-4 w-4" />} 
-                title="Configuración"
-                collapsed={isCollapsed}
-              >
-                <NavButton
-                  to="/integrations"
-                  onClose={onClose}
-                  icon={<Settings className="h-4 w-4" />}
-                  collapsed={isCollapsed}
-                  label="Configuración"
-                  isChildItem={true}
-                />
-                <NavButton 
-                  to="/clients"
-                  onClose={onClose}
-                  icon={<Users className="h-4 w-4" />}
-                  collapsed={isCollapsed}
-                  label="Clientes API"
-                  isChildItem={true}
-                />
-                <NavButton 
-                  to="/support"
-                  onClose={onClose}
-                  icon={<LifeBuoy className="h-4 w-4" />}
-                  collapsed={isCollapsed}
-                  label="Soporte"
-                  isChildItem={true}
-                />
-              </SidebarGroup>
-            </div>
+        <ScrollArea className="h-[200px] px-3">
+          <div className="space-y-3 mt-4 border-t border-border pt-3">
+            {!isCollapsed && <h4 className="text-sm font-semibold px-1">Integraciones</h4>}
+            <MenuGroup 
+              icon={<Settings />} 
+              title="Configuración"
+              collapsed={isCollapsed}
+            >
+              {isCollapsed ? (
+                <>
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <NavLink to="/integrations">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Configuración</span>
+                    </NavLink>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <NavLink to="/clients">
+                      <Users className="mr-2 h-4 w-4" />
+                      <span>Clientes API</span>
+                    </NavLink>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <NavLink to="/support">
+                      <LifeBuoy className="mr-2 h-4 w-4" />
+                      <span>Soporte</span>
+                    </NavLink>
+                  </DropdownMenuItem>
+                </>
+              ) : (
+                <>
+                  <NavButton
+                    to="/integrations"
+                    onClose={onClose}
+                    icon={<Settings className="h-4 w-4" />}
+                    label="Configuración"
+                    isChildItem={true}
+                  />
+                  <NavButton 
+                    to="/clients"
+                    onClose={onClose}
+                    icon={<Users className="h-4 w-4" />}
+                    label="Clientes API"
+                    isChildItem={true}
+                  />
+                  <NavButton 
+                    to="/support"
+                    onClose={onClose}
+                    icon={<LifeBuoy className="h-4 w-4" />}
+                    label="Soporte"
+                    isChildItem={true}
+                  />
+                </>
+              )}
+            </MenuGroup>
           </div>
         </ScrollArea>
       </div>

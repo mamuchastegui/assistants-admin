@@ -13,7 +13,7 @@ interface Message {
   };
   preview: string;
   timestamp: string;
-  status: "appointment_booked" | "question" | "pending" | "resolved";
+  status: "appointment_booked" | "question" | "pending" | "resolved" | "processed" | "waiting" | "cancelled" | "failed" | "completed" | "refunded" | "pending_payment";
 }
 
 const getStatusBadge = (status: Message["status"]) => {
@@ -26,6 +26,20 @@ const getStatusBadge = (status: Message["status"]) => {
       return <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">Pendiente</Badge>;
     case "resolved":
       return <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">Resuelto</Badge>;
+    case "processed":
+      return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Procesado</Badge>;
+    case "waiting":
+      return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">En espera</Badge>;
+    case "cancelled":
+      return <Badge className="bg-gray-200 text-gray-700 hover:bg-gray-200">Cancelado</Badge>;
+    case "failed":
+      return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Fallido</Badge>;
+    case "completed":
+      return <Badge className="bg-cyan-100 text-cyan-800 hover:bg-cyan-100">Completado</Badge>;
+    case "refunded":
+      return <Badge className="bg-gray-300 text-gray-800 hover:bg-gray-300">Rembolsado</Badge>;
+    case "pending_payment":
+      return <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-100">Pendiente de pago</Badge>;
   }
 };
 

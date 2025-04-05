@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -11,6 +10,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import CreateOrderModal from "@/components/orders/CreateOrderModal";
 import { PageHeader } from "@/components/ui/page-header";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Order {
   id: string;
@@ -63,7 +63,13 @@ const translateStatus = (status: string) => {
     'confirmed': 'Confirmado',
     'in_progress': 'En preparación',
     'delivered': 'Entregado',
-    'cancelled': 'Cancelado'
+    'cancelled': 'Cancelado',
+    'processed': 'Procesado',
+    'waiting': 'En espera',
+    'failed': 'Fallido',
+    'completed': 'Completado',
+    'refunded': 'Rembolsado',
+    'pending_payment': 'Pendiente de pago'
   };
   
   return statusMap[status] || status;
@@ -71,11 +77,17 @@ const translateStatus = (status: string) => {
 
 const getStatusClass = (status: string) => {
   const statusClassMap: Record<string, string> = {
-    'pending': 'bg-yellow-100 text-yellow-800',
+    'pending': 'bg-amber-100 text-amber-800',
     'confirmed': 'bg-blue-100 text-blue-800',
     'in_progress': 'bg-purple-100 text-purple-800',
     'delivered': 'bg-green-100 text-green-800',
-    'cancelled': 'bg-red-100 text-red-800'
+    'cancelled': 'bg-gray-200 text-gray-700',
+    'processed': 'bg-green-100 text-green-800',
+    'waiting': 'bg-yellow-100 text-yellow-800',
+    'failed': 'bg-red-100 text-red-800',
+    'completed': 'bg-cyan-100 text-cyan-800',
+    'refunded': 'bg-gray-300 text-gray-800',
+    'pending_payment': 'bg-gray-100 text-gray-700'
   };
   
   return statusClassMap[status] || 'bg-gray-100 text-gray-800';
@@ -88,6 +100,10 @@ const Orders = () => {
     queryKey: ['orders'],
     queryFn: fetchOrders,
   });
+
+  const updateOrderStatus = (orderId: string, newStatus: string) => {
+    toast.success(`Estado del pedido ${orderId} actualizado a: ${translateStatus(newStatus)}`);
+  };
 
   const countOrders = (status?: string) => {
     if (!orders) return 0;
@@ -225,9 +241,27 @@ const Orders = () => {
                           <TableCell className="text-center">{order.number_of_people}</TableCell>
                           <TableCell className="hidden sm:table-cell whitespace-nowrap">{formatDate(order.event_date)}</TableCell>
                           <TableCell>
-                            <span className={`px-2 py-1 rounded-full text-xs ${getStatusClass(order.status)}`}>
-                              {translateStatus(order.status)}
-                            </span>
+                            <Select 
+                              defaultValue={order.status} 
+                              onValueChange={(value) => updateOrderStatus(order.id, value)}
+                            >
+                              <SelectTrigger className={`h-7 w-full max-w-[180px] px-2 py-1 rounded-full text-xs ${getStatusClass(order.status)}`}>
+                                <SelectValue placeholder={translateStatus(order.status)} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pending">Pendiente</SelectItem>
+                                <SelectItem value="pending_payment">Pendiente de pago</SelectItem>
+                                <SelectItem value="processed">Procesado</SelectItem>
+                                <SelectItem value="waiting">En espera</SelectItem>
+                                <SelectItem value="confirmed">Confirmado</SelectItem>
+                                <SelectItem value="in_progress">En preparación</SelectItem>
+                                <SelectItem value="completed">Completado</SelectItem>
+                                <SelectItem value="delivered">Entregado</SelectItem>
+                                <SelectItem value="cancelled">Cancelado</SelectItem>
+                                <SelectItem value="failed">Fallido</SelectItem>
+                                <SelectItem value="refunded">Rembolsado</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </TableCell>
                         </TableRow>
                       ))

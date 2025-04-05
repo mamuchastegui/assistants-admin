@@ -61,10 +61,7 @@ const translateStatus = (status: string) => {
   const statusMap: Record<string, string> = {
     'pending': 'Pendiente',
     'confirmed': 'Confirmado',
-    'in_progress': 'En preparación',
-    'delivered': 'Entregado',
     'cancelled': 'Cancelado',
-    'processed': 'Procesado',
     'waiting': 'En espera',
     'failed': 'Fallido',
     'completed': 'Completado',
@@ -81,13 +78,13 @@ const getStatusClass = (status: string) => {
     'confirmed': 'bg-blue-100 text-blue-800',
     'in_progress': 'bg-purple-100 text-purple-800',
     'delivered': 'bg-green-100 text-green-800',
-    'cancelled': 'bg-gray-200 text-gray-700',
-    'processed': 'bg-green-100 text-green-800',
-    'waiting': 'bg-yellow-100 text-yellow-800',
-    'failed': 'bg-red-100 text-red-800',
-    'completed': 'bg-cyan-100 text-cyan-800',
-    'refunded': 'bg-gray-300 text-gray-800',
-    'pending_payment': 'bg-gray-100 text-gray-700'
+    'cancelled': 'bg-[#F1F0FB] text-gray-700',
+    'processed': 'bg-[#F2FCE2] text-green-800',
+    'waiting': 'bg-[#FEF7CD] text-yellow-800',
+    'failed': 'bg-[#FFDEE2] text-red-800',
+    'completed': 'bg-[#D3E4FD] text-cyan-800',
+    'refunded': 'bg-[#F1F0FB] text-gray-800',
+    'pending_payment': 'bg-[#ccc] text-gray-700'
   };
   
   return statusClassMap[status] || 'bg-gray-100 text-gray-800';
@@ -101,30 +98,36 @@ const Orders = () => {
     queryFn: fetchOrders,
   });
 
+  const [ordersState, setOrders] = useState<Order[] | undefined>(orders);
+
   const updateOrderStatus = (orderId: string, newStatus: string) => {
+    const updatedOrders = ordersState?.map(order =>
+      order.id === orderId ? { ...order, status: newStatus } : order
+    );
+    setOrders(updatedOrders);
     toast.success(`Estado del pedido ${orderId} actualizado a: ${translateStatus(newStatus)}`);
   };
 
   const countOrders = (status?: string) => {
-    if (!orders) return 0;
+    if (!ordersState) return 0;
     
     if (!status) {
-      return orders.length;
+      return ordersState.length;
     }
     
-    return orders.filter(order => order.status === status).length;
+    return ordersState.filter(order => order.status === status).length;
   };
 
   const calculateTotalRevenue = () => {
-    if (!orders) return 0;
+    if (!ordersState) return 0;
     
-    return orders.reduce((total, order) => total + (order.number_of_people * 12000), 0);
+    return ordersState.reduce((total, order) => total + (order.number_of_people * 12000), 0);
   };
 
   const calculateTotalPeople = () => {
-    if (!orders) return 0;
+    if (!ordersState) return 0;
     
-    return orders.reduce((total, order) => total + order.number_of_people, 0);
+    return ordersState.reduce((total, order) => total + order.number_of_people, 0);
   };
 
   return (
@@ -169,7 +172,7 @@ const Orders = () => {
               ) : (
                 <>
                   <div className="text-2xl font-bold">
-                    {orders?.filter(order => 
+                    {ordersState?.filter(order => 
                       formatDate(order.created_at).startsWith(format(new Date(), "dd/MM/yyyy"))
                     ).length || 0}
                   </div>
@@ -230,8 +233,8 @@ const Orders = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {orders && orders.length > 0 ? (
-                      orders.map((order) => (
+                    {ordersState && ordersState.length > 0 ? (
+                      ordersState.map((order) => (
                         <TableRow key={order.id}>
                           <TableCell className="font-medium">{order.id.substring(0, 5)}...</TableCell>
                           <TableCell className="max-w-[120px] truncate">{order.client_name}</TableCell>

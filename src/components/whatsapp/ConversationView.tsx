@@ -17,6 +17,14 @@ const ConversationView: React.FC = () => {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [conversation]);
+  
+  // Helper function to safely get initials from a name
+  const getInitials = (name?: string | null) => {
+    if (!name) return "WA";
+    const nameParts = name.split(" ");
+    if (nameParts.length === 1) return nameParts[0].substring(0, 2).toUpperCase();
+    return (nameParts[0][0] + nameParts[1][0]).toUpperCase();
+  };
 
   if (!selectedThread) {
     return (
@@ -57,16 +65,18 @@ const ConversationView: React.FC = () => {
     );
   }
 
+  const displayName = conversation.profile_name || "Usuario";
+
   return (
     <Card className="h-full">
       <CardHeader>
         <CardTitle className="text-lg flex items-center">
           <Avatar className="h-8 w-8 mr-2">
             <AvatarFallback>
-              {conversation.profile_name.substring(0, 2).toUpperCase()}
+              {getInitials(conversation.profile_name)}
             </AvatarFallback>
           </Avatar>
-          {conversation.profile_name}
+          {displayName}
         </CardTitle>
       </CardHeader>
       <CardContent>

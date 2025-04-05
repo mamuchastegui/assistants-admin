@@ -15,6 +15,14 @@ const ChatThreadList: React.FC = () => {
   const handleRefresh = () => {
     fetchThreads();
   };
+  
+  // Helper function to safely get initials from a name
+  const getInitials = (name?: string | null) => {
+    if (!name) return "WA";
+    const nameParts = name.split(" ");
+    if (nameParts.length === 1) return nameParts[0].substring(0, 2).toUpperCase();
+    return (nameParts[0][0] + nameParts[1][0]).toUpperCase();
+  };
 
   if (loadingThreads) {
     return (
@@ -67,6 +75,7 @@ const ChatThreadList: React.FC = () => {
           {threads.map((thread) => {
             const isSelected = selectedThread === thread.thread_id;
             const date = new Date(thread.updated_at);
+            const displayName = thread.profile_name || "Usuario";
             
             return (
               <Button
@@ -78,11 +87,11 @@ const ChatThreadList: React.FC = () => {
                 <div className="flex items-center w-full">
                   <Avatar className="h-9 w-9 mr-2">
                     <AvatarFallback>
-                      {thread.profile_name.substring(0, 2).toUpperCase()}
+                      {getInitials(thread.profile_name)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col items-start overflow-hidden">
-                    <span className="font-medium text-sm">{thread.profile_name}</span>
+                    <span className="font-medium text-sm">{displayName}</span>
                     <span className="text-xs text-muted-foreground truncate">
                       {formatDistanceToNow(date, { addSuffix: true, locale: es })}
                     </span>

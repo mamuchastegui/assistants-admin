@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -18,14 +17,6 @@ interface Message {
 
 const getStatusBadge = (status: Message["status"]) => {
   switch (status) {
-    case "appointment_booked":
-      return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Turno Agendado</Badge>;
-    case "question":
-      return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Consulta</Badge>;
-    case "pending":
-      return <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">Pendiente</Badge>;
-    case "resolved":
-      return <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">Resuelto</Badge>;
     case "processed":
       return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Procesado</Badge>;
     case "waiting":
@@ -40,6 +31,14 @@ const getStatusBadge = (status: Message["status"]) => {
       return <Badge className="bg-gray-300 text-gray-800 hover:bg-gray-300">Rembolsado</Badge>;
     case "pending_payment":
       return <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-100">Pendiente de pago</Badge>;
+    case "appointment_booked":
+      return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Turno Agendado</Badge>;
+    case "question":
+      return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Consulta</Badge>;
+    case "pending":
+      return <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">Pendiente</Badge>;
+    case "resolved":
+      return <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">Resuelto</Badge>;
   }
 };
 

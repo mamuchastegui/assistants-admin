@@ -1,6 +1,6 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 export interface WhatsAppMessage {
   _id: string;
@@ -29,18 +29,20 @@ export function useWhatsAppMessages(limit = 20) {
     try {
       setLoading(true);
       setError(null);
-
-      const { data, error } = await supabase.functions.invoke('whatsapp-messages', {
-        body: { 
-          action: 'getMessages',
-          limit: limit.toString(),
-          skip: skipMessages.toString() 
+      
+      // Using direct API call instead of calling non-existent Supabase function
+      const response = await fetch(`https://api.condamind.com/whatsapp/messages?limit=${limit}&skip=${skipMessages}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
         }
       });
 
-      if (error) throw new Error(error.message);
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${await response.text()}`);
+      }
 
-      const newMessages = data as WhatsAppMessage[];
+      const newMessages = await response.json() as WhatsAppMessage[];
       
       setMessages(prev => resetMessages ? newMessages : [...prev, ...newMessages]);
       setHasMore(newMessages.length === limit);

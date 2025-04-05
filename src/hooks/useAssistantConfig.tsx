@@ -1,7 +1,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 export interface AssistantConfig {
   _id?: string;
@@ -36,12 +35,19 @@ export function useAssistantConfig() {
       setLoading(true);
       setError(null);
 
-      const { data, error } = await supabase.functions.invoke('whatsapp-messages', {
-        body: { action: 'getAssistants' }
+      // Using direct API call instead of calling non-existent Supabase function
+      const response = await fetch('https://api.condamind.com/assistant/config', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
 
-      if (error) throw new Error(error.message);
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${await response.text()}`);
+      }
 
+      const data = await response.json();
       const assistants = data as AssistantConfig[];
       // Tomamos la primera configuración o creamos una por defecto
       const config = assistants.length > 0 ? assistants[0] : createDefaultConfig();
@@ -70,14 +76,18 @@ export function useAssistantConfig() {
         updatedConfig.createdAt = new Date().toISOString();
       }
 
-      const { data, error } = await supabase.functions.invoke('whatsapp-messages', {
-        body: { 
-          action: 'updateAssistant',
-          config: updatedConfig 
-        }
+      // Using direct API call instead of calling non-existent Supabase function
+      const response = await fetch('https://api.condamind.com/assistant/config', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedConfig)
       });
 
-      if (error) throw new Error(error.message);
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${await response.text()}`);
+      }
 
       setConfig(updatedConfig);
       setSaving(false);

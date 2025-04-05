@@ -62,6 +62,7 @@ const translateStatus = (status: string) => {
     'pending': 'Pendiente',
     'confirmed': 'Confirmado',
     'cancelled': 'Cancelado',
+    'processed': 'Procesado',
     'waiting': 'En espera',
     'failed': 'Fallido',
     'completed': 'Completado',

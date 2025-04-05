@@ -20,24 +20,24 @@ const CalendarSidebar: React.FC<CalendarSidebarProps> = ({
   isLoading
 }) => {
   return (
-    <Card className="md:col-span-1">
+    <Card className="md:col-span-1 h-full">
       <CardHeader className="pb-0">
         <div className="flex items-center justify-between">
           <CardTitle>Calendario</CardTitle>
-          <Database className="h-4 w-4 text-blue-500" />
+          <Database className="h-4 w-4 text-primary" />
         </div>
         <CardDescription>
           Selecciona una fecha para ver o agregar turnos
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-4">
-        <div className="relative w-full flex justify-center md:justify-start">
+        <div className="relative w-full flex justify-center">
           <Calendar
             mode="single"
             selected={selectedDate}
             onSelect={onDateSelect}
             locale={es}
-            className="border rounded-md p-3 max-w-full pointer-events-auto"
+            className="border rounded-md p-3 w-full max-w-[280px] pointer-events-auto"
           />
         </div>
         <div className="mt-4">

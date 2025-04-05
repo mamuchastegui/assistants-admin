@@ -41,7 +41,7 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
           <div className="flex items-center justify-between mb-2">
             {!isCollapsed && <h2 className="px-2 text-lg font-semibold tracking-tight">Gonza Admin</h2>}
           </div>
-          <div className="space-y-1">
+          <div className="space-y-3">
             <NavButton
               to="/"
               onClose={onClose}
@@ -58,78 +58,67 @@ export default function Sidebar({ className, onClose }: SidebarProps) {
             />
           </div>
           
-          <SidebarGroup 
-            icon={<Package className="h-4 w-4" />} 
-            title="Administración"
-            collapsed={isCollapsed}
-          >
-            <NavButton
-              to="/orders"
-              onClose={onClose}
-              icon={<Package className="h-4 w-4" />}
+          <div className="mt-6">
+            <SidebarGroup 
+              icon={<Package className="h-4 w-4" />} 
+              title="Administración"
               collapsed={isCollapsed}
-              label="Pedidos"
-              isChildItem={true}
             />
-            <NavButton
-              to="/menu"
-              onClose={onClose}
-              icon={<MenuIcon className="h-4 w-4" />}
-              collapsed={isCollapsed}
-              label="Menú y Categorías"
-              isChildItem={true}
-            />
-          </SidebarGroup>
+          </div>
           
-          <SidebarGroup 
-            icon={<MessageSquare className="h-4 w-4" />} 
-            title="Comunicación"
-            collapsed={isCollapsed}
-          >
-            <NavButton
-              to="/assistant"
-              onClose={onClose}
-              icon={<MessageSquare className="h-4 w-4" />}
+          <div className="mt-6">
+            <SidebarGroup 
+              icon={<MessageSquare className="h-4 w-4" />} 
+              title="Comunicación"
               collapsed={isCollapsed}
-              label="Asistentes"
-              isChildItem={true}
-            />
-          </SidebarGroup>
+            >
+              <NavButton
+                to="/assistant"
+                onClose={onClose}
+                icon={<MessageSquare className="h-4 w-4" />}
+                collapsed={isCollapsed}
+                label="Asistentes"
+                isChildItem={true}
+              />
+            </SidebarGroup>
+          </div>
         </div>
 
         <ScrollArea className="h-[150px] md:h-[200px]">
           <div className="space-y-1 px-3">
             {!isCollapsed && <h4 className="px-2 text-sm font-semibold tracking-tight">Integraciones</h4>}
-            <SidebarGroup 
-              icon={<Settings className="h-4 w-4" />} 
-              title="Configuración"
-              collapsed={isCollapsed}
-            >
-              <NavButton
-                to="/integrations"
-                onClose={onClose}
-                icon={<Settings className="h-4 w-4" />}
+            <div className="mt-3">
+              <SidebarGroup 
+                icon={<Settings className="h-4 w-4" />} 
+                title="Configuración"
                 collapsed={isCollapsed}
-                label="Configuración"
-                isChildItem={true}
-              />
-              <NavButton 
-                to="/clients"
-                onClose={onClose}
-                icon={<Users className="h-4 w-4" />}
-                collapsed={isCollapsed}
-                label="Clientes API"
-                isChildItem={true}
-              />
-              <NavButton 
-                to="/support"
-                onClose={onClose}
-                icon={<LifeBuoy className="h-4 w-4" />}
-                collapsed={isCollapsed}
-                label="Soporte"
-                isChildItem={true}
-              />
-            </SidebarGroup>
+              >
+                <NavButton
+                  to="/integrations"
+                  onClose={onClose}
+                  icon={<Settings className="h-4 w-4" />}
+                  collapsed={isCollapsed}
+                  label="Configuración"
+                  isChildItem={true}
+                />
+                <NavButton 
+                  to="/clients"
+                  onClose={onClose}
+                  icon={<Users className="h-4 w-4" />}
+                  collapsed={isCollapsed}
+                  label="Clientes API"
+                  isChildItem={true}
+                />
+                <NavButton 
+                  to="/support"
+                  onClose={onClose}
+                  icon={<LifeBuoy className="h-4 w-4" />}
+                  collapsed={isCollapsed}
+                  label="Soporte"
+                  isChildItem={true}
+                />
+              </SidebarGroup>
+            </div>
           </div>
         </ScrollArea>
       </div>
@@ -172,7 +161,7 @@ const NavButton = ({
               to={to} 
               onClick={handleClick}
               className={({isActive}) => cn(
-                "flex items-center justify-center rounded-md w-8 h-8 mx-auto my-1",
+                "flex items-center justify-center rounded-md w-8 h-8 mx-auto",
                 isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent text-foreground/80 hover:text-foreground"
               )}
             >
@@ -206,7 +195,7 @@ const NavButton = ({
 interface SidebarGroupProps {
   icon: React.ReactNode;
   title: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   collapsed?: boolean;
 }
 
@@ -215,14 +204,14 @@ const SidebarGroup = ({ icon, title, children, collapsed = false }: SidebarGroup
   
   if (collapsed) {
     return (
-      <div className="my-2 relative">
+      <div className="my-5">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="w-8 h-8 p-0 flex justify-center mx-auto my-1"
+                className="w-8 h-8 p-0 flex justify-center mx-auto"
                 onClick={() => setIsOpen(!isOpen)} 
               >
                 {icon}

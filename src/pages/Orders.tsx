@@ -60,12 +60,9 @@ const formatDate = (dateString: string) => {
 const translateStatus = (status: string) => {
   const statusMap: Record<string, string> = {
     'pending': 'Pendiente',
-    'confirmed': 'Confirmado',
-    'in_progress': 'En preparación',
-    'delivered': 'Entregado',
-    'cancelled': 'Cancelado',
     'processed': 'Procesado',
     'waiting': 'En espera',
+    'cancelled': 'Cancelado',
     'failed': 'Fallido',
     'completed': 'Completado',
     'refunded': 'Rembolsado',
@@ -77,13 +74,10 @@ const translateStatus = (status: string) => {
 
 const getStatusClass = (status: string) => {
   const statusClassMap: Record<string, string> = {
-    'pending': 'bg-amber-100 text-amber-800',
-    'confirmed': 'bg-blue-100 text-blue-800',
-    'in_progress': 'bg-purple-100 text-purple-800',
-    'delivered': 'bg-green-100 text-green-800',
-    'cancelled': 'bg-gray-200 text-gray-700',
+    'pending': 'bg-gray-100 text-gray-800',
     'processed': 'bg-green-100 text-green-800',
     'waiting': 'bg-yellow-100 text-yellow-800',
+    'cancelled': 'bg-gray-200 text-gray-700',
     'failed': 'bg-red-100 text-red-800',
     'completed': 'bg-cyan-100 text-cyan-800',
     'refunded': 'bg-gray-300 text-gray-800',

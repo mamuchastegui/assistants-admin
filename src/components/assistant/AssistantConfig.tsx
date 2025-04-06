@@ -9,12 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { MessageSquare, Save, Plus, Trash2, Loader2 } from "lucide-react";
-import WhatsAppMessages from "@/components/whatsapp/WhatsAppMessages";
 import ChatInterface from "@/components/whatsapp/ChatInterface";
 
-// Eliminar importación de useAssistantConfig
-
-// Definir interfaces sin dependencia del hook
+// Define interfaces without dependency of the hook
 interface QuickResponse {
   id: number;
   trigger: string;
@@ -124,7 +121,6 @@ const AssistantConfig: React.FC = () => {
             <ChatInterface />
           </CardContent>
         </Card>
-        <WhatsAppMessages />
       </TabsContent>
     </Tabs>
   );

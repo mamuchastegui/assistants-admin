@@ -34,7 +34,7 @@ const DashboardLayoutContent: React.FC<DashboardLayoutContentProps> = ({ childre
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={() => setOpenMobile(false)}
-            className="fixed inset-0 bg-black/50 z-30"
+            className="fixed inset-0 bg-black/50 z-40"
           />
         )}
       </AnimatePresence>
@@ -48,7 +48,7 @@ const DashboardLayoutContent: React.FC<DashboardLayoutContentProps> = ({ childre
             exit={isMobile ? { x: -300 } : { opacity: 0 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
             className={cn(
-              "fixed md:static top-16 bottom-0 md:top-0 left-0 z-40 overflow-hidden bg-card border-r shadow-sm",
+              "fixed md:static top-16 bottom-0 md:top-0 left-0 z-50 overflow-hidden bg-card border-r shadow-sm",
               isCollapsed ? "w-[3.5rem]" : "w-64",
               "md:flex flex-shrink-0",
               isMobile && !openMobile && "hidden",
@@ -66,7 +66,7 @@ const DashboardLayoutContent: React.FC<DashboardLayoutContentProps> = ({ childre
         transition={{ type: "spring", damping: 20, stiffness: 300 }}
         className={cn(
           "flex flex-col flex-1 transition-all duration-300 ease-in-out",
-          isCollapsed ? "md:ml-14" : "md:ml-64",
+          "md:ml-0", // Removed fixed margin class
           isMobile && "ml-0"
         )}
         onClick={handleContentClick}

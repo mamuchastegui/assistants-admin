@@ -105,3 +105,6 @@
     @apply bg-gradient-to-br from-background to-accent/20;
   }
 }
+.\[\&\:has\(\[aria-selected\]\)\]\:bg-accent\/50:has([aria-selected]) {
+  background-color: transparent!important;
+}

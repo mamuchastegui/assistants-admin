@@ -5,8 +5,9 @@ import WhatsAppMessages from "@/components/whatsapp/WhatsAppMessages";
 import { useChatThreads } from "@/hooks/useChatThreads";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Menu } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 const ChatInterface: React.FC = () => {
   const { 
@@ -22,8 +23,9 @@ const ChatInterface: React.FC = () => {
   
   const isMobile = useIsMobile();
   const [showThreadList, setShowThreadList] = React.useState(!isMobile || !selectedThread);
+  const threadListRef = React.useRef<HTMLDivElement>(null);
 
-  // Effect to handle visibility of thread list on mobile
+  // Effect to handle visibility of thread list based on screen width
   React.useEffect(() => {
     if (isMobile && selectedThread) {
       setShowThreadList(false);
@@ -47,16 +49,43 @@ const ChatInterface: React.FC = () => {
     }
   };
 
+  // Click outside handler for mobile
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isMobile && threadListRef.current && !threadListRef.current.contains(event.target as Node)) {
+        // Don't close if we're clicking on the back button
+        const target = event.target as HTMLElement;
+        if (target.closest('button') && target.closest('button')?.dataset?.action === 'back') {
+          return;
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMobile, threadListRef]);
+
   return (
-    <div className="relative grid grid-cols-1 md:grid-cols-3 gap-4 h-[calc(100vh-10rem)] sm:h-[calc(100vh-10rem)] bg-gradient-to-br from-background to-accent/20 p-2 sm:p-4 rounded-xl shadow-lg overflow-hidden animate-fade-in">
-      <AnimatePresence>
+    <div className="relative flex flex-col md:grid md:grid-cols-3 gap-0 md:gap-4 h-[calc(100vh-10rem)] sm:h-[calc(100vh-10rem)] bg-gradient-to-br from-background to-accent/20 rounded-xl shadow-lg overflow-hidden">
+      {/* Thread list */}
+      <AnimatePresence mode="wait">
         {(showThreadList || !isMobile) && (
           <motion.div 
-            className={`${isMobile ? "absolute inset-0 z-10 p-2" : "md:col-span-1"} transform transition-all duration-300 ease-in-out hover:scale-[1.01]`}
+            ref={threadListRef}
+            className={cn(
+              isMobile ? "absolute inset-0 z-30" : "md:col-span-1 border-r border-border/30",
+              "bg-card/70 backdrop-blur-sm"
+            )}
             initial={isMobile ? { x: -300, opacity: 0 } : { opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={isMobile ? { x: -300, opacity: 0 } : { opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ 
+              type: "spring", 
+              damping: 25, 
+              stiffness: 300 
+            }}
           >
             <ChatThreadList 
               threads={threads}
@@ -70,25 +99,47 @@ const ChatInterface: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {(!isMobile || !showThreadList || !selectedThread) && (
+      {/* Messages */}
+      <AnimatePresence mode="wait">
+        {(!isMobile || !showThreadList) && (
           <motion.div 
-            className={`${isMobile ? "absolute inset-0 z-10" : "md:col-span-2"} transform transition-all duration-300 ease-in-out`}
+            className={cn(
+              isMobile ? "absolute inset-0 z-20" : "md:col-span-2",
+              "bg-card/70 backdrop-blur-sm"
+            )}
             initial={isMobile ? { x: 300, opacity: 0 } : { opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={isMobile ? { x: 300, opacity: 0 } : { opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ 
+              type: "spring", 
+              damping: 25, 
+              stiffness: 300 
+            }}
           >
             {isMobile && selectedThread && !showThreadList && (
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={handleBackToThreads}
-                className="absolute top-3 left-3 z-20 bg-background/70 backdrop-blur-sm rounded-full h-8 w-8 p-0"
+                data-action="back"
+                className="absolute top-3 left-3 z-30 bg-background/70 backdrop-blur-sm rounded-full h-8 w-8 p-0"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             )}
+
+            {/* Only show menu button on mobile when in conversation view */}
+            {isMobile && !showThreadList && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowThreadList(true)}
+                className="absolute top-3 right-3 z-30 bg-background/70 backdrop-blur-sm rounded-full h-8 w-8 p-0 md:hidden"
+              >
+                <Menu className="h-4 w-4" />
+              </Button>
+            )}
+
             <WhatsAppMessages 
               conversation={conversation}
               loadingConversation={loadingConversation}

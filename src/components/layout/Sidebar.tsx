@@ -4,12 +4,7 @@ import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Package, 
   Users, 
@@ -17,21 +12,17 @@ import {
   Settings, 
   LifeBuoy, 
   Home,
-  MessageSquare
+  MessageSquare,
+  X,
+  ChevronRight
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSidebar } from "@/components/ui/sidebar";
-import { 
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { motion } from "framer-motion";
 
 interface SidebarProps {
   className?: string;
-  onClose?: () => void;
 }
 
 interface NavButtonProps {
@@ -39,31 +30,23 @@ interface NavButtonProps {
   children?: React.ReactNode;
   icon?: React.ReactNode;
   label: string;
-  onClose?: () => void;
   collapsed?: boolean;
   isChildItem?: boolean;
-}
-
-interface MenuGroupProps {
-  icon: React.ReactNode;
-  title: string;
-  children?: React.ReactNode;
-  collapsed?: boolean;
 }
 
 const NavButton = ({ 
   to, 
   icon, 
   label, 
-  onClose, 
   collapsed = false,
   isChildItem = false 
 }: NavButtonProps) => {
+  const { setOpenMobile } = useSidebar();
   const isMobile = useIsMobile();
   
   const handleClick = () => {
-    if (isMobile && onClose) {
-      onClose();
+    if (isMobile) {
+      setOpenMobile(false);
     }
   };
   
@@ -76,8 +59,8 @@ const NavButton = ({
               to={to} 
               onClick={handleClick}
               className={({isActive}) => cn(
-                "flex items-center justify-center rounded-md h-9 w-9 mx-auto my-1.5 transition-colors",
-                isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent text-foreground/80 hover:text-foreground"
+                "flex items-center justify-center rounded-md h-9 w-9 mx-auto my-1.5 transition-all duration-200",
+                isActive ? "bg-primary text-primary-foreground shadow-md" : "hover:bg-accent text-foreground/80 hover:text-foreground"
               )}
             >
               <div className="flex items-center justify-center">
@@ -97,249 +80,177 @@ const NavButton = ({
   }
   
   return (
-    <NavLink 
-      to={to} 
-      onClick={handleClick}
-      className={({isActive}) => cn(
-        "flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
-        isChildItem && "pl-6",
-        isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent text-foreground/80 hover:text-foreground"
-      )}
+    <motion.div
+      whileHover={{ x: 2 }}
+      transition={{ type: "spring", stiffness: 500 }}
     >
-      <div className="mr-2 flex items-center justify-center">
-        {React.cloneElement(icon as React.ReactElement, { 
-          size: 18,
-          strokeWidth: 1.5
-        })}
-      </div>
-      <span>{label}</span>
-    </NavLink>
-  );
-};
-
-const MenuGroup = ({ icon, title, children, collapsed = false }: MenuGroupProps) => {
-  if (collapsed) {
-    return (
-      <div className="py-2">
-        <DropdownMenu>
-          <TooltipProvider delayDuration={200}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    className="h-9 w-9 rounded-md mx-auto flex items-center justify-center"
-                  >
-                    {React.cloneElement(icon as React.ReactElement, { 
-                      size: 18,
-                      strokeWidth: 1.5
-                    })}
-                  </Button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="bg-popover text-popover-foreground">
-                {title}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <DropdownMenuContent 
-            side="right" 
-            align="start" 
-            className="w-52 p-1"
+      <NavLink 
+        to={to} 
+        onClick={handleClick}
+        className={({isActive}) => cn(
+          "flex items-center rounded-md px-3 py-2 text-sm font-medium transition-all duration-200",
+          isChildItem && "pl-6",
+          isActive ? 
+            "bg-primary text-primary-foreground shadow-sm" : 
+            "hover:bg-accent text-foreground/80 hover:text-foreground"
+        )}
+      >
+        <div className="mr-2 flex items-center justify-center">
+          {React.cloneElement(icon as React.ReactElement, { 
+            size: 18,
+            strokeWidth: 1.5
+          })}
+        </div>
+        <span>{label}</span>
+        {isActive && (
+          <motion.div 
+            layoutId="active-indicator"
+            className="ml-auto"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
           >
-            {children}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    );
-  }
-  
-  return (
-    <div className="my-1.5">
-      <Accordion type="single" collapsible className="w-full border-none">
-        <AccordionItem value="menu-group" className="border-none">
-          <AccordionTrigger className="py-2 px-3 hover:bg-accent hover:no-underline rounded-md">
-            <div className="flex items-center">
-              {React.cloneElement(icon as React.ReactElement, { 
-                size: 18,
-                strokeWidth: 1.5,
-                className: "mr-2"
-              })}
-              <span className="text-sm font-medium">{title}</span>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="pt-1 pb-0">
-            <div className="pl-2">
-              {children}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-    </div>
+            <ChevronRight size={14} />
+          </motion.div>
+        )}
+      </NavLink>
+    </motion.div>
   );
 };
 
-export default function Sidebar({ className, onClose }: SidebarProps) {
+export default function Sidebar({ className }: SidebarProps) {
   const isMobile = useIsMobile();
   const { state, setOpenMobile } = useSidebar();
   const isCollapsed = state === "collapsed";
+  const [currentTab, setCurrentTab] = React.useState("main");
   
-  const handleNavClick = () => {
-    if (isMobile) {
-      setOpenMobile(false);
-    }
-  };
+  // Navigation categories
+  const navCategories = [
+    { id: "main", label: "Principal" },
+    { id: "admin", label: "Admin" },
+    { id: "comms", label: "Comms" }
+  ];
   
   return (
-    <div className={cn("pb-3 w-full h-full flex flex-col", className)}>
+    <div className={cn("pb-3 w-full h-full flex flex-col bg-card", className)}>
+      {isMobile && (
+        <div className="flex items-center justify-between p-3 border-b border-border">
+          <h2 className="text-lg font-semibold tracking-tight">Menu</h2>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setOpenMobile(false)}
+            className="h-8 w-8"
+          >
+            <X size={18} />
+          </Button>
+        </div>
+      )}
+      
       <div className="py-2 h-full flex flex-col">
-        <div className="px-3 flex-none">
-          <div className="flex items-center justify-center md:justify-between mb-4">
-            {!isCollapsed && <h2 className="text-lg font-semibold tracking-tight">Admin</h2>}
-          </div>
-          
-          <div className="space-y-3">
-            <NavButton
-              to="/"
-              onClose={handleNavClick}
-              icon={<Home />}
-              collapsed={isCollapsed}
-              label="Inicio"
-            />
-            <NavButton
-              to="/calendar"
-              onClose={handleNavClick}
-              icon={<Calendar />}
-              collapsed={isCollapsed}
-              label="Calendario"
-            />
-          </div>
-          
-          <div className="mt-5 border-t border-border pt-3">
-            <MenuGroup 
-              icon={<Package />} 
-              title="Administración"
-              collapsed={isCollapsed}
+        {!isCollapsed && (
+          <div className="px-3 mb-3">
+            <Tabs 
+              value={currentTab} 
+              onValueChange={setCurrentTab} 
+              className="w-full"
             >
-              {isCollapsed ? (
-                <>
-                  <DropdownMenuItem asChild className="cursor-pointer">
-                    <NavLink to="/menu" onClick={handleNavClick} className="flex items-center w-full py-1.5">
-                      <Package className="mr-2 h-4 w-4" />
-                      <span>Menú</span>
-                    </NavLink>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer">
-                    <NavLink to="/orders" onClick={handleNavClick} className="flex items-center w-full py-1.5">
-                      <Package className="mr-2 h-4 w-4" />
-                      <span>Pedidos</span>
-                    </NavLink>
-                  </DropdownMenuItem>
-                </>
-              ) : (
-                <>
-                  <NavButton
-                    to="/menu"
-                    onClose={handleNavClick}
-                    icon={<Package className="h-4 w-4" />}
-                    label="Menú"
-                    isChildItem={true}
-                  />
-                  <NavButton
-                    to="/orders"
-                    onClose={handleNavClick}
-                    icon={<Package className="h-4 w-4" />}
-                    label="Pedidos"
-                    isChildItem={true}
-                  />
-                </>
-              )}
-            </MenuGroup>
+              <TabsList className="w-full grid grid-cols-3">
+                {navCategories.map((cat) => (
+                  <TabsTrigger key={cat.id} value={cat.id} className="text-xs">
+                    {cat.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
           </div>
-          
-          <div className="mt-2">
-            <MenuGroup 
-              icon={<MessageSquare />} 
-              title="Comunicación"
-              collapsed={isCollapsed}
-            >
-              {isCollapsed ? (
-                <DropdownMenuItem asChild className="cursor-pointer">
-                  <NavLink to="/assistant" onClick={handleNavClick} className="flex items-center w-full py-1.5">
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    <span>Asistentes</span>
-                  </NavLink>
-                </DropdownMenuItem>
-              ) : (
+        )}
+        
+        <ScrollArea className="flex-1 px-3">
+          <div className="space-y-1">
+            {(currentTab === "main" || isCollapsed) && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-1 py-2"
+              >
+                <NavButton
+                  to="/"
+                  icon={<Home />}
+                  collapsed={isCollapsed}
+                  label="Inicio"
+                />
+                <NavButton
+                  to="/calendar"
+                  icon={<Calendar />}
+                  collapsed={isCollapsed}
+                  label="Calendario"
+                />
+              </motion.div>
+            )}
+            
+            {(currentTab === "admin" || isCollapsed) && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-1 py-2"
+              >
+                <NavButton
+                  to="/menu"
+                  icon={<Package />}
+                  collapsed={isCollapsed}
+                  label="Menú"
+                />
+                <NavButton
+                  to="/orders"
+                  icon={<Package />}
+                  collapsed={isCollapsed}
+                  label="Pedidos"
+                />
+              </motion.div>
+            )}
+            
+            {(currentTab === "comms" || isCollapsed) && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-1 py-2"
+              >
                 <NavButton
                   to="/assistant"
-                  onClose={handleNavClick}
-                  icon={<MessageSquare className="h-4 w-4" />}
+                  icon={<MessageSquare />}
+                  collapsed={isCollapsed}
                   label="Asistentes"
-                  isChildItem={true}
                 />
-              )}
-            </MenuGroup>
+              </motion.div>
+            )}
           </div>
-        </div>
-
-        <ScrollArea className="flex-1 px-3 mt-3">
-          <div className="space-y-2 border-t border-border pt-3">
-            {!isCollapsed && <h4 className="text-sm font-semibold px-1">Integraciones</h4>}
-            <MenuGroup 
-              icon={<Settings />} 
-              title="Configuración"
-              collapsed={isCollapsed}
-            >
-              {isCollapsed ? (
-                <>
-                  <DropdownMenuItem asChild className="cursor-pointer">
-                    <NavLink to="/integrations" onClick={handleNavClick} className="flex items-center w-full py-1.5">
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Configuración</span>
-                    </NavLink>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer">
-                    <NavLink to="/clients" onClick={handleNavClick} className="flex items-center w-full py-1.5">
-                      <Users className="mr-2 h-4 w-4" />
-                      <span>Clientes API</span>
-                    </NavLink>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer">
-                    <NavLink to="/support" onClick={handleNavClick} className="flex items-center w-full py-1.5">
-                      <LifeBuoy className="mr-2 h-4 w-4" />
-                      <span>Soporte</span>
-                    </NavLink>
-                  </DropdownMenuItem>
-                </>
-              ) : (
-                <>
-                  <NavButton
-                    to="/integrations"
-                    onClose={handleNavClick}
-                    icon={<Settings className="h-4 w-4" />}
-                    label="Configuración"
-                    isChildItem={true}
-                  />
-                  <NavButton 
-                    to="/clients"
-                    onClose={handleNavClick}
-                    icon={<Users className="h-4 w-4" />}
-                    label="Clientes API"
-                    isChildItem={true}
-                  />
-                  <NavButton 
-                    to="/support"
-                    onClose={handleNavClick}
-                    icon={<LifeBuoy className="h-4 w-4" />}
-                    label="Soporte"
-                    isChildItem={true}
-                  />
-                </>
-              )}
-            </MenuGroup>
-          </div>
+          
+          {!isCollapsed && (
+            <div className="mt-6 border-t border-border pt-3">
+              <h4 className="text-xs font-semibold text-muted-foreground px-3 mb-2">Configuración</h4>
+              <div className="space-y-1">
+                <NavButton
+                  to="/integrations"
+                  icon={<Settings />}
+                  label="Configuración"
+                />
+                <NavButton
+                  to="/clients"
+                  icon={<Users />}
+                  label="Clientes API"
+                />
+                <NavButton
+                  to="/support"
+                  icon={<LifeBuoy />}
+                  label="Soporte"
+                />
+              </div>
+            </div>
+          )}
         </ScrollArea>
       </div>
     </div>

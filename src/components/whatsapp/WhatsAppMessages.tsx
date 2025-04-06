@@ -85,11 +85,12 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
 
   return (
     <div className="h-full flex flex-col overflow-hidden bg-card/80 backdrop-blur-sm border-muted">
+      {/* Header with profile info */}
       <div className="flex flex-row items-center justify-between p-2 sm:p-3 border-b bg-gradient-to-r from-background to-muted/30">
-        <div className="flex items-center ml-8 md:ml-0">
+        <div className="flex items-center">
           {conversation && (
-            <Avatar className="h-6 w-6 sm:h-8 sm:w-8 mr-2 ring-2 ring-primary/20">
-              <AvatarFallback className="bg-primary text-primary-foreground text-xs">{getInitials(conversation.profile_name)}</AvatarFallback>
+            <Avatar className="h-8 w-8 sm:h-10 sm:w-10 mr-3 ring-2 ring-primary/20">
+              <AvatarFallback className="bg-primary text-primary-foreground text-xs sm:text-sm">{getInitials(conversation.profile_name)}</AvatarFallback>
             </Avatar>
           )}
           <div>
@@ -166,7 +167,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
               )}
             </AnimatePresence>
 
-            <ScrollArea className="flex-grow px-2 py-2 sm:py-3 bg-[url('https://i.pinimg.com/originals/85/ec/df/85ecdf1c3611ecc9b7fa85282d9526e0.jpg')] bg-cover bg-fixed bg-opacity-30 dark:bg-opacity-20 bg-blend-darken">
+            <ScrollArea className="flex-grow px-1.5 py-2 sm:py-3 bg-[url('https://i.pinimg.com/originals/85/ec/df/85ecdf1c3611ecc9b7fa85282d9526e0.jpg')] bg-cover bg-fixed bg-opacity-30 dark:bg-opacity-20 bg-blend-darken">
               {filteredMessages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center py-4">
                   <MessageSquare className="h-6 w-6 sm:h-8 sm:w-8 mx-auto text-muted-foreground opacity-50 mb-2" />
@@ -175,7 +176,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
                   </p>
                 </div>
               ) : (
-                <div className="space-y-1.5 sm:space-y-2 px-1">
+                <div className="space-y-1 sm:space-y-1.5 px-1">
                   {filteredMessages.map((message, index) => (
                     <MessageItem 
                       key={index} 
@@ -281,10 +282,10 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, profileName, isConse
       className={`flex ${isInbound ? "justify-start" : "justify-end"} mb-1`}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.03 }}
+      transition={{ duration: 0.2, delay: index * 0.02 }}
     >
       <div
-        className={`max-w-[85%] sm:max-w-[75%] rounded-2xl p-1.5 sm:p-2 ${
+        className={`max-w-[85%] sm:max-w-[70%] rounded-2xl p-1.5 sm:p-2 ${
           isInbound
             ? "bg-background dark:bg-muted shadow-sm"
             : "bg-primary text-primary-foreground shadow-md"
@@ -303,7 +304,7 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, profileName, isConse
             {isInbound ? profileName || "Usuario" : "Asistente"}
           </div>
         )}
-        <div className="whitespace-pre-wrap text-xs">{message.content}</div>
+        <div className="whitespace-pre-wrap text-xs sm:text-sm">{message.content}</div>
         <div
           className={`text-[10px] mt-0.5 text-right ${
             isInbound ? "text-muted-foreground/70" : "text-primary-foreground/80"

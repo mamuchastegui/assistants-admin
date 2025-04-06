@@ -1,10 +1,10 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { CardTitle, CardDescription } from "@/components/ui/card";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Plus, Database } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface AppointmentHeaderProps {
   selectedDate: Date;
@@ -19,35 +19,65 @@ const AppointmentHeader: React.FC<AppointmentHeaderProps> = ({
   onPrevDay,
   onNextDay,
   onResetForm,
-  onOpenNewDialog
+  onOpenNewDialog,
 }) => {
+  const currentDate = new Date();
+  // Check if selected date is today
+  const isToday =
+    selectedDate.getDate() === currentDate.getDate() &&
+    selectedDate.getMonth() === currentDate.getMonth() &&
+    selectedDate.getFullYear() === currentDate.getFullYear();
+
+  const handleNewAppointment = () => {
+    onResetForm();
+    onOpenNewDialog();
+  };
+
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-2 gap-3 sm:gap-0">
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
       <div>
         <div className="flex items-center space-x-1">
-          <CardTitle>Turnos</CardTitle>
-          <Database className="h-4 w-4 text-blue-500" />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onPrevDay}
+            className="h-8 w-8"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <motion.div
+            key={selectedDate.toISOString()}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <h3 className="text-lg font-medium">
+              {format(selectedDate, "EEEE dd 'de' MMMM", { locale: es })}
+              {isToday && (
+                <span className="ml-2 text-xs bg-primary text-primary-foreground py-0.5 px-1.5 rounded-full">
+                  Hoy
+                </span>
+              )}
+            </h3>
+          </motion.div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onNextDay}
+            className="h-8 w-8"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
-        <CardDescription>
-          {format(selectedDate, "EEEE d 'de' MMMM, yyyy", { locale: es })}
-        </CardDescription>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Gestiona los turnos para esta fecha
+        </p>
       </div>
-      <div className="flex items-center space-x-2">
-        <Button variant="outline" size="sm" onClick={onPrevDay}>
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <Button variant="outline" size="sm" onClick={onNextDay}>
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-        <Button size="sm" onClick={() => {
-          onResetForm();
-          onOpenNewDialog();
-        }}>
-          <Plus className="h-4 w-4 mr-2" />
-          <span className="hidden sm:inline">Nuevo Turno</span>
-          <span className="sm:hidden">Nuevo</span>
-        </Button>
-      </div>
+      <Button size="sm" className="shrink-0" onClick={handleNewAppointment}>
+        <Plus className="mr-2 h-3.5 w-3.5" />
+        Nuevo Turno
+      </Button>
     </div>
   );
 };

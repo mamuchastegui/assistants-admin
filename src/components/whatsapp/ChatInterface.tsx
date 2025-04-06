@@ -61,7 +61,7 @@ const ChatInterface: React.FC = () => {
   }, [isMobile, threadListRef]);
 
   return (
-    <div className="relative flex flex-col md:grid md:grid-cols-3 gap-0 md:gap-2 h-[calc(100vh-12rem)] sm:h-[calc(100vh-12rem)] bg-gradient-to-br from-background to-accent/20 rounded-xl shadow-lg overflow-hidden">
+    <div className="relative flex flex-col md:grid md:grid-cols-3 gap-0 md:gap-2 h-[calc(100vh-12rem)] bg-gradient-to-br from-background to-accent/20 rounded-xl shadow-lg overflow-hidden">
       {/* Thread list */}
       <AnimatePresence mode="wait">
         {(showThreadList || !isMobile) && (
@@ -116,7 +116,7 @@ const ChatInterface: React.FC = () => {
                 size="icon"
                 onClick={() => setShowThreadList(true)}
                 data-action="menu"
-                className="absolute top-3 left-3 z-30 bg-background/70 backdrop-blur-sm rounded-full h-8 w-8 p-0 md:hidden"
+                className="absolute top-3 left-3 z-30 bg-background/70 backdrop-blur-sm rounded-full h-8 w-8 p-0"
               >
                 <Menu className="h-4 w-4" />
               </Button>

@@ -91,39 +91,39 @@ const ChatThreadList: React.FC<ChatThreadListProps> = ({
 
   return (
     <Card className="h-full flex flex-col bg-card/80 backdrop-blur-sm shadow-lg border-muted">
-      <CardHeader className="flex flex-row items-center justify-between p-3 sm:p-4 pb-2 border-b bg-gradient-to-r from-background to-muted/30">
+      <CardHeader className="flex flex-row items-center justify-between p-3 pb-2 border-b bg-gradient-to-r from-background to-muted/30">
         <div>
-          <CardTitle className="text-base sm:text-lg">Conversaciones</CardTitle>
+          <CardTitle className="text-sm sm:text-base">Conversaciones</CardTitle>
           <CardDescription className="text-xs">Listado de chats con clientes</CardDescription>
         </div>
         <Button 
           size="sm" 
           variant="ghost" 
           onClick={handleRefresh} 
-          className="hover:bg-primary/20 h-8 w-8 p-0 sm:h-9 sm:w-9 sm:p-2"
+          className="hover:bg-primary/20 h-8 w-8 p-0"
         >
           <RefreshCw className="h-4 w-4" />
         </Button>
       </CardHeader>
-      <div className="px-3 py-2 sm:p-4 border-b bg-muted/20">
+      <div className="px-3 py-2 border-b bg-muted/20">
         <div className="relative">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar contactos..."
-            className="pl-8 bg-background/80 focus:bg-background transition-colors duration-200 h-9 text-sm"
+            className="pl-8 bg-background/80 focus:bg-background transition-colors duration-200 h-8 text-xs"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
       <CardContent className="p-0 flex-grow">
-        <ScrollArea className="h-[calc(100vh-16rem)] sm:h-[calc(100vh-16rem)]">
+        <ScrollArea className="h-[calc(100vh-16rem)]">
           {filteredThreads.length === 0 ? (
             <div className="p-4 text-center">
               <p className="text-muted-foreground text-xs sm:text-sm">No se encontraron contactos</p>
             </div>
           ) : (
-            <div className="space-y-0.5 sm:space-y-1 p-1">
+            <div className="space-y-0.5 p-1">
               {filteredThreads.map((thread, index) => {
                 const isSelected = selectedThread === thread.thread_id;
                 const date = new Date(thread.updated_at);
@@ -138,22 +138,22 @@ const ChatThreadList: React.FC<ChatThreadListProps> = ({
                   >
                     <Button
                       variant={isSelected ? "secondary" : "ghost"}
-                      className={`w-full justify-start p-2 sm:p-3 h-auto transition-all duration-200 ${
+                      className={`w-full justify-start p-2 h-auto transition-all duration-200 ${
                         isSelected 
                           ? "bg-secondary shadow-md" 
                           : "hover:bg-muted/50"
-                      } rounded-lg my-0.5 sm:my-1`}
+                      } rounded-lg my-0.5`}
                       onClick={() => selectThread(thread.thread_id)}
                     >
                       <div className="flex items-center w-full gap-2">
-                        <Avatar className="h-8 w-8 sm:h-10 sm:w-10 shrink-0 ring-2 ring-primary/20 shadow-sm">
-                          <AvatarFallback className={`${isSelected ? "bg-primary text-primary-foreground" : "bg-muted"} text-xs sm:text-sm`}>
+                        <Avatar className="h-8 w-8 shrink-0 ring-1 ring-primary/20 shadow-sm">
+                          <AvatarFallback className={`${isSelected ? "bg-primary text-primary-foreground" : "bg-muted"} text-xs`}>
                             {getInitials(thread.profile_name)}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col items-start flex-grow overflow-hidden">
-                          <span className={`font-medium text-xs sm:text-sm ${isSelected ? "text-primary" : ""}`}>{displayName}</span>
-                          <span className="text-[10px] sm:text-xs text-muted-foreground truncate max-w-full">
+                          <span className={`font-medium text-xs ${isSelected ? "text-primary" : ""}`}>{displayName}</span>
+                          <span className="text-[10px] text-muted-foreground truncate max-w-full">
                             Último mensaje: {formatDistanceToNow(date, { addSuffix: true, locale: es })}
                           </span>
                         </div>

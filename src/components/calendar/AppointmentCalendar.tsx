@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 
@@ -56,7 +56,7 @@ const AppointmentCalendar: React.FC = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {/* Calendar sidebar */}
       <div className="md:col-span-1">
         <CalendarSidebar
@@ -68,8 +68,8 @@ const AppointmentCalendar: React.FC = () => {
       </div>
 
       {/* Appointments list */}
-      <Card className="md:col-span-2">
-        <CardHeader className="pb-2">
+      <Card className="md:col-span-2 shadow-md">
+        <CardHeader className="pb-3 border-b bg-gradient-to-r from-background to-muted/30">
           <AppointmentHeader 
             selectedDate={selectedDate}
             onPrevDay={handlePrevDay}
@@ -78,7 +78,7 @@ const AppointmentCalendar: React.FC = () => {
             onOpenNewDialog={() => setIsNewAppointmentOpen(true)}
           />
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 md:p-4">
           <AppointmentList
             appointments={filteredAppointments}
             isLoading={isLoading}

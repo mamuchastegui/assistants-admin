@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Calendar } from "@/components/ui/calendar";
 import { Loader2, RefreshCw, Database } from "lucide-react";
 import { es } from "date-fns/locale";
+import { motion } from "framer-motion";
 
 interface CalendarSidebarProps {
   selectedDate: Date;
@@ -20,42 +21,51 @@ const CalendarSidebar: React.FC<CalendarSidebarProps> = ({
   isLoading
 }) => {
   return (
-    <Card className="lg:col-span-1 h-full">
-      <CardHeader className="pb-0">
+    <Card className="h-full shadow-md">
+      <CardHeader className="space-y-1 pb-2 bg-gradient-to-r from-background to-muted/30 border-b">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Calendario</CardTitle>
-          <Database className="h-4 w-4 text-primary" />
+          <CardTitle className="text-base md:text-lg">Calendario</CardTitle>
+          <Database className="h-4 w-4 text-primary/80" />
         </div>
-        <CardDescription className="text-xs md:text-sm">
+        <CardDescription className="text-xs">
           Selecciona una fecha para ver o agregar turnos
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-4">
-        <div className="relative w-full flex justify-center">
-          <div className="w-full overflow-x-auto pb-2 -mx-2 px-2">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative w-full flex justify-center"
+        >
+          <div className="w-full">
             <Calendar
               mode="single"
               selected={selectedDate}
               onSelect={onDateSelect}
               locale={es}
-              className="border rounded-md p-1 md:p-3 w-full max-w-full mx-auto"
+              className="border rounded-md p-1 md:p-2 shadow-sm w-full max-w-full mx-auto bg-card/50"
             />
           </div>
-        </div>
-        <div className="mt-4">
+        </motion.div>
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="mt-3"
+        >
           <Button 
-            className="w-full text-sm" 
+            className="w-full text-xs sm:text-sm" 
             onClick={onSyncWithDatabase}
             disabled={isLoading}
           >
             {isLoading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
             ) : (
-              <RefreshCw className="mr-2 h-4 w-4" />
+              <RefreshCw className="mr-2 h-3.5 w-3.5" />
             )}
             Sincronizar con Supabase
           </Button>
-        </div>
+        </motion.div>
       </CardContent>
     </Card>
   );

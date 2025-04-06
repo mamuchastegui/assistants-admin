@@ -10,6 +10,7 @@ import Assistant from "./pages/Assistant";
 import Integrations from "./pages/Integrations";
 import Orders from "./pages/Orders";
 import Menu from "./pages/Menu";
+import RestaurantMenu from "./pages/RestaurantMenu";
 import NotFound from "./pages/NotFound";
 import { ThemeProvider } from "./hooks/use-theme";
 import React from "react";
@@ -41,6 +42,7 @@ function App() {
                 <Route path="/integrations" element={<Integrations />} />
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/menu" element={<Menu />} />
+                <Route path="/restaurant-menu" element={<RestaurantMenu />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

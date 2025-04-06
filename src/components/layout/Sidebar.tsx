@@ -191,6 +191,12 @@ export default function Sidebar({ className }: SidebarProps) {
                   collapsed={isCollapsed}
                   label="Calendario"
                 />
+                <NavButton
+                  to="/restaurant-menu"
+                  icon={<Package />}
+                  collapsed={isCollapsed}
+                  label="Menú Restaurante"
+                />
               </motion.div>
             )}
             

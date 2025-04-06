@@ -4,14 +4,34 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useWhatsAppMessages, WhatsAppMessage } from "@/hooks/useWhatsAppMessages";
 import { Loader2, RefreshCw, MessageSquare, Search, Image } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 
+// Eliminar importación de useWhatsAppMessages y tipo WhatsAppMessage
+// En lugar de usar el hook mockeado, usaremos los datos directamente de la API
+
+// Definir interfaz para WhatsAppMessage sin dependencia de hook
+interface WhatsAppMessage {
+  _id: string;
+  phoneNumber: string;
+  profileName?: string;
+  body: string;
+  direction: "inbound" | "outbound";
+  status: "received" | "sent" | "delivered" | "read" | "failed";
+  timestamp: string;
+  media?: { url: string; contentType: string; }[];
+}
+
 const WhatsAppMessages: React.FC = () => {
-  const { messages, loading, error, hasMore, loadMore, refreshMessages } = useWhatsAppMessages();
+  const [messages, setMessages] = useState<WhatsAppMessage[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // Como ya no usamos el hook mockeado, esta parte será 100% dinámica en el futuro
+  // Por ahora dejamos un componente que muestra un estado de carga
+  // Esto se conectará a la API real posteriormente
 
   const filteredMessages = messages.filter(
     (message) => 
@@ -45,8 +65,7 @@ const WhatsAppMessages: React.FC = () => {
         </div>
         <Button 
           variant="outline" 
-          size="sm" 
-          onClick={refreshMessages}
+          size="sm"
           disabled={loading}
         >
           {loading ? (
@@ -70,120 +89,21 @@ const WhatsAppMessages: React.FC = () => {
           </div>
         </div>
 
-        {loading && messages.length === 0 ? (
-          <div className="flex justify-center items-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : error ? (
-          <div className="text-center py-8 text-destructive">
-            <p>Error al cargar los mensajes. Intenta nuevamente.</p>
-          </div>
-        ) : filteredMessages.length === 0 ? (
-          <div className="text-center py-10">
-            <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground opacity-50 mb-4" />
-            <p className="text-muted-foreground mb-2">No hay mensajes disponibles</p>
-            {searchTerm && (
-              <p className="text-sm text-muted-foreground">
-                No se encontraron resultados para "{searchTerm}"
-              </p>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {filteredMessages.map((message) => (
-              <MessageItem key={message._id} message={message} />
-            ))}
-            
-            {hasMore && (
-              <div className="text-center pt-2">
-                <Button 
-                  variant="outline" 
-                  onClick={loadMore}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    "Cargar más mensajes"
-                  )}
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
+        <div className="text-center py-8">
+          <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground opacity-50 mb-4" />
+          <p className="text-muted-foreground mb-2">
+            Conectando con la API de mensajes...
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Esta función estará disponible próximamente.
+          </p>
+        </div>
       </CardContent>
     </Card>
   );
 };
 
-interface MessageItemProps {
-  message: WhatsAppMessage;
-}
-
-const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
-  const isInbound = message.direction === "inbound";
-  const timestamp = new Date(message.timestamp);
-  
-  const formatPhoneNumber = (phoneNumber: string): string => {
-    // Eliminar el prefijo "whatsapp:" si existe
-    return phoneNumber.replace("whatsapp:", "");
-  };
-  
-  const getInitials = (name?: string): string => {
-    if (!name) return "WA";
-    const nameParts = name.split(" ");
-    if (nameParts.length === 1) return nameParts[0].substring(0, 2).toUpperCase();
-    return (nameParts[0][0] + nameParts[1][0]).toUpperCase();
-  };
-  
-  const getStatusBadge = () => {
-    switch (message.status) {
-      case "received":
-        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Recibido</Badge>;
-      case "sent":
-        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Enviado</Badge>;
-      case "delivered":
-        return <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">Entregado</Badge>;
-      case "read":
-        return <Badge className="bg-indigo-100 text-indigo-800 hover:bg-indigo-100">Leído</Badge>;
-      case "failed":
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Fallido</Badge>;
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div className="flex items-start space-x-4">
-      <Avatar>
-        <AvatarFallback className={isInbound ? "bg-primary/10 text-primary" : "bg-secondary/10 text-secondary"}>
-          {getInitials(message.profileName)}
-        </AvatarFallback>
-      </Avatar>
-      <div className="flex-1 space-y-1">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <h4 className="font-semibold">
-              {message.profileName || formatPhoneNumber(message.phoneNumber)}
-            </h4>
-            {getStatusBadge()}
-          </div>
-          <span className="text-xs text-muted-foreground whitespace-nowrap">
-            {formatDistanceToNow(timestamp, { addSuffix: true, locale: es })}
-          </span>
-        </div>
-        
-        <p className="text-sm text-muted-foreground">{message.body}</p>
-        
-        {message.media && message.media.length > 0 && (
-          <div className="flex items-center text-xs text-primary mt-1">
-            <Image className="h-3 w-3 mr-1" />
-            <span>{message.media.length} {message.media.length === 1 ? "archivo adjunto" : "archivos adjuntos"}</span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
+// Eliminamos el componente MessageItem ya que no lo estamos usando por ahora
+// Lo implementaremos cuando tengamos datos reales de la API
 
 export default WhatsAppMessages;

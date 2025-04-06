@@ -164,7 +164,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
               )}
             </AnimatePresence>
 
-            <ScrollArea className="flex-grow px-4 py-6 bg-[url('https://i.pinimg.com/originals/85/ec/df/85ecdf1c3611ecc9b7fa85282d9526e0.jpg')] bg-cover bg-fixed">
+            <ScrollArea className="flex-grow px-4 py-10 bg-[url('https://i.pinimg.com/originals/85/ec/df/85ecdf1c3611ecc9b7fa85282d9526e0.jpg')] bg-cover bg-fixed">
               {filteredMessages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center py-8">
                   <MessageSquare className="h-10 w-10 mx-auto text-muted-foreground opacity-50 mb-4" />

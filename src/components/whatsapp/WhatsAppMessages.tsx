@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import { Conversation } from "@/hooks/useChatThreads";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface WhatsAppMessage {
   _id?: string;
@@ -32,6 +33,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [showSearchBox, setShowSearchBox] = useState(false);
 
   // Scroll to bottom of messages when conversation changes
   useEffect(() => {
@@ -48,16 +50,12 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
   };
   
   const formatPhoneNumber = (phoneNumber: string): string => {
-    // Remove "whatsapp:" prefix if it exists
     let formatted = phoneNumber.replace("whatsapp:", "");
-    // Format as +XX XXX XXX XXX
     return formatted;
   };
 
   const handleSendMessage = () => {
     if (!newMessage.trim() || !selectedThread) return;
-    
-    // In a real implementation, this would send the message to the API
     toast.info("Esta función aún no está implementada");
     setNewMessage("");
   };
@@ -68,12 +66,12 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
   ) || [];
 
   return (
-    <Card className="h-full flex flex-col border shadow-md">
-      <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
+    <Card className="h-full flex flex-col border shadow-md bg-card/80 backdrop-blur-sm border-muted">
+      <CardHeader className="flex flex-row items-center justify-between pb-2 border-b bg-gradient-to-r from-background to-muted/30">
         <div className="flex items-center">
           {conversation && (
-            <Avatar className="h-10 w-10 mr-3">
-              <AvatarFallback>{getInitials(conversation.profile_name)}</AvatarFallback>
+            <Avatar className="h-10 w-10 mr-3 ring-2 ring-primary/20">
+              <AvatarFallback className="bg-primary text-primary-foreground">{getInitials(conversation.profile_name)}</AvatarFallback>
             </Avatar>
           )}
           <div>
@@ -85,38 +83,70 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
             </CardDescription>
           </div>
         </div>
+        {conversation && (
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={() => setShowSearchBox(!showSearchBox)}
+            className="hover:bg-primary/10"
+          >
+            <Search className="h-4 w-4" />
+          </Button>
+        )}
       </CardHeader>
       
       <CardContent className="p-0 flex-grow flex flex-col h-[calc(100vh-12rem)]">
         {!selectedThread ? (
-          <div className="flex flex-col items-center justify-center h-full text-center p-6">
-            <MessageSquare className="h-12 w-12 text-muted-foreground opacity-50 mb-4" />
-            <p className="text-muted-foreground mb-2">
-              Selecciona una conversación para ver los mensajes
-            </p>
+          <div className="flex flex-col items-center justify-center h-full text-center p-6 bg-gradient-to-br from-muted/10 to-muted/30">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              <MessageSquare className="h-12 w-12 text-muted-foreground opacity-50 mb-4" />
+              <p className="text-muted-foreground mb-2">
+                Selecciona una conversación para ver los mensajes
+              </p>
+            </motion.div>
           </div>
         ) : loadingConversation ? (
-          <div className="flex flex-col items-center justify-center h-full">
-            <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">
-              Cargando conversación...
-            </p>
+          <div className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-muted/10 to-muted/30">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+              <p className="text-muted-foreground">
+                Cargando conversación...
+              </p>
+            </motion.div>
           </div>
         ) : (
           <>
-            <div className="p-4 border-b">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar en la conversación..."
-                  className="pl-8"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
+            <AnimatePresence>
+              {showSearchBox && (
+                <motion.div 
+                  className="p-4 border-b"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="relative">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar en la conversación..."
+                      className="pl-8 bg-background/80 focus:bg-background transition-colors duration-200"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-            <ScrollArea className="flex-grow p-4">
+            <ScrollArea className="flex-grow p-4 bg-[url('https://i.pinimg.com/originals/85/ec/df/85ecdf1c3611ecc9b7fa85282d9526e0.jpg')] bg-cover bg-fixed">
               {filteredMessages.length === 0 ? (
                 <div className="text-center py-8">
                   <MessageSquare className="h-10 w-10 mx-auto text-muted-foreground opacity-50 mb-4" />
@@ -127,34 +157,43 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
               ) : (
                 <div className="space-y-4">
                   {filteredMessages.map((message, index) => (
-                    <MessageItem key={index} message={message} profileName={conversation?.profile_name || ""} />
+                    <MessageItem 
+                      key={index} 
+                      message={message} 
+                      profileName={conversation?.profile_name || ""} 
+                      isConsecutive={
+                        index > 0 && filteredMessages[index - 1].role === message.role
+                      }
+                      index={index}
+                    />
                   ))}
                   <div ref={messagesEndRef} />
                 </div>
               )}
             </ScrollArea>
 
-            <div className="p-4 border-t">
+            <div className="p-3 border-t bg-card/90 backdrop-blur-sm">
               <div className="flex items-center gap-2">
-                <Button size="icon" variant="ghost">
+                <Button size="icon" variant="ghost" className="rounded-full hover:bg-primary/10">
                   <Paperclip className="h-5 w-5" />
                 </Button>
                 <Input
                   placeholder="Escribe un mensaje..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  className="flex-grow"
+                  className="flex-grow bg-muted/30 border-muted focus:bg-background transition-colors duration-200 rounded-full"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") handleSendMessage();
                   }}
                 />
-                <Button size="icon" variant="ghost">
+                <Button size="icon" variant="ghost" className="rounded-full hover:bg-primary/10">
                   <Smile className="h-5 w-5" />
                 </Button>
                 <Button 
                   size="icon" 
                   disabled={!newMessage.trim()}
                   onClick={handleSendMessage}
+                  className="rounded-full bg-primary hover:bg-primary/80"
                 >
                   <SendHorizontal className="h-5 w-5" />
                 </Button>
@@ -170,41 +209,51 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
 interface MessageItemProps {
   message: WhatsAppMessage;
   profileName: string;
+  isConsecutive: boolean;
+  index: number;
 }
 
-const MessageItem: React.FC<MessageItemProps> = ({ message, profileName }) => {
+const MessageItem: React.FC<MessageItemProps> = ({ message, profileName, isConsecutive, index }) => {
   const isInbound = message.role === "user";
   const date = new Date(message.timestamp);
   
   return (
-    <div className={`flex ${isInbound ? "justify-start" : "justify-end"}`}>
+    <motion.div 
+      className={`flex ${isInbound ? "justify-start" : "justify-end"}`}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.05 }}
+    >
       <div
-        className={`max-w-[80%] rounded-lg p-3 ${
+        className={`max-w-[80%] rounded-2xl p-3 ${
           isInbound
-            ? "bg-muted"
-            : "bg-primary text-primary-foreground"
+            ? "bg-white dark:bg-muted shadow-sm"
+            : "bg-primary text-primary-foreground shadow-md"
+        } ${
+          isConsecutive 
+            ? isInbound 
+              ? "rounded-tl-md" 
+              : "rounded-tr-md" 
+            : ""
         }`}
       >
-        {!isInbound && (
-          <div className="mb-1 text-xs text-primary-foreground/80 font-medium">
-            Asistente
-          </div>
-        )}
-        {isInbound && (
-          <div className="mb-1 text-xs text-muted-foreground/80 font-medium">
-            {profileName || "Usuario"}
+        {!isConsecutive && (
+          <div className={`mb-1 text-xs ${
+            isInbound ? "text-muted-foreground/80" : "text-primary-foreground/80"
+          } font-medium`}>
+            {isInbound ? profileName || "Usuario" : "Asistente"}
           </div>
         )}
         <div className="whitespace-pre-wrap">{message.content}</div>
         <div
-          className={`text-xs mt-1 ${
-            isInbound ? "text-muted-foreground" : "text-primary-foreground/80"
+          className={`text-xs mt-1 text-right ${
+            isInbound ? "text-muted-foreground/70" : "text-primary-foreground/80"
           }`}
         >
           {format(date, "HH:mm", { locale: es })}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

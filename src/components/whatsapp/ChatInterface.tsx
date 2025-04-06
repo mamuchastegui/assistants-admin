@@ -68,7 +68,7 @@ const ChatInterface: React.FC = () => {
   }, [isMobile, threadListRef]);
 
   return (
-    <div className="relative flex flex-col md:grid md:grid-cols-3 gap-0 md:gap-4 h-[calc(100vh-10rem)] sm:h-[calc(100vh-11rem)] bg-gradient-to-br from-background to-accent/20 rounded-xl shadow-lg overflow-hidden">
+    <div className="relative flex flex-col md:grid md:grid-cols-3 gap-0 md:gap-4 h-[calc(100vh-13rem)] sm:h-[calc(100vh-13rem)] bg-gradient-to-br from-background to-accent/20 rounded-xl shadow-lg overflow-hidden">
       {/* Thread list */}
       <AnimatePresence mode="wait">
         {(showThreadList || !isMobile) && (

@@ -15,7 +15,7 @@ interface ThemeProviderState {
 }
 
 const initialState: ThemeProviderState = {
-  theme: "light",
+  theme: "dark", // Changed default to dark
   setTheme: () => null,
 };
 
@@ -23,8 +23,8 @@ const ThemeContext = createContext<ThemeProviderState>(initialState);
 
 export function ThemeProvider({
   children,
-  defaultTheme = "light",
-  storageKey = "theme-preference",
+  defaultTheme = "dark", // Changed default to dark
+  storageKey = "condamind-theme",
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(

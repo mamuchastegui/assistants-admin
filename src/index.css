@@ -94,3 +94,14 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Add some common utility classes */
+@layer utilities {
+  .glass-card {
+    @apply bg-card/80 backdrop-blur-sm border-muted shadow-sm;
+  }
+  
+  .gradient-bg {
+    @apply bg-gradient-to-br from-background to-accent/20;
+  }
+}

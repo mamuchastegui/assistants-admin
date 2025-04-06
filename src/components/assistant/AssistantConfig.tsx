@@ -38,15 +38,15 @@ const AssistantConfig: React.FC = () => {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-      <TabsList className="grid w-full grid-cols-4">
-        <TabsTrigger value="general">General</TabsTrigger>
-        <TabsTrigger value="messages">Mensajes Automáticos</TabsTrigger>
-        <TabsTrigger value="quick">Respuestas Rápidas</TabsTrigger>
-        <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+      <TabsList className="grid w-full grid-cols-4 bg-muted/30 backdrop-blur-sm">
+        <TabsTrigger value="general" className="data-[state=active]:bg-primary/20 data-[state=active]:text-foreground">General</TabsTrigger>
+        <TabsTrigger value="messages" className="data-[state=active]:bg-primary/20 data-[state=active]:text-foreground">Mensajes Automáticos</TabsTrigger>
+        <TabsTrigger value="quick" className="data-[state=active]:bg-primary/20 data-[state=active]:text-foreground">Respuestas Rápidas</TabsTrigger>
+        <TabsTrigger value="whatsapp" className="data-[state=active]:bg-primary/20 data-[state=active]:text-foreground">WhatsApp</TabsTrigger>
       </TabsList>
       
       <TabsContent value="general" className="space-y-4">
-        <Card>
+        <Card className="bg-card/80 backdrop-blur-sm border-muted">
           <CardHeader>
             <CardTitle>Configuración General</CardTitle>
             <CardDescription>
@@ -68,7 +68,7 @@ const AssistantConfig: React.FC = () => {
       </TabsContent>
       
       <TabsContent value="messages" className="space-y-4">
-        <Card>
+        <Card className="bg-card/80 backdrop-blur-sm border-muted">
           <CardHeader>
             <CardTitle>Mensajes Automáticos</CardTitle>
             <CardDescription>
@@ -90,7 +90,7 @@ const AssistantConfig: React.FC = () => {
       </TabsContent>
       
       <TabsContent value="quick" className="space-y-4">
-        <Card>
+        <Card className="bg-card/80 backdrop-blur-sm border-muted">
           <CardHeader>
             <CardTitle>Respuestas Rápidas</CardTitle>
             <CardDescription>
@@ -112,12 +112,12 @@ const AssistantConfig: React.FC = () => {
       </TabsContent>
       
       <TabsContent value="whatsapp" className="space-y-4">
-        <Card>
+        <Card className="bg-card/80 backdrop-blur-sm border-muted">
           <CardHeader>
             <CardTitle>Conversaciones de WhatsApp</CardTitle>
             <CardDescription>Visualiza y gestiona las conversaciones de tus clientes</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-2 sm:p-4">
             <ChatInterface />
           </CardContent>
         </Card>

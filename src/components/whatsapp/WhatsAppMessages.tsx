@@ -113,7 +113,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
         )}
       </CardHeader>
       
-      <CardContent className="p-0 flex-grow flex flex-col h-[calc(100vh-13rem)] sm:h-[calc(100vh-12rem)] relative">
+      <CardContent className="p-0 flex-grow flex flex-col h-[calc(100vh-16rem)] sm:h-[calc(100vh-16rem)] overflow-hidden relative">
         {!selectedThread ? (
           <div className="flex flex-col items-center justify-center h-full text-center p-4 sm:p-6 bg-gradient-to-br from-muted/10 to-muted/30">
             <motion.div 
@@ -166,7 +166,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
               )}
             </AnimatePresence>
 
-            <ScrollArea className="flex-grow px-2 sm:px-4 py-3 sm:py-4 bg-[url('https://i.pinimg.com/originals/85/ec/df/85ecdf1c3611ecc9b7fa85282d9526e0.jpg')] bg-cover bg-fixed">
+            <ScrollArea className="flex-grow px-2 sm:px-4 py-3 sm:py-4 bg-[url('https://i.pinimg.com/originals/85/ec/df/85ecdf1c3611ecc9b7fa85282d9526e0.jpg')] bg-cover bg-fixed dark:bg-opacity-50 dark:bg-blend-darken">
               {filteredMessages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center py-4 sm:py-8">
                   <MessageSquare className="h-8 w-8 sm:h-10 sm:w-10 mx-auto text-muted-foreground opacity-50 mb-3 sm:mb-4" />
@@ -175,7 +175,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
                   </p>
                 </div>
               ) : (
-                <div className="space-y-1 sm:space-y-2 px-1 sm:px-2">
+                <div className="space-y-2 sm:space-y-3 px-1 sm:px-2">
                   {filteredMessages.map((message, index) => (
                     <MessageItem 
                       key={index} 
@@ -284,9 +284,9 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, profileName, isConse
       transition={{ duration: 0.3, delay: index * 0.05 }}
     >
       <div
-        className={`max-w-[80%] sm:max-w-[75%] rounded-2xl p-2 sm:p-3 ${
+        className={`max-w-[85%] sm:max-w-[75%] rounded-2xl p-2 sm:p-3 ${
           isInbound
-            ? "bg-white dark:bg-muted shadow-sm"
+            ? "bg-background dark:bg-muted shadow-sm"
             : "bg-primary text-primary-foreground shadow-md"
         } ${
           isConsecutive 

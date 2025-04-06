@@ -28,7 +28,7 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="condamind-theme">
+      <ThemeProvider defaultTheme="dark" storageKey="condamind-theme">
         <BrowserRouter>
           <TooltipProvider>
             <div className="min-h-[100dvh] overflow-hidden">

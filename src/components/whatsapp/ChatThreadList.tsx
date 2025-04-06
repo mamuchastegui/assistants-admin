@@ -117,7 +117,7 @@ const ChatThreadList: React.FC<ChatThreadListProps> = ({
         </div>
       </div>
       <CardContent className="p-0 flex-grow">
-        <ScrollArea className="h-[calc(100vh-14rem)] sm:h-[calc(100vh-14rem)]">
+        <ScrollArea className="h-[calc(100vh-16rem)] sm:h-[calc(100vh-16rem)]">
           {filteredThreads.length === 0 ? (
             <div className="p-4 text-center">
               <p className="text-muted-foreground text-xs sm:text-sm">No se encontraron contactos</p>
@@ -145,8 +145,8 @@ const ChatThreadList: React.FC<ChatThreadListProps> = ({
                       } rounded-lg my-0.5 sm:my-1`}
                       onClick={() => selectThread(thread.thread_id)}
                     >
-                      <div className="flex items-center w-full">
-                        <Avatar className="h-8 w-8 sm:h-10 sm:w-10 mr-2 sm:mr-3 ring-2 ring-primary/20 shadow-sm">
+                      <div className="flex items-center w-full gap-2">
+                        <Avatar className="h-8 w-8 sm:h-10 sm:w-10 shrink-0 ring-2 ring-primary/20 shadow-sm">
                           <AvatarFallback className={`${isSelected ? "bg-primary text-primary-foreground" : "bg-muted"} text-xs sm:text-sm`}>
                             {getInitials(thread.profile_name)}
                           </AvatarFallback>

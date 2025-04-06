@@ -1,18 +1,16 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, RefreshCw, MessageSquare, Search, Image, SendHorizontal, Paperclip, Smile } from "lucide-react";
-import { format, formatDistanceToNow } from "date-fns";
+import { Loader2, MessageSquare, Search, SendHorizontal, Paperclip, Smile } from "lucide-react";
+import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
-import { useChatThreads } from "@/hooks/useChatThreads";
+import { Conversation } from "@/hooks/useChatThreads";
 
-// Define interfaces for message data
 interface WhatsAppMessage {
   _id?: string;
   role: "user" | "assistant";
@@ -20,21 +18,20 @@ interface WhatsAppMessage {
   timestamp: string;
 }
 
-const WhatsAppMessages: React.FC = () => {
-  const {
-    threads,
-    loadingThreads,
-    error,
-    fetchThreads,
-    selectedThread,
-    selectThread,
-    conversation,
-    loadingConversation
-  } = useChatThreads();
-  
+interface WhatsAppMessagesProps {
+  conversation: Conversation | null;
+  loadingConversation: boolean;
+  selectedThread: string | null;
+}
+
+const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({ 
+  conversation, 
+  loadingConversation, 
+  selectedThread 
+}) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [newMessage, setNewMessage] = useState("");
-  const messagesEndRef = React.useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom of messages when conversation changes
   useEffect(() => {
@@ -88,19 +85,6 @@ const WhatsAppMessages: React.FC = () => {
             </CardDescription>
           </div>
         </div>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={fetchThreads}
-          disabled={loadingThreads}
-        >
-          {loadingThreads ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          ) : (
-            <RefreshCw className="h-4 w-4 mr-2" />
-          )}
-          Actualizar
-        </Button>
       </CardHeader>
       
       <CardContent className="p-0 flex-grow flex flex-col h-[calc(100vh-12rem)]">

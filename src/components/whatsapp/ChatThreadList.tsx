@@ -1,6 +1,5 @@
 
 import React from "react";
-import { useChatThreads } from "@/hooks/useChatThreads";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -9,9 +8,25 @@ import { Loader2, RefreshCw, MessageSquare, Search } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
+import { ChatThread } from "@/hooks/useChatThreads";
 
-const ChatThreadList: React.FC = () => {
-  const { threads, loadingThreads, error, fetchThreads, selectedThread, selectThread } = useChatThreads();
+interface ChatThreadListProps {
+  threads: ChatThread[];
+  loadingThreads: boolean;
+  error: string | null;
+  fetchThreads: () => void;
+  selectedThread: string | null;
+  selectThread: (threadId: string) => void;
+}
+
+const ChatThreadList: React.FC<ChatThreadListProps> = ({
+  threads,
+  loadingThreads,
+  error,
+  fetchThreads,
+  selectedThread,
+  selectThread
+}) => {
   const [searchTerm, setSearchTerm] = React.useState("");
 
   const handleRefresh = () => {

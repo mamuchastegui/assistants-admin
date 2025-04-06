@@ -32,13 +32,15 @@ const CalendarSidebar: React.FC<CalendarSidebarProps> = ({
       </CardHeader>
       <CardContent className="pt-4">
         <div className="relative w-full flex justify-center">
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={onDateSelect}
-            locale={es}
-            className="border rounded-md p-1 md:p-3 w-full max-w-full md:max-w-[280px] pointer-events-auto"
-          />
+          <div className="w-full overflow-x-auto pb-2 -mx-2 px-2">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={onDateSelect}
+              locale={es}
+              className="border rounded-md p-1 md:p-3 w-full max-w-full md:max-w-[300px] mx-auto"
+            />
+          </div>
         </div>
         <div className="mt-4">
           <Button 

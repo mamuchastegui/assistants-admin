@@ -5,7 +5,17 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, MessageSquare, Search, SendHorizontal, Paperclip, Smile } from "lucide-react";
+import { 
+  Loader2, 
+  MessageSquare, 
+  Search, 
+  SendHorizontal, 
+  Paperclip, 
+  Smile,
+  Image,
+  Mic,
+  X
+} from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -34,6 +44,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showSearchBox, setShowSearchBox] = useState(false);
+  const [isAttachMenuOpen, setIsAttachMenuOpen] = useState(false);
 
   // Scroll to bottom of messages when conversation changes
   useEffect(() => {
@@ -58,6 +69,11 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
     if (!newMessage.trim() || !selectedThread) return;
     toast.info("Esta función aún no está implementada");
     setNewMessage("");
+  };
+
+  const handleAttachment = (type: string) => {
+    toast.info(`Añadir ${type} aún no está implementado`);
+    setIsAttachMenuOpen(false);
   };
 
   // Filter the conversation messages based on search term
@@ -102,6 +118,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
+              className="flex flex-col items-center"
             >
               <MessageSquare className="h-12 w-12 text-muted-foreground opacity-50 mb-4" />
               <p className="text-muted-foreground mb-2">
@@ -115,6 +132,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
+              className="flex flex-col items-center"
             >
               <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
               <p className="text-muted-foreground">
@@ -146,16 +164,16 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
               )}
             </AnimatePresence>
 
-            <ScrollArea className="flex-grow p-4 bg-[url('https://i.pinimg.com/originals/85/ec/df/85ecdf1c3611ecc9b7fa85282d9526e0.jpg')] bg-cover bg-fixed">
+            <ScrollArea className="flex-grow px-4 py-6 bg-[url('https://i.pinimg.com/originals/85/ec/df/85ecdf1c3611ecc9b7fa85282d9526e0.jpg')] bg-cover bg-fixed">
               {filteredMessages.length === 0 ? (
-                <div className="text-center py-8">
+                <div className="flex flex-col items-center justify-center h-full text-center py-8">
                   <MessageSquare className="h-10 w-10 mx-auto text-muted-foreground opacity-50 mb-4" />
                   <p className="text-muted-foreground">
                     No hay mensajes en esta conversación
                   </p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-4 px-2">
                   {filteredMessages.map((message, index) => (
                     <MessageItem 
                       key={index} 
@@ -173,30 +191,67 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
             </ScrollArea>
 
             <div className="p-3 border-t bg-card/90 backdrop-blur-sm">
-              <div className="flex items-center gap-2">
-                <Button size="icon" variant="ghost" className="rounded-full hover:bg-primary/10">
-                  <Paperclip className="h-5 w-5" />
-                </Button>
-                <Input
-                  placeholder="Escribe un mensaje..."
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  className="flex-grow bg-muted/30 border-muted focus:bg-background transition-colors duration-200 rounded-full"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleSendMessage();
-                  }}
-                />
-                <Button size="icon" variant="ghost" className="rounded-full hover:bg-primary/10">
-                  <Smile className="h-5 w-5" />
-                </Button>
-                <Button 
-                  size="icon" 
-                  disabled={!newMessage.trim()}
-                  onClick={handleSendMessage}
-                  className="rounded-full bg-primary hover:bg-primary/80"
-                >
-                  <SendHorizontal className="h-5 w-5" />
-                </Button>
+              <div className="relative">
+                <AnimatePresence>
+                  {isAttachMenuOpen && (
+                    <motion.div 
+                      className="absolute bottom-full left-0 mb-2 p-2 bg-card rounded-lg border shadow-md grid grid-cols-3 gap-2"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Button size="icon" variant="ghost" className="rounded-full hover:bg-primary/10" onClick={() => handleAttachment("imagen")}>
+                        <Image className="h-5 w-5" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="rounded-full hover:bg-primary/10" onClick={() => handleAttachment("documento")}>
+                        <Paperclip className="h-5 w-5" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="rounded-full hover:bg-primary/10" onClick={() => handleAttachment("audio")}>
+                        <Mic className="h-5 w-5" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="rounded-full hover:bg-destructive/10" onClick={() => setIsAttachMenuOpen(false)}>
+                        <X className="h-5 w-5 text-destructive" />
+                      </Button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <div className="flex items-center gap-2">
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    className="rounded-full hover:bg-primary/10"
+                    onClick={() => setIsAttachMenuOpen(!isAttachMenuOpen)}
+                  >
+                    <Paperclip className="h-5 w-5" />
+                  </Button>
+                  <Input
+                    placeholder="Escribe un mensaje..."
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    className="flex-grow bg-muted/30 border-muted focus:bg-background transition-colors duration-200 rounded-full"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSendMessage();
+                    }}
+                  />
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    className="rounded-full hover:bg-primary/10"
+                    onClick={() => toast.info("Selector de emojis aún no implementado")}
+                  >
+                    <Smile className="h-5 w-5" />
+                  </Button>
+                  <Button 
+                    size="icon" 
+                    disabled={!newMessage.trim()}
+                    onClick={handleSendMessage}
+                    className="rounded-full bg-primary hover:bg-primary/80"
+                  >
+                    <SendHorizontal className="h-5 w-5" />
+                  </Button>
+                </div>
               </div>
             </div>
           </>
@@ -219,7 +274,7 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, profileName, isConse
   
   return (
     <motion.div 
-      className={`flex ${isInbound ? "justify-start" : "justify-end"}`}
+      className={`flex ${isInbound ? "justify-start" : "justify-end"} mb-1`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}

@@ -15,15 +15,25 @@ interface ThemeProviderState {
 }
 
 const initialState: ThemeProviderState = {
-  theme: "dark", // Changed default to dark
+  theme: "dark", // Default to dark
   setTheme: () => null,
 };
 
 const ThemeContext = createContext<ThemeProviderState>(initialState);
 
+// Script to prevent flash of incorrect theme
+const themeScript = `
+  (function() {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const storedTheme = localStorage.getItem('condamind-theme');
+    const theme = storedTheme || (prefersDark ? 'dark' : 'light');
+    document.documentElement.classList.add(theme);
+  })()
+`;
+
 export function ThemeProvider({
   children,
-  defaultTheme = "dark", // Changed default to dark
+  defaultTheme = "dark", // Default to dark
   storageKey = "condamind-theme",
   ...props
 }: ThemeProviderProps) {
@@ -31,6 +41,25 @@ export function ThemeProvider({
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
   );
 
+  // Apply theme immediately using an effect with no dependencies
+  useEffect(() => {
+    // Get the stored theme or use default
+    const root = window.document.documentElement;
+    const initialTheme = localStorage.getItem(storageKey) as Theme || defaultTheme;
+    
+    // Remove the old theme class
+    root.classList.remove("light", "dark");
+    
+    // Add the new theme class
+    root.classList.add(initialTheme);
+    
+    // Ensure state matches initial theme
+    if (initialTheme !== theme) {
+      setTheme(initialTheme);
+    }
+  }, []);
+  
+  // Handle theme changes
   useEffect(() => {
     const root = window.document.documentElement;
     
@@ -51,6 +80,8 @@ export function ThemeProvider({
 
   return (
     <ThemeContext.Provider {...props} value={value}>
+      {/* Add script in head to apply theme before React hydrates */}
+      <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       {children}
     </ThemeContext.Provider>
   );

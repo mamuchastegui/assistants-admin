@@ -13,11 +13,16 @@ import Menu from "./pages/Menu";
 import RestaurantMenu from "./pages/RestaurantMenu";
 import NotFound from "./pages/NotFound";
 import { ThemeProvider } from "./hooks/use-theme";
-import React from "react";
+import React, { useEffect } from "react";
+
+// Immediately apply theme before React hydration
+if (typeof window !== 'undefined') {
+  const savedTheme = localStorage.getItem('condamind-theme') || 'dark';
+  document.documentElement.classList.add(savedTheme);
+}
 
 function App() {
   // Create a client with better defaults for mobile
-  // Move the QueryClient initialization inside the component body
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {

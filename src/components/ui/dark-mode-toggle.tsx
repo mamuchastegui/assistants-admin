@@ -14,7 +14,16 @@ export const DarkModeToggle: React.FC<DarkModeToggleProps> = ({ className }) => 
 
   // Toggle between light and dark mode
   const toggleTheme = () => {
+    // Apply theme-transition class temporarily for smooth toggle
+    document.documentElement.classList.add('theme-transition');
+    
+    // Toggle theme
     setTheme(theme === "dark" ? "light" : "dark");
+    
+    // Remove transition class after animation completes
+    setTimeout(() => {
+      document.documentElement.classList.remove('theme-transition');
+    }, 150);
   };
 
   return (
@@ -31,20 +40,20 @@ export const DarkModeToggle: React.FC<DarkModeToggleProps> = ({ className }) => 
         {theme === "dark" ? (
           <motion.div
             key="moon"
-            initial={{ scale: 0, opacity: 0, rotate: -30 }}
-            animate={{ scale: 1, opacity: 1, rotate: 0 }}
-            exit={{ scale: 0, opacity: 0, rotate: 30 }}
-            transition={{ duration: 0.2 }}
+            initial={{ scale: 0.8, opacity: 0.8 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            transition={{ duration: 0.1 }}
           >
             <Moon className="h-[1.2rem] w-[1.2rem]" />
           </motion.div>
         ) : (
           <motion.div
             key="sun"
-            initial={{ scale: 0, opacity: 0, rotate: 30 }}
-            animate={{ scale: 1, opacity: 1, rotate: 0 }}
-            exit={{ scale: 0, opacity: 0, rotate: -30 }}
-            transition={{ duration: 0.2 }}
+            initial={{ scale: 0.8, opacity: 0.8 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            transition={{ duration: 0.1 }}
           >
             <Sun className="h-[1.2rem] w-[1.2rem]" />
           </motion.div>

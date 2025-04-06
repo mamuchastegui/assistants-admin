@@ -87,7 +87,12 @@
 
 @layer base {
   * {
-    @apply border-border transition-colors duration-200;
+    @apply border-border transition-none; /* Remove transitions for initial load */
+  }
+
+  /* Transition only on hover or user interaction */
+  *:hover {
+    @apply transition-colors duration-100;
   }
 
   body {
@@ -103,6 +108,11 @@
   
   .gradient-bg {
     @apply bg-gradient-to-br from-background to-accent/20;
+  }
+
+  /* Add specific utility for controlled transitions */
+  .theme-transition {
+    @apply transition-colors duration-100;
   }
 }
 .\[\&\:has\(\[aria-selected\]\)\]\:bg-accent\/50:has([aria-selected]) {

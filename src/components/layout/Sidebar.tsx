@@ -132,7 +132,7 @@ export default function Sidebar({ className }: SidebarProps) {
   const navCategories = [
     { id: "main", label: "Principal" },
     { id: "admin", label: "Admin" },
-    { id: "comms", label: "Comms" }
+    { id: "whatsapp", label: "WhatsApp" }  // Changed from "comms" to "whatsapp"
   ];
   
   return (
@@ -216,7 +216,8 @@ export default function Sidebar({ className }: SidebarProps) {
               </motion.div>
             )}
             
-            {(currentTab === "comms" || isCollapsed) && (
+            {/* Changed from "comms" to "whatsapp" and now redirecting directly to assistant page */}
+            {(currentTab === "whatsapp" || isCollapsed) && (
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -227,7 +228,7 @@ export default function Sidebar({ className }: SidebarProps) {
                   to="/assistant"
                   icon={<MessageSquare />}
                   collapsed={isCollapsed}
-                  label="Asistentes"
+                  label="WhatsApp"
                 />
               </motion.div>
             )}

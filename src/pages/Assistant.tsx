@@ -6,7 +6,7 @@ import AssistantConfig from "@/components/assistant/AssistantConfig";
 const Assistant = () => {
   return (
     <DashboardLayout>
-      <div className="space-y-4 h-full">
+      <div className="space-y-4 h-full pb-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Chat de WhatsApp</h1>
           <p className="text-sm text-muted-foreground">

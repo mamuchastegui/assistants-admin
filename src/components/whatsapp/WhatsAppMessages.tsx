@@ -6,109 +6,43 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, RefreshCw, MessageSquare, Search, Image } from "lucide-react";
-import { formatDistanceToNow, format } from "date-fns";
+import { Loader2, RefreshCw, MessageSquare, Search, Image, SendHorizontal, Paperclip, Smile } from "lucide-react";
+import { format, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
+import { useChatThreads } from "@/hooks/useChatThreads";
 
-// Define interface for WhatsAppMessage
+// Define interfaces for message data
 interface WhatsAppMessage {
-  _id: string;
-  phoneNumber: string;
-  profileName?: string;
-  body: string;
-  direction: "inbound" | "outbound";
-  status: "received" | "sent" | "delivered" | "read" | "failed";
+  _id?: string;
+  role: "user" | "assistant";
+  content: string;
   timestamp: string;
-  media?: { url: string; contentType: string; }[];
 }
-
-// Define interface for WhatsApp API response
-interface ThreadResponse {
-  thread_id: string;
-  user_id: string;
-  profile_name: string;
-  assistant_id: string;
-  conversation: {
-    role: "user" | "assistant";
-    content: string;
-    timestamp: string;
-  }[];
-  created_at: string;
-  updated_at: string;
-}
-
-const ASSISTANT_ID = "asst_OS4bPZIMBpvpYo2GMkG0ast5";
 
 const WhatsAppMessages: React.FC = () => {
-  const [messages, setMessages] = useState<WhatsAppMessage[]>([]);
-  const [threads, setThreads] = useState<any[]>([]);
-  const [selectedThread, setSelectedThread] = useState<string | null>(null);
-  const [threadData, setThreadData] = useState<ThreadResponse | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [loadingThread, setLoadingThread] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const {
+    threads,
+    loadingThreads,
+    error,
+    fetchThreads,
+    selectedThread,
+    selectThread,
+    conversation,
+    loadingConversation
+  } = useChatThreads();
   
+  const [searchTerm, setSearchTerm] = useState("");
+  const [newMessage, setNewMessage] = useState("");
+  const messagesEndRef = React.useRef<HTMLDivElement>(null);
+
+  // Scroll to bottom of messages when conversation changes
   useEffect(() => {
-    fetchThreads();
-  }, []);
-
-  const fetchThreads = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch("https://api.condamind.com/chat/threads", {
-        headers: {
-          "assistant-id": ASSISTANT_ID
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${await response.text()}`);
-      }
-
-      const data = await response.json();
-      setThreads(data);
-      setLoading(false);
-      
-      // Select first thread if available
-      if (data.length > 0) {
-        selectThread(data[0].thread_id);
-      }
-    } catch (err) {
-      console.error("Error fetching chat threads:", err);
-      setError(err.message);
-      setLoading(false);
-      toast.error("No se pudieron cargar las conversaciones");
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  };
-
-  const selectThread = async (threadId: string) => {
-    try {
-      setSelectedThread(threadId);
-      setLoadingThread(true);
-      
-      const response = await fetch(`https://api.condamind.com/chat/threads/${threadId}`, {
-        headers: {
-          "assistant-id": ASSISTANT_ID
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${await response.text()}`);
-      }
-
-      const data = await response.json();
-      console.log("Thread data:", data);
-      setThreadData(data);
-      setLoadingThread(false);
-    } catch (err) {
-      console.error("Error fetching thread:", err);
-      setLoadingThread(false);
-      toast.error("No se pudo cargar la conversación");
-    }
-  };
-
+  }, [conversation]);
+  
   const getInitials = (name?: string): string => {
     if (!name) return "WA";
     const nameParts = name.split(" ");
@@ -117,28 +51,50 @@ const WhatsAppMessages: React.FC = () => {
   };
   
   const formatPhoneNumber = (phoneNumber: string): string => {
-    // Eliminar el prefijo "whatsapp:" si existe
+    // Remove "whatsapp:" prefix if it exists
     let formatted = phoneNumber.replace("whatsapp:", "");
-    // Formatear como +XX XXX XXX XXX
+    // Format as +XX XXX XXX XXX
     return formatted;
   };
 
+  const handleSendMessage = () => {
+    if (!newMessage.trim() || !selectedThread) return;
+    
+    // In a real implementation, this would send the message to the API
+    toast.info("Esta función aún no está implementada");
+    setNewMessage("");
+  };
+
+  // Filter the conversation messages based on search term
+  const filteredMessages = conversation?.conversation?.filter(
+    msg => !searchTerm || msg.content.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <div>
-          <CardTitle>Mensajes de WhatsApp</CardTitle>
-          <CardDescription>
-            Conversaciones recientes con tus clientes
-          </CardDescription>
+    <Card className="h-full flex flex-col border shadow-md">
+      <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
+        <div className="flex items-center">
+          {conversation && (
+            <Avatar className="h-10 w-10 mr-3">
+              <AvatarFallback>{getInitials(conversation.profile_name)}</AvatarFallback>
+            </Avatar>
+          )}
+          <div>
+            <CardTitle className="text-lg">
+              {conversation?.profile_name || "Mensajes de WhatsApp"}
+            </CardTitle>
+            <CardDescription className="text-xs">
+              {conversation ? formatPhoneNumber(conversation.user_id) : "Conversaciones recientes con tus clientes"}
+            </CardDescription>
+          </div>
         </div>
         <Button 
           variant="outline" 
           size="sm"
           onClick={fetchThreads}
-          disabled={loading}
+          disabled={loadingThreads}
         >
-          {loading ? (
+          {loadingThreads ? (
             <Loader2 className="h-4 w-4 animate-spin mr-2" />
           ) : (
             <RefreshCw className="h-4 w-4 mr-2" />
@@ -146,124 +102,94 @@ const WhatsAppMessages: React.FC = () => {
           Actualizar
         </Button>
       </CardHeader>
-      <CardContent>
-        <div className="mb-4">
-          <div className="relative">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar mensajes..."
-              className="pl-8"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+      
+      <CardContent className="p-0 flex-grow flex flex-col h-[calc(100vh-12rem)]">
+        {!selectedThread ? (
+          <div className="flex flex-col items-center justify-center h-full text-center p-6">
+            <MessageSquare className="h-12 w-12 text-muted-foreground opacity-50 mb-4" />
+            <p className="text-muted-foreground mb-2">
+              Selecciona una conversación para ver los mensajes
+            </p>
           </div>
-        </div>
-
-        {loading ? (
-          <div className="text-center py-8">
-            <Loader2 className="mx-auto h-10 w-10 text-primary animate-spin mb-4" />
+        ) : loadingConversation ? (
+          <div className="flex flex-col items-center justify-center h-full">
+            <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
             <p className="text-muted-foreground">
-              Cargando conversaciones...
-            </p>
-          </div>
-        ) : error ? (
-          <div className="text-center py-8">
-            <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground opacity-50 mb-4" />
-            <p className="text-muted-foreground mb-2">
-              Error al cargar las conversaciones
-            </p>
-            <p className="text-sm text-muted-foreground mb-4">
-              {error}
-            </p>
-            <Button variant="outline" onClick={fetchThreads}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Reintentar
-            </Button>
-          </div>
-        ) : threads.length === 0 ? (
-          <div className="text-center py-8">
-            <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground opacity-50 mb-4" />
-            <p className="text-muted-foreground mb-2">
-              No hay conversaciones disponibles
+              Cargando conversación...
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {!selectedThread ? (
-              <div className="text-center py-8">
-                <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground opacity-50 mb-4" />
-                <p className="text-muted-foreground mb-2">
-                  Selecciona una conversación para ver los mensajes
-                </p>
+          <>
+            <div className="p-4 border-b">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar en la conversación..."
+                  className="pl-8"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
-            ) : loadingThread ? (
-              <div className="text-center py-8">
-                <Loader2 className="mx-auto h-10 w-10 text-primary animate-spin mb-4" />
-                <p className="text-muted-foreground">
-                  Cargando conversación...
-                </p>
-              </div>
-            ) : !threadData ? (
-              <div className="text-center py-8">
-                <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground opacity-50 mb-4" />
-                <p className="text-muted-foreground mb-2">
-                  No se pudo cargar la conversación
-                </p>
-              </div>
-            ) : (
-              <div>
-                <div className="flex items-center mb-4">
-                  <Avatar className="h-10 w-10 mr-3">
-                    <AvatarFallback>
-                      {getInitials(threadData.profile_name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="text-sm font-medium">{threadData.profile_name || "Usuario"}</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(threadData.updated_at), "d MMM, HH:mm", { locale: es })}
-                    </p>
-                  </div>
+            </div>
+
+            <ScrollArea className="flex-grow p-4">
+              {filteredMessages.length === 0 ? (
+                <div className="text-center py-8">
+                  <MessageSquare className="h-10 w-10 mx-auto text-muted-foreground opacity-50 mb-4" />
+                  <p className="text-muted-foreground">
+                    No hay mensajes en esta conversación
+                  </p>
                 </div>
-                
-                <ScrollArea className="h-[400px] pr-4">
-                  <div className="space-y-4">
-                    {threadData.conversation
-                      .filter(msg => 
-                        !searchTerm || 
-                        msg.content.toLowerCase().includes(searchTerm.toLowerCase()))
-                      .map((message, index) => {
-                        const isUser = message.role === "user";
-                        const date = new Date(message.timestamp);
-                        
-                        return (
-                          <MessageItem
-                            key={index}
-                            message={{
-                              _id: `${index}`,
-                              phoneNumber: threadData.user_id,
-                              profileName: isUser ? threadData.profile_name : "Asistente",
-                              body: message.content,
-                              direction: isUser ? "inbound" : "outbound",
-                              status: "received",
-                              timestamp: message.timestamp,
-                            }}
-                          />
-                        );
-                    })}
-                  </div>
-                </ScrollArea>
+              ) : (
+                <div className="space-y-4">
+                  {filteredMessages.map((message, index) => (
+                    <MessageItem key={index} message={message} profileName={conversation?.profile_name || ""} />
+                  ))}
+                  <div ref={messagesEndRef} />
+                </div>
+              )}
+            </ScrollArea>
+
+            <div className="p-4 border-t">
+              <div className="flex items-center gap-2">
+                <Button size="icon" variant="ghost">
+                  <Paperclip className="h-5 w-5" />
+                </Button>
+                <Input
+                  placeholder="Escribe un mensaje..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  className="flex-grow"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSendMessage();
+                  }}
+                />
+                <Button size="icon" variant="ghost">
+                  <Smile className="h-5 w-5" />
+                </Button>
+                <Button 
+                  size="icon" 
+                  disabled={!newMessage.trim()}
+                  onClick={handleSendMessage}
+                >
+                  <SendHorizontal className="h-5 w-5" />
+                </Button>
               </div>
-            )}
-          </div>
+            </div>
+          </>
         )}
       </CardContent>
     </Card>
   );
 };
 
-const MessageItem: React.FC<{ message: WhatsAppMessage }> = ({ message }) => {
-  const isInbound = message.direction === "inbound";
+interface MessageItemProps {
+  message: WhatsAppMessage;
+  profileName: string;
+}
+
+const MessageItem: React.FC<MessageItemProps> = ({ message, profileName }) => {
+  const isInbound = message.role === "user";
   const date = new Date(message.timestamp);
   
   return (
@@ -277,10 +203,15 @@ const MessageItem: React.FC<{ message: WhatsAppMessage }> = ({ message }) => {
       >
         {!isInbound && (
           <div className="mb-1 text-xs text-primary-foreground/80 font-medium">
-            {message.profileName || "Asistente"}
+            Asistente
           </div>
         )}
-        <div className="whitespace-pre-wrap">{message.body}</div>
+        {isInbound && (
+          <div className="mb-1 text-xs text-muted-foreground/80 font-medium">
+            {profileName || "Usuario"}
+          </div>
+        )}
+        <div className="whitespace-pre-wrap">{message.content}</div>
         <div
           className={`text-xs mt-1 ${
             isInbound ? "text-muted-foreground" : "text-primary-foreground/80"
@@ -294,4 +225,3 @@ const MessageItem: React.FC<{ message: WhatsAppMessage }> = ({ message }) => {
 };
 
 export default WhatsAppMessages;
-

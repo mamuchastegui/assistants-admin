@@ -5,12 +5,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Loader2, RefreshCw, MessageSquare } from "lucide-react";
+import { Loader2, RefreshCw, MessageSquare, Search } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
+import { Input } from "@/components/ui/input";
 
 const ChatThreadList: React.FC = () => {
   const { threads, loadingThreads, error, fetchThreads, selectedThread, selectThread } = useChatThreads();
+  const [searchTerm, setSearchTerm] = React.useState("");
 
   const handleRefresh = () => {
     fetchThreads();
@@ -24,82 +26,111 @@ const ChatThreadList: React.FC = () => {
     return (nameParts[0][0] + nameParts[1][0]).toUpperCase();
   };
 
+  // Filter threads based on search term
+  const filteredThreads = threads.filter(thread => 
+    !searchTerm || 
+    thread.profile_name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (loadingThreads) {
     return (
-      <div className="flex flex-col items-center justify-center h-64">
-        <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        <p className="mt-4 text-sm text-muted-foreground">Cargando conversaciones...</p>
-      </div>
+      <Card className="h-full">
+        <CardContent className="flex flex-col items-center justify-center h-64">
+          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+          <p className="mt-4 text-sm text-muted-foreground">Cargando conversaciones...</p>
+        </CardContent>
+      </Card>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-64">
-        <MessageSquare className="w-10 h-10 text-muted-foreground" />
-        <p className="mt-4 text-sm text-muted-foreground">Error al cargar las conversaciones</p>
-        <Button variant="outline" className="mt-4" onClick={handleRefresh}>
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Reintentar
-        </Button>
-      </div>
+      <Card className="h-full">
+        <CardContent className="flex flex-col items-center justify-center h-64">
+          <MessageSquare className="w-10 h-10 text-muted-foreground" />
+          <p className="mt-4 text-sm text-muted-foreground">Error al cargar las conversaciones</p>
+          <Button variant="outline" className="mt-4" onClick={handleRefresh}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Reintentar
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
   if (!threads || threads.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-64">
-        <MessageSquare className="w-10 h-10 text-muted-foreground" />
-        <p className="mt-4 text-sm text-muted-foreground">No hay conversaciones</p>
-        <Button variant="outline" className="mt-4" onClick={handleRefresh}>
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Actualizar
-        </Button>
-      </div>
+      <Card className="h-full">
+        <CardContent className="flex flex-col items-center justify-center h-64">
+          <MessageSquare className="w-10 h-10 text-muted-foreground" />
+          <p className="mt-4 text-sm text-muted-foreground">No hay conversaciones</p>
+          <Button variant="outline" className="mt-4" onClick={handleRefresh}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Actualizar
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+    <Card className="h-full flex flex-col">
+      <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
         <div>
-          <CardTitle>Conversaciones</CardTitle>
+          <CardTitle className="text-lg">Conversaciones</CardTitle>
           <CardDescription>Listado de chats con clientes</CardDescription>
         </div>
         <Button size="sm" variant="ghost" onClick={handleRefresh}>
           <RefreshCw className="h-4 w-4" />
         </Button>
       </CardHeader>
-      <CardContent>
-        <ScrollArea className="h-[500px] pr-4">
-          {threads.map((thread) => {
-            const isSelected = selectedThread === thread.thread_id;
-            const date = new Date(thread.updated_at);
-            const displayName = thread.profile_name || "Usuario";
-            
-            return (
-              <Button
-                key={thread.thread_id}
-                variant={isSelected ? "secondary" : "ghost"}
-                className={`w-full justify-start mb-1 ${isSelected ? "bg-secondary" : ""}`}
-                onClick={() => selectThread(thread.thread_id)}
-              >
-                <div className="flex items-center w-full">
-                  <Avatar className="h-9 w-9 mr-2">
-                    <AvatarFallback>
-                      {getInitials(thread.profile_name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col items-start overflow-hidden">
-                    <span className="font-medium text-sm">{displayName}</span>
-                    <span className="text-xs text-muted-foreground truncate">
-                      {formatDistanceToNow(date, { addSuffix: true, locale: es })}
-                    </span>
+      <div className="p-4 border-b">
+        <div className="relative">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar contactos..."
+            className="pl-8"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
+      <CardContent className="p-0 flex-grow">
+        <ScrollArea className="h-[calc(100vh-14rem)]">
+          {filteredThreads.length === 0 ? (
+            <div className="p-4 text-center">
+              <p className="text-muted-foreground text-sm">No se encontraron contactos</p>
+            </div>
+          ) : (
+            filteredThreads.map((thread) => {
+              const isSelected = selectedThread === thread.thread_id;
+              const date = new Date(thread.updated_at);
+              const displayName = thread.profile_name || "Usuario";
+              
+              return (
+                <Button
+                  key={thread.thread_id}
+                  variant={isSelected ? "secondary" : "ghost"}
+                  className={`w-full justify-start p-3 h-auto ${isSelected ? "bg-secondary" : ""}`}
+                  onClick={() => selectThread(thread.thread_id)}
+                >
+                  <div className="flex items-center w-full">
+                    <Avatar className="h-10 w-10 mr-3">
+                      <AvatarFallback>
+                        {getInitials(thread.profile_name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col items-start flex-grow overflow-hidden">
+                      <span className="font-medium text-sm">{displayName}</span>
+                      <span className="text-xs text-muted-foreground truncate max-w-full">
+                        Último mensaje: {formatDistanceToNow(date, { addSuffix: true, locale: es })}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </Button>
-            );
-          })}
+                </Button>
+              );
+            })
+          )}
         </ScrollArea>
       </CardContent>
     </Card>

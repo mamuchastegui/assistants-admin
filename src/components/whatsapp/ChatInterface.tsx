@@ -63,12 +63,12 @@ const ChatInterface: React.FC = () => {
   return (
     <div className="relative flex flex-col md:grid md:grid-cols-12 gap-0 h-full bg-gradient-to-br from-background to-accent/20 rounded-xl shadow-lg overflow-hidden">
       {/* Thread list - fixed width for desktop */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
         {(showThreadList || !isMobile) && (
           <motion.div 
             ref={threadListRef}
             className={cn(
-              isMobile ? "absolute inset-0 z-30" : "md:col-span-4 lg:col-span-3 xl:col-span-3 border-r border-border/30",
+              isMobile ? "fixed inset-0 z-30" : "md:col-span-4 lg:col-span-3 xl:col-span-3 border-r border-border/30",
               "bg-card/70 backdrop-blur-sm h-full"
             )}
             initial={{ opacity: 0 }}
@@ -89,39 +89,31 @@ const ChatInterface: React.FC = () => {
       </AnimatePresence>
 
       {/* Messages - full width for desktop */}
-      <AnimatePresence mode="wait">
-        {(!isMobile || !showThreadList) && (
-          <motion.div 
-            className={cn(
-              isMobile ? "absolute inset-0 z-20" : "md:col-span-8 lg:col-span-9 xl:col-span-9",
-              "bg-card/70 backdrop-blur-sm h-full"
-            )}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            {/* Only show menu button on mobile when in conversation view */}
-            {isMobile && !showThreadList && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowThreadList(true)}
-                data-action="menu"
-                className="absolute top-3 left-3 z-30 bg-background/70 backdrop-blur-sm rounded-full h-8 w-8 p-0"
-              >
-                <Menu className="h-4 w-4" />
-              </Button>
-            )}
-
-            <WhatsAppMessages 
-              conversation={conversation}
-              loadingConversation={loadingConversation}
-              selectedThread={selectedThread}
-            />
-          </motion.div>
+      <div 
+        className={cn(
+          isMobile ? "w-full" : "md:col-span-8 lg:col-span-9 xl:col-span-9",
+          "h-full"
         )}
-      </AnimatePresence>
+      >
+        {/* Only show menu button on mobile when in conversation view */}
+        {isMobile && !showThreadList && selectedThread && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowThreadList(true)}
+            data-action="menu"
+            className="absolute top-3 left-3 z-40 bg-background/70 backdrop-blur-sm rounded-full h-8 w-8 p-0"
+          >
+            <Menu className="h-4 w-4" />
+          </Button>
+        )}
+
+        <WhatsAppMessages 
+          conversation={conversation}
+          loadingConversation={loadingConversation}
+          selectedThread={selectedThread}
+        />
+      </div>
     </div>
   );
 };

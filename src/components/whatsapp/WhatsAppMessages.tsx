@@ -168,11 +168,11 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
             </motion.div>
           </div>
         ) : (
-          <ScrollArea className="flex-grow px-3 py-4 bg-[url('https://i.pinimg.com/originals/85/ec/df/85ecdf1c3611ecc9b7fa85282d9526e0.jpg')] bg-cover bg-fixed bg-opacity-30 dark:bg-opacity-20 bg-blend-darken">
+          <ScrollArea className="flex-grow px-3 py-4 bg-[url('https://i.pinimg.com/736x/fa/a0/a3/faa0a376d7af8ed314dc66f517554a53.jpg')] bg-cover bg-center bg-no-repeat bg-fixed">
             {filteredMessages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-center">
-                <MessageSquare className="h-6 w-6 mx-auto text-muted-foreground opacity-50 mb-2" />
-                <p className="text-sm text-muted-foreground">
+                <MessageSquare className="h-6 w-6 mx-auto text-foreground opacity-50 mb-2" />
+                <p className="text-sm text-foreground bg-background/50 px-3 py-1 rounded-md">
                   No hay mensajes en esta conversación
                 </p>
               </div>
@@ -287,10 +287,10 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, profileName, isConse
       transition={{ duration: 0.2, delay: index * 0.02 }}
     >
       <div
-        className={`max-w-[75%] rounded-2xl p-2 ${
+        className={`max-w-[75%] rounded-2xl p-2.5 ${
           isInbound
-            ? "bg-background dark:bg-muted shadow-sm"
-            : "bg-primary text-primary-foreground shadow-md"
+            ? "bg-background/85 backdrop-blur-sm text-foreground shadow-sm"
+            : "bg-primary/90 backdrop-blur-sm text-primary-foreground shadow-md"
         } ${
           isConsecutive 
             ? isInbound 
@@ -301,7 +301,7 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, profileName, isConse
       >
         {!isConsecutive && (
           <div className={`mb-0.5 text-xs ${
-            isInbound ? "text-muted-foreground/80" : "text-primary-foreground/80"
+            isInbound ? "text-foreground/90" : "text-primary-foreground/90"
           } font-medium`}>
             {isInbound ? profileName || "Usuario" : "Asistente"}
           </div>
@@ -309,7 +309,7 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, profileName, isConse
         <div className="whitespace-pre-wrap text-xs">{message.content}</div>
         <div
           className={`text-[10px] mt-0.5 text-right ${
-            isInbound ? "text-muted-foreground/70" : "text-primary-foreground/80"
+            isInbound ? "text-foreground/70" : "text-primary-foreground/80"
           }`}
         >
           {format(date, "HH:mm", { locale: es })}

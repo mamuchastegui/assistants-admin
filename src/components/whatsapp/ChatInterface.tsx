@@ -71,14 +71,10 @@ const ChatInterface: React.FC = () => {
               isMobile ? "absolute inset-0 z-30" : "md:col-span-4 lg:col-span-3 xl:col-span-3 border-r border-border/30",
               "bg-card/70 backdrop-blur-sm h-full"
             )}
-            initial={isMobile ? { x: -300, opacity: 0 } : { opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={isMobile ? { x: -300, opacity: 0 } : { opacity: 0 }}
-            transition={{ 
-              type: "spring", 
-              damping: 25, 
-              stiffness: 300 
-            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
           >
             <ChatThreadList 
               threads={threads}
@@ -100,14 +96,10 @@ const ChatInterface: React.FC = () => {
               isMobile ? "absolute inset-0 z-20" : "md:col-span-8 lg:col-span-9 xl:col-span-9",
               "bg-card/70 backdrop-blur-sm h-full"
             )}
-            initial={isMobile ? { x: 300, opacity: 0 } : { opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={isMobile ? { x: 300, opacity: 0 } : { opacity: 0 }}
-            transition={{ 
-              type: "spring", 
-              damping: 25, 
-              stiffness: 300 
-            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
           >
             {/* Only show menu button on mobile when in conversation view */}
             {isMobile && !showThreadList && (

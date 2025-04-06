@@ -8,9 +8,9 @@ const Assistant = () => {
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Asistente Virtual</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Chat de WhatsApp</h1>
           <p className="text-muted-foreground">
-            Configura tu asistente virtual impulsado por IA para WhatsApp.
+            Visualiza y gestiona las conversaciones de WhatsApp con tus clientes.
           </p>
         </div>
         

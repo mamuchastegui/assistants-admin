@@ -5,7 +5,7 @@ import WhatsAppMessages from "@/components/whatsapp/WhatsAppMessages";
 import { useChatThreads } from "@/hooks/useChatThreads";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -42,20 +42,13 @@ const ChatInterface: React.FC = () => {
     }
   };
 
-  // Handler to go back to thread list on mobile
-  const handleBackToThreads = () => {
-    if (isMobile) {
-      setShowThreadList(true);
-    }
-  };
-
   // Click outside handler for mobile
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (isMobile && threadListRef.current && !threadListRef.current.contains(event.target as Node)) {
-        // Don't close if we're clicking on the back button
+        // Don't close if we're clicking on the menu button
         const target = event.target as HTMLElement;
-        if (target.closest('button') && target.closest('button')?.dataset?.action === 'back') {
+        if (target.closest('button') && target.closest('button')?.dataset?.action === 'menu') {
           return;
         }
       }
@@ -68,7 +61,7 @@ const ChatInterface: React.FC = () => {
   }, [isMobile, threadListRef]);
 
   return (
-    <div className="relative flex flex-col md:grid md:grid-cols-3 gap-0 md:gap-4 h-[calc(100vh-13rem)] sm:h-[calc(100vh-13rem)] bg-gradient-to-br from-background to-accent/20 rounded-xl shadow-lg overflow-hidden">
+    <div className="relative flex flex-col md:grid md:grid-cols-3 gap-0 md:gap-2 h-[calc(100vh-12rem)] sm:h-[calc(100vh-12rem)] bg-gradient-to-br from-background to-accent/20 rounded-xl shadow-lg overflow-hidden">
       {/* Thread list */}
       <AnimatePresence mode="wait">
         {(showThreadList || !isMobile) && (
@@ -116,25 +109,14 @@ const ChatInterface: React.FC = () => {
               stiffness: 300 
             }}
           >
-            {isMobile && selectedThread && !showThreadList && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleBackToThreads}
-                data-action="back"
-                className="absolute top-3 left-3 z-30 bg-background/70 backdrop-blur-sm rounded-full h-8 w-8 p-0"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            )}
-
             {/* Only show menu button on mobile when in conversation view */}
             {isMobile && !showThreadList && (
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowThreadList(true)}
-                className="absolute top-3 right-3 z-30 bg-background/70 backdrop-blur-sm rounded-full h-8 w-8 p-0 md:hidden"
+                data-action="menu"
+                className="absolute top-3 left-3 z-30 bg-background/70 backdrop-blur-sm rounded-full h-8 w-8 p-0 md:hidden"
               >
                 <Menu className="h-4 w-4" />
               </Button>

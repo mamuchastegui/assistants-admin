@@ -54,7 +54,7 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
           </motion.div>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {/* Mobile search trigger */}
           {isMobile && (
             <Button 
@@ -67,7 +67,7 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
             </Button>
           )}
           {/* Dark mode toggle */}
-          <DarkModeToggle className="h-8 w-8" />
+          <DarkModeToggle />
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <Bell className="h-4 w-4" />
           </Button>

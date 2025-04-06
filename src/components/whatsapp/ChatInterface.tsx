@@ -62,7 +62,7 @@ const ChatInterface: React.FC = () => {
 
   return (
     <div className="relative flex flex-col md:grid md:grid-cols-12 gap-0 h-full bg-gradient-to-br from-background to-accent/20 rounded-xl shadow-lg overflow-hidden">
-      {/* Thread list - increased width for desktop */}
+      {/* Thread list - fixed width for desktop */}
       <AnimatePresence mode="wait">
         {(showThreadList || !isMobile) && (
           <motion.div 
@@ -92,7 +92,7 @@ const ChatInterface: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Messages - adjusted for better spacing */}
+      {/* Messages - full width for desktop */}
       <AnimatePresence mode="wait">
         {(!isMobile || !showThreadList) && (
           <motion.div 

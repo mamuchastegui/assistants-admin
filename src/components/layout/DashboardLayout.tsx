@@ -52,7 +52,7 @@ const DashboardLayoutContent: React.FC<DashboardLayoutContentProps> = ({ childre
               isCollapsed ? "w-[3.5rem]" : "w-64",
               "md:flex flex-shrink-0",
               isMobile && !openMobile && "hidden",
-              isMobile && openMobile && "w-[250px]"
+              isMobile && openMobile && "w-[250px] overflow-y-auto"
             )}
           >
             <Sidebar />
@@ -74,7 +74,7 @@ const DashboardLayoutContent: React.FC<DashboardLayoutContentProps> = ({ childre
         <Header>
           <SidebarTrigger className="h-8 w-8" />
         </Header>
-        <main className="flex-1 p-3 md:p-6 overflow-auto">
+        <main className="flex-1 p-2 sm:p-3 md:p-6 overflow-auto">
           {children}
         </main>
       </motion.div>

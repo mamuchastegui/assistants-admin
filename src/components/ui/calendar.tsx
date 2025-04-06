@@ -17,7 +17,7 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn("p-3 select-none", className)}
+      className={cn("p-3 select-none pointer-events-auto", className)}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-3 sm:space-x-3 sm:space-y-0",
         month: "space-y-4 w-full",
@@ -38,12 +38,12 @@ function Calendar({
         cell: "h-9 w-9 flex-1 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent/50 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
         day: cn(
           buttonVariants({ variant: "ghost", size: "sm" }),
-          "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground"
+          "h-8 w-8 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground"
         ),
         day_range_end: "day-range-end",
         day_selected:
           "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground shadow-sm transition-transform hover:scale-105 active:scale-95",
-        day_today: "bg-accent text-accent-foreground font-semibold",
+        day_today: "bg-accent text-accent-foreground font-semibold ring-1 ring-primary/20",
         day_outside:
           "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-40",
         day_disabled: "text-muted-foreground opacity-40",

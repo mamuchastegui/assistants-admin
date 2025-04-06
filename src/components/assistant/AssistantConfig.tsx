@@ -10,9 +10,9 @@ const AssistantConfig: React.FC = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="w-full"
+      className="w-full h-[calc(100vh-180px)] min-h-[600px]"
     >
-      <Card className="bg-card/80 backdrop-blur-sm border-muted shadow-lg overflow-hidden">
+      <Card className="bg-card/80 backdrop-blur-sm border-muted shadow-lg overflow-hidden h-full">
         <ChatInterface />
       </Card>
     </motion.div>

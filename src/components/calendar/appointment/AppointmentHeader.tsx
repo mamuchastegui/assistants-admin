@@ -3,7 +3,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, CalendarPlus } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface AppointmentHeaderProps {
@@ -34,9 +34,9 @@ const AppointmentHeader: React.FC<AppointmentHeaderProps> = ({
   };
 
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
       <div>
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center gap-1">
           <Button
             variant="ghost"
             size="icon"
@@ -47,12 +47,11 @@ const AppointmentHeader: React.FC<AppointmentHeaderProps> = ({
           </Button>
           <motion.div
             key={selectedDate.toISOString()}
-            initial={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
             transition={{ duration: 0.2 }}
           >
-            <h3 className="text-lg font-medium">
+            <h3 className="text-base md:text-lg font-medium">
               {format(selectedDate, "EEEE dd 'de' MMMM", { locale: es })}
               {isToday && (
                 <span className="ml-2 text-xs bg-primary text-primary-foreground py-0.5 px-1.5 rounded-full">
@@ -75,7 +74,7 @@ const AppointmentHeader: React.FC<AppointmentHeaderProps> = ({
         </p>
       </div>
       <Button size="sm" className="shrink-0" onClick={handleNewAppointment}>
-        <Plus className="mr-2 h-3.5 w-3.5" />
+        <CalendarPlus className="mr-2 h-3.5 w-3.5" />
         Nuevo Turno
       </Button>
     </div>

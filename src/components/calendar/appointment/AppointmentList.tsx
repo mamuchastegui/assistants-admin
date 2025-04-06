@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, CalendarPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AppointmentItem from "./AppointmentItem";
 import { motion, AnimatePresence } from "framer-motion";
@@ -46,11 +46,11 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
         animate={{ opacity: 1 }}
         className="flex flex-col items-center justify-center py-10 bg-muted/5 rounded-lg border border-dashed border-border/50"
       >
+        <CalendarPlus className="h-10 w-10 text-muted-foreground mb-4" />
         <p className="text-muted-foreground mb-4 text-sm">No hay turnos programados para esta fecha</p>
         <Button 
-          variant="outline" 
           onClick={onAddNew}
-          className="border-dashed shadow-sm hover:shadow-md transition-shadow"
+          className="shadow-sm hover:shadow-md transition-shadow"
         >
           <Plus className="mr-2 h-4 w-4" />
           Agregar Turno

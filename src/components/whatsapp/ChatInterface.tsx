@@ -61,14 +61,14 @@ const ChatInterface: React.FC = () => {
   }, [isMobile, threadListRef]);
 
   return (
-    <div className="relative flex flex-col md:grid md:grid-cols-3 gap-0 md:gap-2 h-[calc(100vh-12rem)] bg-gradient-to-br from-background to-accent/20 rounded-xl shadow-lg overflow-hidden">
+    <div className="relative flex flex-col md:grid md:grid-cols-10 gap-0 h-[calc(100vh-12rem)] md:h-[calc(100vh-12rem)] bg-gradient-to-br from-background to-accent/20 rounded-xl shadow-lg overflow-hidden">
       {/* Thread list */}
       <AnimatePresence mode="wait">
         {(showThreadList || !isMobile) && (
           <motion.div 
             ref={threadListRef}
             className={cn(
-              isMobile ? "absolute inset-0 z-30" : "md:col-span-1 border-r border-border/30",
+              isMobile ? "absolute inset-0 z-30" : "md:col-span-3 lg:col-span-3 border-r border-border/30",
               "bg-card/70 backdrop-blur-sm"
             )}
             initial={isMobile ? { x: -300, opacity: 0 } : { opacity: 0 }}
@@ -97,7 +97,7 @@ const ChatInterface: React.FC = () => {
         {(!isMobile || !showThreadList) && (
           <motion.div 
             className={cn(
-              isMobile ? "absolute inset-0 z-20" : "md:col-span-2",
+              isMobile ? "absolute inset-0 z-20" : "md:col-span-7 lg:col-span-7",
               "bg-card/70 backdrop-blur-sm"
             )}
             initial={isMobile ? { x: 300, opacity: 0 } : { opacity: 0 }}

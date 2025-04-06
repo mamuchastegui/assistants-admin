@@ -114,7 +114,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
         )}
       </div>
       
-      <div className="p-0 flex-grow flex flex-col h-[calc(100vh-16rem)] sm:h-[calc(100vh-16rem)] overflow-hidden relative">
+      <div className="p-0 flex-grow flex flex-col h-[calc(100vh-16rem)] sm:h-[calc(100vh-15rem)] overflow-hidden relative">
         {!selectedThread ? (
           <div className="flex flex-col items-center justify-center h-full text-center p-4 sm:p-6 bg-gradient-to-br from-muted/10 to-muted/30">
             <motion.div 
@@ -285,7 +285,7 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, profileName, isConse
       transition={{ duration: 0.2, delay: index * 0.02 }}
     >
       <div
-        className={`max-w-[85%] sm:max-w-[70%] rounded-2xl p-1.5 sm:p-2 ${
+        className={`max-w-[85%] sm:max-w-[75%] rounded-2xl p-1.5 sm:p-2 ${
           isInbound
             ? "bg-background dark:bg-muted shadow-sm"
             : "bg-primary text-primary-foreground shadow-md"

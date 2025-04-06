@@ -33,7 +33,7 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-40">
+      <div className="flex justify-center items-center h-40 bg-muted/5 rounded-lg border border-border/40">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -44,13 +44,13 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="flex flex-col items-center justify-center py-10 bg-muted/10 rounded-lg border border-dashed"
+        className="flex flex-col items-center justify-center py-10 bg-muted/5 rounded-lg border border-dashed border-border/50"
       >
         <p className="text-muted-foreground mb-4 text-sm">No hay turnos programados para esta fecha</p>
         <Button 
           variant="outline" 
           onClick={onAddNew}
-          className="border-dashed"
+          className="border-dashed shadow-sm hover:shadow-md transition-shadow"
         >
           <Plus className="mr-2 h-4 w-4" />
           Agregar Turno
@@ -61,7 +61,7 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
 
   return (
     <AnimatePresence>
-      <div className="space-y-2">
+      <div className="space-y-3 p-1">
         {appointments.map((appointment, index) => (
           <motion.div
             key={appointment.id}
@@ -69,6 +69,7 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2, delay: index * 0.05 }}
+            className="rounded-lg shadow-sm hover:shadow-md transition-shadow"
           >
             <AppointmentItem
               id={appointment.id}

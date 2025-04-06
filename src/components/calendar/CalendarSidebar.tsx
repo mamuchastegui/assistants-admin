@@ -38,7 +38,7 @@ const CalendarSidebar: React.FC<CalendarSidebarProps> = ({
               selected={selectedDate}
               onSelect={onDateSelect}
               locale={es}
-              className="border rounded-md p-1 md:p-3 w-full max-w-full md:max-w-[300px] mx-auto"
+              className="border rounded-md p-1 md:p-3 w-full max-w-full mx-auto"
             />
           </div>
         </div>

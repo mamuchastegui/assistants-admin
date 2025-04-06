@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSidebar } from "@/components/ui/sidebar";
 import { motion, AnimatePresence } from "framer-motion";
+import { DarkModeToggle } from "@/components/ui/dark-mode-toggle";
 
 interface HeaderProps {
   children?: React.ReactNode;
@@ -65,6 +66,8 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
               <Search className="h-4 w-4" />
             </Button>
           )}
+          {/* Dark mode toggle */}
+          <DarkModeToggle className="h-8 w-8" />
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <Bell className="h-4 w-4" />
           </Button>
@@ -79,27 +82,25 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
       </div>
 
       {/* Mobile search panel */}
-      {isMobile && (
-        <AnimatePresence>
-          {showSearch && (
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="px-3 pb-3 overflow-hidden"
-            >
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Buscar..." 
-                  className="w-full pl-9 bg-muted border border-input focus:border-primary focus:ring-primary"
-                  autoFocus
-                />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      )}
+      <AnimatePresence>
+        {isMobile && showSearch && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="px-3 pb-3 overflow-hidden"
+          >
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Buscar..." 
+                className="w-full pl-9 bg-muted border border-input focus:border-primary focus:ring-primary"
+                autoFocus
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.header>
   );
 };

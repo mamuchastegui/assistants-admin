@@ -61,15 +61,15 @@ const ChatInterface: React.FC = () => {
   }, [isMobile, threadListRef]);
 
   return (
-    <div className="relative flex flex-col md:grid md:grid-cols-12 gap-0 h-[calc(100vh-13rem)] md:h-[calc(100vh-13.5rem)] bg-gradient-to-br from-background to-accent/20 rounded-xl shadow-lg overflow-hidden">
+    <div className="relative flex flex-col md:grid md:grid-cols-12 gap-0 h-full bg-gradient-to-br from-background to-accent/20 rounded-xl shadow-lg overflow-hidden">
       {/* Thread list - increased width for desktop */}
       <AnimatePresence mode="wait">
         {(showThreadList || !isMobile) && (
           <motion.div 
             ref={threadListRef}
             className={cn(
-              isMobile ? "absolute inset-0 z-30" : "md:col-span-4 lg:col-span-3 border-r border-border/30",
-              "bg-card/70 backdrop-blur-sm"
+              isMobile ? "absolute inset-0 z-30" : "md:col-span-4 lg:col-span-3 xl:col-span-3 border-r border-border/30",
+              "bg-card/70 backdrop-blur-sm h-full"
             )}
             initial={isMobile ? { x: -300, opacity: 0 } : { opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -97,8 +97,8 @@ const ChatInterface: React.FC = () => {
         {(!isMobile || !showThreadList) && (
           <motion.div 
             className={cn(
-              isMobile ? "absolute inset-0 z-20" : "md:col-span-8 lg:col-span-9",
-              "bg-card/70 backdrop-blur-sm"
+              isMobile ? "absolute inset-0 z-20" : "md:col-span-8 lg:col-span-9 xl:col-span-9",
+              "bg-card/70 backdrop-blur-sm h-full"
             )}
             initial={isMobile ? { x: 300, opacity: 0 } : { opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}

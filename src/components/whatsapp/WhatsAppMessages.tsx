@@ -85,21 +85,21 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
 
   return (
     <div className="h-full flex flex-col overflow-hidden bg-card/80 backdrop-blur-sm border-muted">
-      {/* Header with profile info - Fixed height and more prominent */}
-      <div className="flex flex-row items-center justify-between p-3 sm:p-4 border-b bg-gradient-to-r from-background to-muted/30 min-h-[60px] sm:min-h-[70px]">
+      {/* Header with profile info - Fixed height to prevent jumping */}
+      <div className="flex flex-row items-center justify-between p-3 sm:p-4 border-b bg-gradient-to-r from-background to-muted/30 min-h-[70px] sm:min-h-[80px] sticky top-0 z-10">
         <div className="flex items-center gap-3">
           {conversation && (
-            <Avatar className="h-10 w-10 sm:h-12 sm:w-12 ring-2 ring-primary/20 flex-shrink-0">
+            <Avatar className="h-12 w-12 sm:h-14 sm:w-14 ring-2 ring-primary/20 flex-shrink-0">
               <AvatarFallback className="bg-primary text-primary-foreground text-sm">
                 {getInitials(conversation.profile_name)}
               </AvatarFallback>
             </Avatar>
           )}
           <div className="min-w-0">
-            <CardTitle className="text-sm sm:text-base line-clamp-1 mb-0.5">
+            <CardTitle className="text-base sm:text-lg line-clamp-1 mb-0.5">
               {conversation?.profile_name || "Mensajes de WhatsApp"}
             </CardTitle>
-            <CardDescription className="text-xs line-clamp-1">
+            <CardDescription className="text-xs sm:text-sm line-clamp-1">
               {conversation ? formatPhoneNumber(conversation.user_id) : "Conversaciones recientes con tus clientes"}
             </CardDescription>
           </div>
@@ -116,7 +116,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
         )}
       </div>
       
-      <div className="p-0 flex-grow flex flex-col overflow-hidden relative">
+      <div className="flex-grow flex flex-col overflow-hidden relative">
         <AnimatePresence>
           {showSearchBox && (
             <motion.div 
@@ -168,16 +168,16 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
             </motion.div>
           </div>
         ) : (
-          <ScrollArea className="flex-grow p-3 bg-[url('https://i.pinimg.com/originals/85/ec/df/85ecdf1c3611ecc9b7fa85282d9526e0.jpg')] bg-cover bg-fixed bg-opacity-30 dark:bg-opacity-20 bg-blend-darken">
+          <ScrollArea className="flex-grow px-3 py-4 bg-[url('https://i.pinimg.com/originals/85/ec/df/85ecdf1c3611ecc9b7fa85282d9526e0.jpg')] bg-cover bg-fixed bg-opacity-30 dark:bg-opacity-20 bg-blend-darken">
             {filteredMessages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-center py-4">
+              <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center">
                 <MessageSquare className="h-6 w-6 sm:h-8 sm:w-8 mx-auto text-muted-foreground opacity-50 mb-2" />
                 <p className="text-xs text-muted-foreground">
                   No hay mensajes en esta conversación
                 </p>
               </div>
             ) : (
-              <div className="space-y-2 px-2 pb-4 pt-1 min-h-[calc(100%-100px)]">
+              <div className="space-y-2 px-2 min-h-[300px]">
                 {filteredMessages.map((message, index) => (
                   <MessageItem 
                     key={index} 
@@ -190,14 +190,14 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
                     isMobile={isMobile}
                   />
                 ))}
-                <div ref={messagesEndRef} />
+                <div ref={messagesEndRef} className="pb-4" />
               </div>
             )}
           </ScrollArea>
         )}
 
         {selectedThread && (
-          <div className="p-3 border-t bg-card/90 backdrop-blur-sm">
+          <div className="p-3 border-t bg-card/90 backdrop-blur-sm sticky bottom-0 z-10">
             <div className="relative">
               <AnimatePresence>
                 {isAttachMenuOpen && (

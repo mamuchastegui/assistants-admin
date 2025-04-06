@@ -95,23 +95,27 @@ const NavButton = ({
             "hover:bg-accent text-foreground/80 hover:text-foreground"
         )}
       >
-        <div className="mr-2 flex items-center justify-center">
-          {React.cloneElement(icon as React.ReactElement, { 
-            size: 18,
-            strokeWidth: 1.5
-          })}
-        </div>
-        <span>{label}</span>
-        {isActive && (
-          <motion.div 
-            layoutId="active-indicator"
-            className="ml-auto"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.2 }}
-          >
-            <ChevronRight size={14} />
-          </motion.div>
+        {({isActive}) => (
+          <>
+            <div className="mr-2 flex items-center justify-center">
+              {React.cloneElement(icon as React.ReactElement, { 
+                size: 18,
+                strokeWidth: 1.5
+              })}
+            </div>
+            <span>{label}</span>
+            {isActive && (
+              <motion.div 
+                layoutId="active-indicator"
+                className="ml-auto"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.2 }}
+              >
+                <ChevronRight size={14} />
+              </motion.div>
+            )}
+          </>
         )}
       </NavLink>
     </motion.div>

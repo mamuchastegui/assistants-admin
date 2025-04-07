@@ -6,7 +6,7 @@ import { useChatThreads } from "@/hooks/useChatThreads";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const ChatInterface: React.FC = () => {
@@ -42,6 +42,12 @@ const ChatInterface: React.FC = () => {
     }
   };
 
+  // Handler for back button in mobile view
+  const handleBackButton = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setShowThreadList(true);
+  };
+
   // Click outside handler for mobile
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -61,54 +67,49 @@ const ChatInterface: React.FC = () => {
   }, [isMobile, threadListRef]);
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
-      <div className="flex flex-row h-full">
-        {/* Thread list - fixed width for desktop */}
-        {(showThreadList || !isMobile) && (
-          <div 
-            ref={threadListRef}
-            className={cn(
-              isMobile ? "fixed inset-0 z-30 w-full" : "w-[320px]",
-              "bg-card border-r border-border/30 h-full"
-            )}
+    <div className="h-full flex overflow-hidden">
+      {/* Thread list container */}
+      <div className={cn(
+        isMobile ? "absolute inset-0 z-30 w-full" : "w-[320px] min-w-[320px] border-r border-border/30",
+        showThreadList ? "block" : "hidden", 
+        "bg-card h-full"
+      )} ref={threadListRef}>
+        <ChatThreadList 
+          threads={threads}
+          loadingThreads={loadingThreads}
+          error={error}
+          fetchThreads={fetchThreads}
+          selectedThread={selectedThread}
+          selectThread={handleSelectThread}
+        />
+      </div>
+
+      {/* Messages container */}
+      <div className={cn(
+        "h-full",
+        isMobile ? "w-full" : showThreadList ? "flex-1" : "w-full",
+        !showThreadList || !isMobile ? "block" : "hidden"
+      )}>
+        {/* Menu button for mobile */}
+        {isMobile && !showThreadList && selectedThread && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleBackButton}
+            data-action="menu"
+            className="absolute top-3 left-3 z-40 bg-background/70 backdrop-blur-sm rounded-full h-8 w-8 p-0"
           >
-            <ChatThreadList 
-              threads={threads}
-              loadingThreads={loadingThreads}
-              error={error}
-              fetchThreads={fetchThreads}
-              selectedThread={selectedThread}
-              selectThread={handleSelectThread}
-            />
-          </div>
+            <Menu className="h-4 w-4" />
+          </Button>
         )}
 
-        {/* Messages area - takes remaining space */}
-        <div 
-          className={cn(
-            isMobile ? "w-full" : showThreadList ? "flex-1" : "w-full",
-            "h-full overflow-hidden"
-          )}
-        >
-          {/* Menu button for mobile */}
-          {isMobile && !showThreadList && selectedThread && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowThreadList(true)}
-              data-action="menu"
-              className="absolute top-3 left-3 z-40 bg-background/70 backdrop-blur-sm rounded-full h-8 w-8 p-0"
-            >
-              <Menu className="h-4 w-4" />
-            </Button>
-          )}
-
-          <WhatsAppMessages 
-            conversation={conversation}
-            loadingConversation={loadingConversation}
-            selectedThread={selectedThread}
-          />
-        </div>
+        <WhatsAppMessages 
+          conversation={conversation}
+          loadingConversation={loadingConversation}
+          selectedThread={selectedThread}
+          onBack={handleBackButton}
+          isMobileView={isMobile && !showThreadList}
+        />
       </div>
     </div>
   );

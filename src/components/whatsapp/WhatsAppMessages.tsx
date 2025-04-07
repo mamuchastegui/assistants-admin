@@ -21,7 +21,6 @@ import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import { Conversation } from "@/hooks/useChatThreads";
 import { motion, AnimatePresence } from "framer-motion";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
 interface WhatsAppMessage {
@@ -35,20 +34,23 @@ interface WhatsAppMessagesProps {
   conversation: Conversation | null;
   loadingConversation: boolean;
   selectedThread: string | null;
+  onBack?: (e: React.MouseEvent) => void;
+  isMobileView?: boolean;
 }
 
 const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({ 
   conversation, 
   loadingConversation, 
-  selectedThread 
+  selectedThread,
+  onBack,
+  isMobileView
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showSearchBox, setShowSearchBox] = useState(false);
   const [isAttachMenuOpen, setIsAttachMenuOpen] = useState(false);
-  const isMobile = useIsMobile();
-
+  
   // Scroll to bottom of messages when conversation changes
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -88,11 +90,11 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
     <div className="flex flex-col h-full bg-card overflow-hidden">
       {/* Header with profile info */}
       <div className="sticky top-0 z-10 flex flex-row items-center justify-between p-3 border-b bg-background shadow-sm min-h-[64px]">
-        {isMobile && selectedThread && (
+        {isMobileView && (
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => window.history.back()}
+            onClick={onBack}
             className="mr-2 h-8 w-8 flex-shrink-0"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -198,7 +200,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
                       index > 0 && filteredMessages[index - 1].role === message.role
                     }
                     index={index}
-                    isMobile={isMobile}
+                    isMobile={isMobileView || false}
                   />
                 ))}
                 <div ref={messagesEndRef} className="pb-4" />

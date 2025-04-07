@@ -13,7 +13,9 @@ const AssistantConfig: React.FC = () => {
       className="w-full h-[calc(100vh-200px)] min-h-[600px]"
     >
       <Card className="h-full overflow-hidden shadow-md">
-        <ChatInterface />
+        <div className="h-full flex flex-col">
+          <ChatInterface />
+        </div>
       </Card>
     </motion.div>
   );

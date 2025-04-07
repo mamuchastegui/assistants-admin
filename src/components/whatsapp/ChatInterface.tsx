@@ -61,43 +61,36 @@ const ChatInterface: React.FC = () => {
   }, [isMobile, threadListRef]);
 
   return (
-    <div className="relative h-full bg-gradient-to-br from-background to-accent/20 rounded-xl shadow-lg overflow-hidden">
-      {/* Fixed height container to prevent scrolling issues */}
-      <div className="h-full flex">
-        {/* Thread list - fixed width for desktop, fixed position for mobile */}
-        <AnimatePresence>
-          {(showThreadList || !isMobile) && (
-            <motion.div 
-              ref={threadListRef}
-              className={cn(
-                isMobile ? "fixed inset-0 z-30" : "w-1/3 h-full",
-                "bg-card/70 backdrop-blur-sm border-r border-border/30"
-              )}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.1 }}
-            >
-              <ChatThreadList 
-                threads={threads}
-                loadingThreads={loadingThreads}
-                error={error}
-                fetchThreads={fetchThreads}
-                selectedThread={selectedThread}
-                selectThread={handleSelectThread}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+    <div className="h-full flex flex-col overflow-hidden">
+      <div className="flex flex-row h-full">
+        {/* Thread list - fixed width for desktop */}
+        {(showThreadList || !isMobile) && (
+          <div 
+            ref={threadListRef}
+            className={cn(
+              isMobile ? "fixed inset-0 z-30 w-full" : "w-[320px]",
+              "bg-card border-r border-border/30 h-full"
+            )}
+          >
+            <ChatThreadList 
+              threads={threads}
+              loadingThreads={loadingThreads}
+              error={error}
+              fetchThreads={fetchThreads}
+              selectedThread={selectedThread}
+              selectThread={handleSelectThread}
+            />
+          </div>
+        )}
 
-        {/* Messages - take remaining width for desktop */}
+        {/* Messages area - takes remaining space */}
         <div 
           className={cn(
-            isMobile ? "w-full" : !showThreadList ? "w-full" : "w-2/3",
-            "h-full"
+            isMobile ? "w-full" : showThreadList ? "flex-1" : "w-full",
+            "h-full overflow-hidden"
           )}
         >
-          {/* Only show menu button on mobile when in conversation view */}
+          {/* Menu button for mobile */}
           {isMobile && !showThreadList && selectedThread && (
             <Button
               variant="ghost"

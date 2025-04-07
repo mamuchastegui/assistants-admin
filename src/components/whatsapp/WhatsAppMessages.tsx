@@ -85,9 +85,9 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
   ) || [];
 
   return (
-    <div className="flex flex-col h-full bg-card/80 backdrop-blur-sm border-muted">
-      {/* Header with profile info - Fixed height to prevent jumping */}
-      <div className="sticky top-0 z-10 flex flex-row items-center justify-between p-3 border-b bg-gradient-to-r from-background to-muted/30 min-h-[64px]">
+    <div className="flex flex-col h-full bg-card overflow-hidden">
+      {/* Header with profile info */}
+      <div className="sticky top-0 z-10 flex flex-row items-center justify-between p-3 border-b bg-background shadow-sm min-h-[64px]">
         {isMobile && selectedThread && (
           <Button
             variant="ghost"
@@ -151,7 +151,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
         </AnimatePresence>
 
         {!selectedThread ? (
-          <div className="flex flex-col items-center justify-center h-full text-center p-4 bg-gradient-to-br from-muted/10 to-muted/30">
+          <div className="flex flex-col items-center justify-center h-full text-center p-4 bg-muted/10">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -165,7 +165,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
             </motion.div>
           </div>
         ) : loadingConversation ? (
-          <div className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-muted/10 to-muted/30">
+          <div className="flex flex-col items-center justify-center h-full bg-muted/10">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -179,7 +179,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
             </motion.div>
           </div>
         ) : (
-          <ScrollArea className="flex-grow px-3 py-4 bg-cover bg-center" style={{ backgroundImage: 'url(https://i.pinimg.com/736x/fa/a0/a3/faa0a376d7af8ed314dc66f517554a53.jpg)' }}>
+          <ScrollArea className="flex-grow px-3 py-4 bg-muted/5">
             {filteredMessages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-center">
                 <MessageSquare className="h-6 w-6 mx-auto text-foreground opacity-50 mb-2" />
@@ -208,7 +208,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
         )}
 
         {selectedThread && (
-          <div className="p-3 border-t bg-card/90 backdrop-blur-sm sticky bottom-0 z-10">
+          <div className="p-3 border-t bg-card sticky bottom-0 z-10">
             <div className="relative">
               <AnimatePresence>
                 {isAttachMenuOpen && (

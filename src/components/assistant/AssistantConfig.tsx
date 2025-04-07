@@ -12,7 +12,7 @@ const AssistantConfig: React.FC = () => {
       transition={{ duration: 0.3 }}
       className="w-full h-[calc(100vh-200px)] min-h-[600px]"
     >
-      <Card className="bg-card/80 backdrop-blur-sm border-muted shadow-lg overflow-hidden h-full">
+      <Card className="h-full overflow-hidden shadow-md">
         <ChatInterface />
       </Card>
     </motion.div>

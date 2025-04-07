@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect, useRef } from "react";
-import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -108,12 +107,12 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
             </Avatar>
           )}
           <div className="min-w-0">
-            <CardTitle className="text-sm sm:text-base line-clamp-1 mb-0.5">
+            <h2 className="text-sm sm:text-base font-bold line-clamp-1 mb-0.5">
               {conversation?.profile_name || "Mensajes de WhatsApp"}
-            </CardTitle>
-            <CardDescription className="text-xs line-clamp-1">
+            </h2>
+            <p className="text-xs text-muted-foreground line-clamp-1">
               {conversation ? formatPhoneNumber(conversation.user_id) : "Conversaciones recientes con tus clientes"}
-            </CardDescription>
+            </p>
           </div>
         </div>
         {conversation && (

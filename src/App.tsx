@@ -13,7 +13,7 @@ import Menu from "./pages/Menu";
 import RestaurantMenu from "./pages/RestaurantMenu";
 import NotFound from "./pages/NotFound";
 import { ThemeProvider } from "./hooks/use-theme";
-import React, { useEffect } from "react";
+import React from "react";
 
 // Immediately apply theme before React hydration
 if (typeof window !== 'undefined') {

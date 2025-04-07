@@ -14,7 +14,8 @@ import {
   Smile,
   Image,
   Mic,
-  X
+  X,
+  ChevronLeft
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -22,6 +23,7 @@ import { toast } from "sonner";
 import { Conversation } from "@/hooks/useChatThreads";
 import { motion, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 interface WhatsAppMessage {
   _id?: string;
@@ -87,6 +89,16 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
     <div className="h-full flex flex-col overflow-hidden bg-card/80 backdrop-blur-sm border-muted">
       {/* Header with profile info - Fixed height to prevent jumping */}
       <div className="sticky top-0 z-10 flex flex-row items-center justify-between p-3 border-b bg-gradient-to-r from-background to-muted/30 min-h-[64px]">
+        {isMobile && selectedThread && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => window.history.back()}
+            className="mr-2 h-8 w-8 flex-shrink-0"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+        )}
         <div className="flex items-center gap-3">
           {conversation && (
             <Avatar className="h-10 w-10 sm:h-12 sm:w-12 ring-2 ring-primary/20 flex-shrink-0">
@@ -168,7 +180,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
             </motion.div>
           </div>
         ) : (
-          <ScrollArea className="flex-grow px-3 py-4 bg-[url('https://i.pinimg.com/736x/fa/a0/a3/faa0a376d7af8ed314dc66f517554a53.jpg')] bg-cover bg-center bg-no-repeat bg-fixed">
+          <ScrollArea className="flex-grow px-3 py-4 bg-[url('https://i.pinimg.com/736x/fa/a0/a3/faa0a376d7af8ed314dc66f517554a53.jpg')] bg-cover bg-center">
             {filteredMessages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-center">
                 <MessageSquare className="h-6 w-6 mx-auto text-foreground opacity-50 mb-2" />
@@ -287,30 +299,32 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, profileName, isConse
       transition={{ duration: 0.2, delay: index * 0.02 }}
     >
       <div
-        className={`max-w-[75%] rounded-2xl p-2.5 ${
+        className={cn(
+          "max-w-[75%] rounded-2xl p-2.5 shadow-sm",
           isInbound
-            ? "bg-background/85 backdrop-blur-sm text-foreground shadow-sm"
-            : "bg-primary/90 backdrop-blur-sm text-primary-foreground shadow-md"
-        } ${
+            ? "bg-background/85 backdrop-blur-sm text-foreground"
+            : "bg-primary/90 backdrop-blur-sm text-primary-foreground",
           isConsecutive 
             ? isInbound 
               ? "rounded-tl-md" 
               : "rounded-tr-md" 
             : ""
-        }`}
+        )}
       >
         {!isConsecutive && (
-          <div className={`mb-0.5 text-xs ${
+          <div className={cn(
+            "mb-0.5 text-xs font-medium",
             isInbound ? "text-foreground/90" : "text-primary-foreground/90"
-          } font-medium`}>
+          )}>
             {isInbound ? profileName || "Usuario" : "Asistente"}
           </div>
         )}
         <div className="whitespace-pre-wrap text-xs">{message.content}</div>
         <div
-          className={`text-[10px] mt-0.5 text-right ${
+          className={cn(
+            "text-[10px] mt-0.5 text-right",
             isInbound ? "text-foreground/70" : "text-primary-foreground/80"
-          }`}
+          )}
         >
           {format(date, "HH:mm", { locale: es })}
         </div>

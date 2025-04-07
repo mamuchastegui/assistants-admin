@@ -87,12 +87,15 @@
 
 @layer base {
   * {
-    @apply border-border transition-none; /* Remove transitions for initial load */
+    @apply border-border;
   }
-
-  /* Transition only on hover or user interaction */
-  *:hover {
-    @apply transition-colors duration-100;
+  
+  html.theme-transition,
+  html.theme-transition *,
+  html.theme-transition *:before,
+  html.theme-transition *:after {
+    transition: all 0.1s !important;
+    transition-delay: 0 !important;
   }
 
   body {

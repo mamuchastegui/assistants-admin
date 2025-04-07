@@ -61,20 +61,17 @@ const ChatInterface: React.FC = () => {
   }, [isMobile, threadListRef]);
 
   return (
-    <div className="relative flex h-full bg-gradient-to-br from-background to-accent/20 rounded-xl shadow-lg overflow-hidden">
-      {/* Desktop: Grid layout for side-by-side display, Mobile: Fixed positioning for stacking */}
-      <div className={cn(
-        "w-full h-full",
-        !isMobile && "grid grid-cols-12 gap-0"
-      )}>
-        {/* Thread list - fixed width for desktop */}
+    <div className="relative h-full bg-gradient-to-br from-background to-accent/20 rounded-xl shadow-lg overflow-hidden">
+      {/* Fixed height container to prevent scrolling issues */}
+      <div className="h-full flex">
+        {/* Thread list - fixed width for desktop, fixed position for mobile */}
         <AnimatePresence>
           {(showThreadList || !isMobile) && (
             <motion.div 
               ref={threadListRef}
               className={cn(
-                isMobile ? "fixed inset-0 z-30" : "col-span-4 lg:col-span-3 xl:col-span-3 border-r border-border/30",
-                "bg-card/70 backdrop-blur-sm h-full"
+                isMobile ? "fixed inset-0 z-30" : "w-1/3 h-full",
+                "bg-card/70 backdrop-blur-sm border-r border-border/30"
               )}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -93,10 +90,10 @@ const ChatInterface: React.FC = () => {
           )}
         </AnimatePresence>
 
-        {/* Messages - full width for desktop */}
+        {/* Messages - take remaining width for desktop */}
         <div 
           className={cn(
-            isMobile ? "w-full" : "col-span-8 lg:col-span-9 xl:col-span-9",
+            isMobile ? "w-full" : !showThreadList ? "w-full" : "w-2/3",
             "h-full"
           )}
         >

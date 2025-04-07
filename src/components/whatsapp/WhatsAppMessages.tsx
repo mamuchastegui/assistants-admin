@@ -85,7 +85,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
   ) || [];
 
   return (
-    <div className="h-full flex flex-col overflow-hidden bg-card/80 backdrop-blur-sm border-muted">
+    <div className="flex flex-col h-full bg-card/80 backdrop-blur-sm border-muted">
       {/* Header with profile info - Fixed height to prevent jumping */}
       <div className="sticky top-0 z-10 flex flex-row items-center justify-between p-3 border-b bg-gradient-to-r from-background to-muted/30 min-h-[64px]">
         {isMobile && selectedThread && (
@@ -179,7 +179,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
             </motion.div>
           </div>
         ) : (
-          <ScrollArea className="flex-grow px-3 py-4 bg-[url('https://i.pinimg.com/736x/fa/a0/a3/faa0a376d7af8ed314dc66f517554a53.jpg')] bg-cover bg-center">
+          <ScrollArea className="flex-grow px-3 py-4 bg-cover bg-center" style={{ backgroundImage: 'url(https://i.pinimg.com/736x/fa/a0/a3/faa0a376d7af8ed314dc66f517554a53.jpg)' }}>
             {filteredMessages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-center">
                 <MessageSquare className="h-6 w-6 mx-auto text-foreground opacity-50 mb-2" />

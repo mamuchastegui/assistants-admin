@@ -1,10 +1,8 @@
-
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Package, 
   Users, 
@@ -126,14 +124,6 @@ export default function Sidebar({ className }: SidebarProps) {
   const isMobile = useIsMobile();
   const { state, setOpenMobile } = useSidebar();
   const isCollapsed = state === "collapsed";
-  const [currentTab, setCurrentTab] = React.useState("main");
-  
-  // Navigation categories
-  const navCategories = [
-    { id: "main", label: "Principal" },
-    { id: "admin", label: "Admin" },
-    { id: "whatsapp", label: "WhatsApp" }
-  ];
   
   return (
     <div className={cn("pb-3 w-full h-full flex flex-col bg-card", className)}>
@@ -152,118 +142,52 @@ export default function Sidebar({ className }: SidebarProps) {
       )}
       
       <div className="py-2 h-full flex flex-col">
-        {!isCollapsed && (
-          <div className="px-3 mb-3">
-            <Tabs 
-              value={currentTab} 
-              onValueChange={setCurrentTab} 
-              className="w-full"
-            >
-              <TabsList className="w-full grid grid-cols-3">
-                {navCategories.map((cat) => (
-                  <TabsTrigger key={cat.id} value={cat.id} className="text-xs">
-                    {cat.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
-          </div>
-        )}
-        
         <ScrollArea className="flex-1 px-3">
           <div className="space-y-1">
-            {(currentTab === "main" || isCollapsed) && (
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2 }}
-                className="space-y-1 py-2"
-              >
-                <NavButton
-                  to="/"
-                  icon={<Home />}
-                  collapsed={isCollapsed}
-                  label="Inicio"
-                />
-                <NavButton
-                  to="/calendar"
-                  icon={<Calendar />}
-                  collapsed={isCollapsed}
-                  label="Calendario"
-                />
-                <NavButton
-                  to="/restaurant-menu"
-                  icon={<Package />}
-                  collapsed={isCollapsed}
-                  label="Menú Restaurante"
-                />
-                <NavButton
-                  to="/menu"
-                  icon={<Package />}
-                  collapsed={isCollapsed}
-                  label="Gestión Menú"
-                />
-              </motion.div>
-            )}
-            
-            {(currentTab === "admin" || isCollapsed) && (
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2 }}
-                className="space-y-1 py-2"
-              >
-                <NavButton
-                  to="/orders"
-                  icon={<Package />}
-                  collapsed={isCollapsed}
-                  label="Pedidos"
-                />
-              </motion.div>
-            )}
-            
-            {(currentTab === "whatsapp" || isCollapsed) && (
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2 }}
-                className="space-y-1 py-2"
-              >
-                <NavButton
-                  to="/assistant"
-                  icon={<MessageSquare />}
-                  collapsed={isCollapsed}
-                  label="WhatsApp"
-                />
-              </motion.div>
-            )}
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-1 py-2"
+            >
+              <NavButton
+                to="/"
+                icon={<Home />}
+                collapsed={isCollapsed}
+                label="Inicio"
+              />
+              <NavButton
+                to="/calendar"
+                icon={<Calendar />}
+                collapsed={isCollapsed}
+                label="Calendario"
+              />
+              <NavButton
+                to="/restaurant-menu"
+                icon={<Package />}
+                collapsed={isCollapsed}
+                label="Menú Restaurante"
+              />
+              <NavButton
+                to="/menu"
+                icon={<Package />}
+                collapsed={isCollapsed}
+                label="Gestión Menú"
+              />
+              <NavButton
+                to="/orders"
+                icon={<Package />}
+                collapsed={isCollapsed}
+                label="Pedidos"
+              />
+              <NavButton
+                to="/assistant"
+                icon={<MessageSquare />}
+                collapsed={isCollapsed}
+                label="WhatsApp"
+              />
+            </motion.div>
           </div>
-          
-          {/* Hiding configuration links as requested */}
-          {/* 
-          {!isCollapsed && (
-            <div className="mt-6 border-t border-border pt-3">
-              <h4 className="text-xs font-semibold text-muted-foreground px-3 mb-2">Configuración</h4>
-              <div className="space-y-1">
-                <NavButton
-                  to="/integrations"
-                  icon={<Settings />}
-                  label="Configuración"
-                />
-                <NavButton
-                  to="/clients"
-                  icon={<Users />}
-                  label="Clientes API"
-                />
-                <NavButton
-                  to="/support"
-                  icon={<LifeBuoy />}
-                  label="Soporte"
-                />
-              </div>
-            </div>
-          )}
-          */}
         </ScrollArea>
       </div>
     </div>

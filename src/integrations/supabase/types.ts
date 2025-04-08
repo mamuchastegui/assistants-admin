@@ -324,6 +324,59 @@ export type Database = {
         }
         Relationships: []
       }
+      human_notifications: {
+        Row: {
+          assistant_id: string
+          business_id: string | null
+          created_at: string | null
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          id: string
+          issue_description: string
+          source: string | null
+          status: string | null
+          thread_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          assistant_id: string
+          business_id?: string | null
+          created_at?: string | null
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          id?: string
+          issue_description: string
+          source?: string | null
+          status?: string | null
+          thread_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          assistant_id?: string
+          business_id?: string | null
+          created_at?: string | null
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string
+          id?: string
+          issue_description?: string
+          source?: string | null
+          status?: string | null
+          thread_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "human_notifications_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       investments: {
         Row: {
           created_at: string | null

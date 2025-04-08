@@ -10,7 +10,7 @@ const AssistantConfig: React.FC = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="w-full h-[calc(100vh-200px)] min-h-[700px]" // Increased minimum height
+      className="w-full h-[calc(100vh-180px)] min-h-[800px]" // Increased height for better scrolling
     >
       <Card className="h-full shadow-md flex flex-col">
         <div className="h-full flex-grow flex flex-col overflow-hidden">

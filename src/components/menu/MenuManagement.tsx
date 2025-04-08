@@ -110,7 +110,9 @@ const MenuManagement = () => {
       }
     },
     onSuccess: () => {
+      // Invalidate both menu queries to ensure both views are updated
       queryClient.invalidateQueries({ queryKey: ["menu-items"] });
+      queryClient.invalidateQueries({ queryKey: ["restaurant-menu-items"] });
       form.reset();
       setIsEditing(null);
       toast.success(isEditing ? "Elemento del menú actualizado" : "Elemento del menú añadido");
@@ -136,7 +138,9 @@ const MenuManagement = () => {
       return id;
     },
     onSuccess: () => {
+      // Invalidate both menu queries to ensure both views are updated
       queryClient.invalidateQueries({ queryKey: ["menu-items"] });
+      queryClient.invalidateQueries({ queryKey: ["restaurant-menu-items"] });
       toast.success("Elemento del menú eliminado");
     },
     onError: (error) => {

@@ -81,6 +81,33 @@ export type Database = {
         }
         Relationships: []
       }
+      businesses: {
+        Row: {
+          business_id: string
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          business_id: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          business_id?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       calendar_events: {
         Row: {
           completed: boolean | null
@@ -338,36 +365,53 @@ export type Database = {
       }
       menu_items: {
         Row: {
+          business_id: string | null
           category: string | null
           created_at: string | null
+          currency: string | null
           description: string | null
           id: string
           is_active: boolean | null
+          menu_type: string
           name: string
           price: number | null
           updated_at: string | null
         }
         Insert: {
+          business_id?: string | null
           category?: string | null
           created_at?: string | null
+          currency?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
+          menu_type?: string
           name: string
           price?: number | null
           updated_at?: string | null
         }
         Update: {
+          business_id?: string | null
           category?: string | null
           created_at?: string | null
+          currency?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
+          menu_type?: string
           name?: string
           price?: number | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "menu_items_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       savings_goals: {
         Row: {

@@ -68,7 +68,7 @@ const ChatInterface: React.FC = () => {
 
   return (
     <div className="flex flex-col relative w-full h-full">
-      {/* Thread list container - Now at the top */}
+      {/* Thread list container - Fixed height at the top */}
       <div 
         className={cn(
           isMobile 
@@ -90,10 +90,9 @@ const ChatInterface: React.FC = () => {
         />
       </div>
 
-      {/* Messages container - Now at the bottom */}
+      {/* Messages container - Takes remaining height */}
       <div 
         className={cn(
-          "w-full",
           isMobile
             ? !showThreadList ? "h-full" : "hidden"
             : "h-2/3 flex-grow"

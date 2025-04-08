@@ -1,3 +1,4 @@
+
 import React from "react";
 import ChatThreadList from "@/components/whatsapp/ChatThreadList";
 import WhatsAppMessages from "@/components/whatsapp/WhatsAppMessages";
@@ -66,15 +67,16 @@ const ChatInterface: React.FC = () => {
   }, [isMobile, threadListRef]);
 
   return (
-    <div className="flex relative w-full">
-      {/* Thread list container - Fixed positioning for mobile */}
+    <div className="flex flex-col relative w-full h-full">
+      {/* Thread list container - Now at the top */}
       <div 
         className={cn(
           isMobile 
-            ? "absolute inset-0 z-30 w-full" 
-            : "w-[320px] min-w-[320px] border-r border-border/30",
-          showThreadList ? "block" : "hidden", 
-          "bg-card"
+            ? showThreadList 
+              ? "absolute inset-0 z-30 w-full h-full" 
+              : "hidden"
+            : "w-full h-1/3 min-h-[200px] max-h-[300px] border-b border-border/30",
+          "bg-card overflow-hidden"
         )} 
         ref={threadListRef}
       >
@@ -88,11 +90,13 @@ const ChatInterface: React.FC = () => {
         />
       </div>
 
-      {/* Messages container */}
+      {/* Messages container - Now at the bottom */}
       <div 
         className={cn(
           "w-full",
-          (!showThreadList || !isMobile) ? "block" : "hidden"
+          isMobile
+            ? !showThreadList ? "h-full" : "hidden"
+            : "h-2/3 flex-grow"
         )}
       >
         {/* Menu button for mobile */}

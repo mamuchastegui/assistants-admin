@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
@@ -30,6 +31,7 @@ interface OrdersResponse {
 
 const fetchOrders = async (): Promise<Order[]> => {
   try {
+    console.log('Fetching orders...');
     const response = await fetch('https://api.condamind.com/v1/catering/orders', {
       headers: {
         'Content-Type': 'application/json'
@@ -41,6 +43,7 @@ const fetchOrders = async (): Promise<Order[]> => {
     }
     
     const data: OrdersResponse = await response.json();
+    console.log('Orders fetched successfully:', data.response);
     return data.response;
   } catch (error) {
     console.error("Error fetching orders:", error);
@@ -100,6 +103,14 @@ const Orders = () => {
   });
 
   const [ordersState, setOrders] = useState<Order[] | undefined>(orders);
+
+  // Update ordersState whenever orders data changes
+  useEffect(() => {
+    if (orders) {
+      setOrders(orders);
+      console.log('Orders state updated:', orders);
+    }
+  }, [orders]);
 
   const updateOrderStatus = (orderId: string, newStatus: string) => {
     const updatedOrders = ordersState?.map(order =>

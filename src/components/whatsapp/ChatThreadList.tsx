@@ -117,7 +117,7 @@ const ChatThreadList: React.FC<ChatThreadListProps> = ({
         </div>
       </div>
       <CardContent className="p-0 flex-grow">
-        <ScrollArea className="h-[calc(100vh-16rem)]">
+        <ScrollArea className="h-full max-h-[calc(100vh-16rem)]">
           {filteredThreads.length === 0 ? (
             <div className="p-4 text-center">
               <p className="text-muted-foreground text-xs sm:text-sm">No se encontraron contactos</p>

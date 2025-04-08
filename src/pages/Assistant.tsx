@@ -10,7 +10,7 @@ const Assistant = () => {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Chat de WhatsApp</h1>
           <p className="text-sm text-muted-foreground">
-            Visualiza y gestiona las conversaciones de WhatsApp con tus clientes.
+            Visualiza todas las conversaciones de WhatsApp con tus clientes.
           </p>
         </div>
         

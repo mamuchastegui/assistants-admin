@@ -68,14 +68,14 @@ const ChatInterface: React.FC = () => {
 
   return (
     <div className="flex flex-col relative w-full h-full">
-      {/* Thread list container - Fixed height at the top */}
+      {/* Thread list container - Flexible height for better scrolling */}
       <div 
         className={cn(
           isMobile 
             ? showThreadList 
               ? "absolute inset-0 z-30 w-full h-full" 
               : "hidden"
-            : "w-full h-1/3 min-h-[200px] max-h-[300px] border-b border-border/30",
+            : "w-full h-2/5 md:h-1/2 border-b border-border/30", // Increased height proportion
           "bg-card overflow-hidden"
         )} 
         ref={threadListRef}
@@ -95,7 +95,7 @@ const ChatInterface: React.FC = () => {
         className={cn(
           isMobile
             ? !showThreadList ? "h-full" : "hidden"
-            : "h-2/3 flex-grow"
+            : "h-3/5 md:h-1/2 flex-grow" // Adjusted height to complement the thread list
         )}
       >
         {/* Menu button for mobile */}

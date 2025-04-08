@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -34,7 +33,8 @@ const fetchOrders = async (): Promise<Order[]> => {
     console.log('Fetching orders...');
     const response = await fetch('https://api.condamind.com/v1/catering/orders', {
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'assistant-id': 'asst_OS4bPZIMBpvpYo2GMkG0ast5'
       }
     });
     
@@ -104,7 +104,6 @@ const Orders = () => {
 
   const [ordersState, setOrders] = useState<Order[] | undefined>(orders);
 
-  // Update ordersState whenever orders data changes
   useEffect(() => {
     if (orders) {
       setOrders(orders);

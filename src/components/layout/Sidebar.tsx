@@ -132,7 +132,7 @@ export default function Sidebar({ className }: SidebarProps) {
   const navCategories = [
     { id: "main", label: "Principal" },
     { id: "admin", label: "Admin" },
-    { id: "whatsapp", label: "WhatsApp" }  // Changed from "comms" to "whatsapp"
+    { id: "whatsapp", label: "WhatsApp" }
   ];
   
   return (
@@ -197,6 +197,12 @@ export default function Sidebar({ className }: SidebarProps) {
                   collapsed={isCollapsed}
                   label="Menú Restaurante"
                 />
+                <NavButton
+                  to="/menu"
+                  icon={<Package />}
+                  collapsed={isCollapsed}
+                  label="Gestión Menú"
+                />
               </motion.div>
             )}
             
@@ -208,12 +214,6 @@ export default function Sidebar({ className }: SidebarProps) {
                 className="space-y-1 py-2"
               >
                 <NavButton
-                  to="/menu"
-                  icon={<Package />}
-                  collapsed={isCollapsed}
-                  label="Menú"
-                />
-                <NavButton
                   to="/orders"
                   icon={<Package />}
                   collapsed={isCollapsed}
@@ -222,7 +222,6 @@ export default function Sidebar({ className }: SidebarProps) {
               </motion.div>
             )}
             
-            {/* Changed from "comms" to "whatsapp" and now redirecting directly to assistant page */}
             {(currentTab === "whatsapp" || isCollapsed) && (
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
@@ -240,6 +239,8 @@ export default function Sidebar({ className }: SidebarProps) {
             )}
           </div>
           
+          {/* Hiding configuration links as requested */}
+          {/* 
           {!isCollapsed && (
             <div className="mt-6 border-t border-border pt-3">
               <h4 className="text-xs font-semibold text-muted-foreground px-3 mb-2">Configuración</h4>
@@ -262,6 +263,7 @@ export default function Sidebar({ className }: SidebarProps) {
               </div>
             </div>
           )}
+          */}
         </ScrollArea>
       </div>
     </div>

@@ -11,6 +11,7 @@ type MenuItem = {
   name: string;
   description: string | null;
   category: string | null;
+  price: number | null;
 };
 
 type MenuCategory = {
@@ -39,6 +40,11 @@ const MenuCategory = ({ category, index }: { category: MenuCategory; index: numb
             <Card className="h-full border border-border bg-card/70 hover:bg-card/90 transition-colors">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg font-medium">{item.name}</CardTitle>
+                {item.price && (
+                  <div className="text-sm font-medium text-muted-foreground">
+                    ${item.price.toLocaleString()}
+                  </div>
+                )}
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-sm text-muted-foreground">
@@ -54,7 +60,7 @@ const MenuCategory = ({ category, index }: { category: MenuCategory; index: numb
 };
 
 const RestaurantMenu: React.FC = () => {
-  // Fetch menu items from Supabase
+  // Fetch menu items from Supabase with staleTime: 0 to ensure we get fresh data
   const { data: menuItems, isLoading, error } = useQuery({
     queryKey: ["restaurant-menu-items"],
     queryFn: async () => {
@@ -72,6 +78,7 @@ const RestaurantMenu: React.FC = () => {
       console.log("Menu items fetched:", data);
       return data || [];
     },
+    staleTime: 0, // Make sure we always get fresh data
   });
 
   // Process the menu items into categories
@@ -92,6 +99,7 @@ const RestaurantMenu: React.FC = () => {
         name: item.name,
         description: item.description,
         category: item.category,
+        price: item.price,
       });
     });
     
@@ -133,7 +141,7 @@ const RestaurantMenu: React.FC = () => {
         ) : processedMenuData.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">No hay elementos del menú disponibles.</p>
-            <p className="text-muted-foreground mt-2">Agregue elementos del menú desde la sección de administración.</p>
+            <p className="text-muted-foreground mt-2">Agregue elementos del menú desde la sección de gestión del menú.</p>
           </div>
         ) : (
           processedMenuData.map((category, index) => (

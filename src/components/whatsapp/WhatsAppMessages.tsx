@@ -84,7 +84,14 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
   ) || [];
 
   return (
-    <div className="flex flex-col h-full bg-card overflow-hidden">
+    <div className="flex flex-col h-full bg-card overflow-hidden relative">
+      <div 
+        className="absolute inset-0 z-0 opacity-10 bg-cover bg-center filter brightness-50" 
+        style={{ 
+          backgroundImage: `url('https://images.unsplash.com/photo-1531297484001-80022131f5a1?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80')` 
+        }}
+      />
+      
       <div className="sticky top-0 z-10 flex flex-row items-center justify-between p-3 border-b bg-background/90 backdrop-blur-sm shadow-sm min-h-[64px]">
         {isMobileView && (
           <Button
@@ -125,7 +132,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
         )}
       </div>
       
-      <div className="flex-grow flex flex-col overflow-hidden relative">
+      <div className="flex-grow flex flex-col overflow-hidden relative z-10">
         <AnimatePresence>
           {showSearchBox && (
             <motion.div 
@@ -180,7 +187,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
             </motion.div>
           </div>
         ) : (
-          <ScrollArea className="flex-grow px-4 py-6 bg-gradient-to-b from-muted/5 to-background">
+          <ScrollArea className="flex-grow px-4 py-6 bg-gradient-to-b from-muted/5 to-background/50 relative z-10">
             {filteredMessages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-center">
                 <div className="bg-card/70 backdrop-blur-sm p-5 rounded-xl shadow-sm">
@@ -214,7 +221,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
         )}
 
         {selectedThread && (
-          <div className="p-3 border-t bg-card/90 backdrop-blur-sm sticky bottom-0 z-10 shadow-md">
+          <div className="p-3 border-t bg-card/90 backdrop-blur-sm sticky bottom-0 z-20 shadow-md">
             <div className="relative">
               <AnimatePresence>
                 {isAttachMenuOpen && (

@@ -67,13 +67,18 @@ const ChatInterface: React.FC = () => {
   }, [isMobile, threadListRef]);
 
   return (
-    <div className="h-full flex overflow-hidden">
-      {/* Thread list container */}
-      <div className={cn(
-        isMobile ? "absolute inset-0 z-30 w-full" : "w-[320px] min-w-[320px] border-r border-border/30",
-        showThreadList ? "block" : "hidden", 
-        "bg-card h-full"
-      )} ref={threadListRef}>
+    <div className="h-full flex relative">
+      {/* Thread list container - Fixed positioning for mobile */}
+      <div 
+        className={cn(
+          isMobile 
+            ? "absolute inset-0 z-30 w-full" 
+            : "w-[320px] min-w-[320px] border-r border-border/30",
+          showThreadList ? "block" : "hidden", 
+          "bg-card h-full"
+        )} 
+        ref={threadListRef}
+      >
         <ChatThreadList 
           threads={threads}
           loadingThreads={loadingThreads}
@@ -85,11 +90,15 @@ const ChatInterface: React.FC = () => {
       </div>
 
       {/* Messages container */}
-      <div className={cn(
-        "h-full",
-        isMobile ? "w-full" : showThreadList ? "flex-1" : "w-full",
-        !showThreadList || !isMobile ? "block" : "hidden"
-      )}>
+      <div 
+        className={cn(
+          "h-full",
+          isMobile 
+            ? "w-full" 
+            : "flex-1",
+          (!showThreadList || !isMobile) ? "block" : "hidden"
+        )}
+      >
         {/* Menu button for mobile */}
         {isMobile && !showThreadList && selectedThread && (
           <Button

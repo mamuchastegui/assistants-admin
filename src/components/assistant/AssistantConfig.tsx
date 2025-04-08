@@ -12,8 +12,8 @@ const AssistantConfig: React.FC = () => {
       transition={{ duration: 0.3 }}
       className="w-full h-[calc(100vh-200px)] min-h-[600px]"
     >
-      <Card className="h-full overflow-hidden shadow-md">
-        <div className="h-full flex flex-col">
+      <Card className="h-full shadow-md flex flex-col">
+        <div className="h-full flex-grow flex flex-col overflow-hidden">
           <ChatInterface />
         </div>
       </Card>

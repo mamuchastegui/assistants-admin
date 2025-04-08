@@ -3,100 +3,20 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 type MenuItem = {
   name: string;
-  description: string;
+  description: string | null;
+  category: string | null;
 };
 
 type MenuCategory = {
   title: string;
   items: MenuItem[];
 };
-
-const menuData: MenuCategory[] = [
-  {
-    title: "Entradas",
-    items: [
-      {
-        name: "Carpaccio de Res",
-        description: "Finas láminas de res con aceite de oliva, alcaparras, cebolla morada y limón."
-      },
-      {
-        name: "Sopa de Calabaza y Zanahoria",
-        description: "Crema suave de calabaza con jengibre y toque de crema fresca."
-      },
-      {
-        name: "Empanadas Criollas",
-        description: "Clásicas empanadas de carne cortada a cuchillo, cebolla, huevo y aceitunas."
-      },
-      {
-        name: "Picada Argentina",
-        description: "Quesos, fiambres, aceitunas y pan casero."
-      }
-    ]
-  },
-  {
-    title: "Carnes",
-    items: [
-      {
-        name: "Bife de Chorizo",
-        description: "Bife de chorizo al grill con salsa de vino tinto acompañado con papas al romero y ajo."
-      },
-      {
-        name: "Pechuga Rellena",
-        description: "Pechuga rellena de jamón y queso con ensalada de brócoli, zanahoria y arroz yamani."
-      },
-      {
-        name: "Bondiola Braseada",
-        description: "Bondiola braseada."
-      },
-      {
-        name: "Milanesa Napolitana",
-        description: "Milanesa napolitana acompañada de verduras horneadas con puré de papas cremoso."
-      }
-    ]
-  },
-  {
-    title: "Platos Alternativos",
-    items: [
-      {
-        name: "Lasagna Clásica",
-        description: "Lasagna con capas de pasta rellena con ternera desmenuzada, mozzarella y salsa de tomate."
-      },
-      {
-        name: "Humita en Chala",
-        description: "Cocida al vapor."
-      }
-    ]
-  },
-  {
-    title: "Vegetarianos",
-    items: [
-      {
-        name: "Lasagna Vegetariana",
-        description: "Lasagna con capas de berenjenas, calabacines, tomate y mozzarella."
-      },
-      {
-        name: "Tartar de Quinoa y Aguacate",
-        description: "Ensalada fresca de quinoa con aguacate, pepino, tomate, cebolla morada y aliño de limón."
-      }
-    ]
-  },
-  {
-    title: "Pescado",
-    items: [
-      {
-        name: "Trucha al Horno",
-        description: "Trucha horneada con manteca, ajo y romero acompañada de puré de apio y papas."
-      },
-      {
-        name: "Pejerrey Frito",
-        description: "Filete de pejerrey apanado y frito acompañado de papas fritas crujientes y salsa picante."
-      }
-    ]
-  }
-];
 
 const MenuCategory = ({ category, index }: { category: MenuCategory; index: number }) => {
   return (
@@ -122,7 +42,7 @@ const MenuCategory = ({ category, index }: { category: MenuCategory; index: numb
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-sm text-muted-foreground">
-                  {item.description}
+                  {item.description || ""}
                 </CardDescription>
               </CardContent>
             </Card>
@@ -134,6 +54,54 @@ const MenuCategory = ({ category, index }: { category: MenuCategory; index: numb
 };
 
 const RestaurantMenu: React.FC = () => {
+  // Fetch menu items from Supabase
+  const { data: menuItems, isLoading, error } = useQuery({
+    queryKey: ["restaurant-menu-items"],
+    queryFn: async () => {
+      console.log("Fetching menu items...");
+      const { data, error } = await supabase
+        .from("menu_items")
+        .select("*")
+        .order("category", { ascending: true });
+      
+      if (error) {
+        console.error("Error fetching menu items:", error);
+        throw error;
+      }
+      
+      console.log("Menu items fetched:", data);
+      return data || [];
+    },
+  });
+
+  // Process the menu items into categories
+  const processedMenuData = React.useMemo(() => {
+    if (!menuItems) return [];
+    
+    // Group menu items by category
+    const categoryMap: Record<string, MenuItem[]> = {};
+    
+    menuItems.forEach((item: any) => {
+      const category = item.category || "Sin categoría";
+      
+      if (!categoryMap[category]) {
+        categoryMap[category] = [];
+      }
+      
+      categoryMap[category].push({
+        name: item.name,
+        description: item.description,
+        category: item.category,
+      });
+    });
+    
+    // Convert the map to an array of categories
+    return Object.entries(categoryMap).map(([title, items]) => ({
+      title,
+      items,
+    }));
+  }, [menuItems]);
+
   return (
     <div className="w-full max-w-7xl mx-auto">
       <motion.div
@@ -153,9 +121,25 @@ const RestaurantMenu: React.FC = () => {
       <Separator className="mb-8 bg-primary/20" />
       
       <div className="px-4">
-        {menuData.map((category, index) => (
-          <MenuCategory key={index} category={category} index={index} />
-        ))}
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground">Cargando menú...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-destructive">Error al cargar el menú. Por favor, inténtelo de nuevo más tarde.</p>
+          </div>
+        ) : processedMenuData.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No hay elementos del menú disponibles.</p>
+            <p className="text-muted-foreground mt-2">Agregue elementos del menú desde la sección de administración.</p>
+          </div>
+        ) : (
+          processedMenuData.map((category, index) => (
+            <MenuCategory key={category.title} category={category} index={index} />
+          ))
+        )}
       </div>
     </div>
   );

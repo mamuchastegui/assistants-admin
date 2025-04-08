@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -51,7 +50,6 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
   const [showSearchBox, setShowSearchBox] = useState(false);
   const [isAttachMenuOpen, setIsAttachMenuOpen] = useState(false);
   
-  // Scroll to bottom of messages when conversation changes
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -77,19 +75,17 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
   };
 
   const handleAttachment = (type: string) => {
-    toast.info(`Añadir ${type} aún no está implementado`);
+    toast.info(`Añadir ${type} aún no está implementada`);
     setIsAttachMenuOpen(false);
   };
 
-  // Filter the conversation messages based on search term
   const filteredMessages = conversation?.conversation?.filter(
     msg => !searchTerm || msg.content.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
   return (
     <div className="flex flex-col h-full bg-card overflow-hidden">
-      {/* Header with profile info */}
-      <div className="sticky top-0 z-10 flex flex-row items-center justify-between p-3 border-b bg-background shadow-sm min-h-[64px]">
+      <div className="sticky top-0 z-10 flex flex-row items-center justify-between p-3 border-b bg-background/90 backdrop-blur-sm shadow-sm min-h-[64px]">
         {isMobileView && (
           <Button
             variant="ghost"
@@ -102,8 +98,8 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
         )}
         <div className="flex items-center gap-3">
           {conversation && (
-            <Avatar className="h-10 w-10 sm:h-12 sm:w-12 ring-2 ring-primary/20 flex-shrink-0">
-              <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+            <Avatar className="h-10 w-10 sm:h-12 sm:w-12 ring-2 ring-primary/20 flex-shrink-0 shadow-md">
+              <AvatarFallback className="bg-primary/90 text-primary-foreground text-sm">
                 {getInitials(conversation.profile_name)}
               </AvatarFallback>
             </Avatar>
@@ -133,10 +129,10 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
         <AnimatePresence>
           {showSearchBox && (
             <motion.div 
-              className="px-3 py-2 border-b"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              className="px-3 py-2 border-b bg-background/80 backdrop-blur-sm"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
               <div className="relative">
@@ -153,44 +149,52 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
         </AnimatePresence>
 
         {!selectedThread ? (
-          <div className="flex flex-col items-center justify-center h-full text-center p-4 bg-muted/10">
+          <div className="flex flex-col items-center justify-center h-full text-center p-4 bg-gradient-to-b from-muted/5 to-muted/20">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5 }}
-              className="flex flex-col items-center"
+              className="flex flex-col items-center bg-card/70 backdrop-blur-sm p-6 rounded-xl shadow-sm"
             >
-              <MessageSquare className="h-8 w-8 text-muted-foreground opacity-50 mb-3" />
-              <p className="text-sm text-muted-foreground">
-                Selecciona una conversación para ver los mensajes
+              <MessageSquare className="h-10 w-10 text-primary/50 mb-4" />
+              <p className="text-base font-medium text-foreground mb-2">
+                ¡Bienvenido al Chat!
+              </p>
+              <p className="text-sm text-muted-foreground max-w-xs text-center">
+                Selecciona una conversación para ver los mensajes y comenzar a chatear con tus clientes.
               </p>
             </motion.div>
           </div>
         ) : loadingConversation ? (
-          <div className="flex flex-col items-center justify-center h-full bg-muted/10">
+          <div className="flex flex-col items-center justify-center h-full bg-gradient-to-b from-muted/5 to-muted/20">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5 }}
-              className="flex flex-col items-center"
+              className="flex flex-col items-center bg-card/70 backdrop-blur-sm p-6 rounded-xl shadow-sm"
             >
-              <Loader2 className="h-7 w-7 animate-spin text-primary mb-3" />
-              <p className="text-sm text-muted-foreground">
+              <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+              <p className="text-base font-medium text-foreground">
                 Cargando conversación...
               </p>
             </motion.div>
           </div>
         ) : (
-          <ScrollArea className="flex-grow px-3 py-4 bg-muted/5">
+          <ScrollArea className="flex-grow px-4 py-6 bg-gradient-to-b from-muted/5 to-background">
             {filteredMessages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-center">
-                <MessageSquare className="h-6 w-6 mx-auto text-foreground opacity-50 mb-2" />
-                <p className="text-sm text-foreground bg-background/50 px-3 py-1 rounded-md">
-                  No hay mensajes en esta conversación
-                </p>
+                <div className="bg-card/70 backdrop-blur-sm p-5 rounded-xl shadow-sm">
+                  <MessageSquare className="h-8 w-8 mx-auto text-primary/50 mb-3" />
+                  <p className="text-sm font-medium text-foreground">
+                    No hay mensajes en esta conversación
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Esta conversación está vacía por el momento
+                  </p>
+                </div>
               </div>
             ) : (
-              <div className="space-y-2 px-2 min-h-[200px]">
+              <div className="space-y-3 px-2 min-h-[200px]">
                 {filteredMessages.map((message, index) => (
                   <MessageItem 
                     key={index} 
@@ -203,34 +207,34 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
                     isMobile={isMobileView || false}
                   />
                 ))}
-                <div ref={messagesEndRef} className="pb-4" />
+                <div ref={messagesEndRef} className="pb-6" />
               </div>
             )}
           </ScrollArea>
         )}
 
         {selectedThread && (
-          <div className="p-3 border-t bg-card sticky bottom-0 z-10">
+          <div className="p-3 border-t bg-card/90 backdrop-blur-sm sticky bottom-0 z-10 shadow-md">
             <div className="relative">
               <AnimatePresence>
                 {isAttachMenuOpen && (
                   <motion.div 
-                    className="absolute bottom-full left-0 mb-2 p-2 bg-card rounded-lg border shadow-md grid grid-cols-3 gap-1.5 z-10"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    className="absolute bottom-full left-0 mb-2 p-3 bg-card rounded-lg border shadow-lg grid grid-cols-3 gap-2 z-10"
+                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 10 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-primary/10" onClick={() => handleAttachment("imagen")}>
+                    <Button size="icon" variant="outline" className="h-9 w-9 rounded-full hover:bg-primary/10" onClick={() => handleAttachment("imagen")}>
                       <Image className="h-4 w-4" />
                     </Button>
-                    <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-primary/10" onClick={() => handleAttachment("documento")}>
+                    <Button size="icon" variant="outline" className="h-9 w-9 rounded-full hover:bg-primary/10" onClick={() => handleAttachment("documento")}>
                       <Paperclip className="h-4 w-4" />
                     </Button>
-                    <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-primary/10" onClick={() => handleAttachment("audio")}>
+                    <Button size="icon" variant="outline" className="h-9 w-9 rounded-full hover:bg-primary/10" onClick={() => handleAttachment("audio")}>
                       <Mic className="h-4 w-4" />
                     </Button>
-                    <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-destructive/10" onClick={() => setIsAttachMenuOpen(false)}>
+                    <Button size="icon" variant="outline" className="h-9 w-9 rounded-full hover:bg-destructive/10 col-span-3" onClick={() => setIsAttachMenuOpen(false)}>
                       <X className="h-4 w-4 text-destructive" />
                     </Button>
                   </motion.div>
@@ -241,7 +245,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
                 <Button 
                   size="icon" 
                   variant="ghost" 
-                  className="h-8 w-8 rounded-full hover:bg-primary/10"
+                  className="h-9 w-9 rounded-full hover:bg-primary/10"
                   onClick={() => setIsAttachMenuOpen(!isAttachMenuOpen)}
                 >
                   <Paperclip className="h-4 w-4" />
@@ -250,7 +254,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
                   placeholder="Escribe un mensaje..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  className="flex-grow bg-muted/30 border-muted focus:bg-background transition-colors duration-200 rounded-full h-8 text-sm px-3"
+                  className="flex-grow bg-background/80 border-muted focus:bg-background transition-colors duration-200 rounded-full h-9 text-sm px-4"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") handleSendMessage();
                   }}
@@ -258,7 +262,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
                 <Button 
                   size="icon" 
                   variant="ghost" 
-                  className="h-8 w-8 rounded-full hover:bg-primary/10"
+                  className="h-9 w-9 rounded-full hover:bg-primary/10"
                   onClick={() => toast.info("Selector de emojis aún no implementado")}
                 >
                   <Smile className="h-4 w-4" />
@@ -267,7 +271,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
                   size="icon" 
                   disabled={!newMessage.trim()}
                   onClick={handleSendMessage}
-                  className="h-8 w-8 rounded-full bg-primary hover:bg-primary/80"
+                  className="h-9 w-9 rounded-full bg-primary hover:bg-primary/80 shadow-sm"
                 >
                   <SendHorizontal className="h-4 w-4" />
                 </Button>
@@ -294,16 +298,16 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, profileName, isConse
   
   return (
     <motion.div 
-      className={`flex ${isInbound ? "justify-start" : "justify-end"} mb-1`}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      className={`flex ${isInbound ? "justify-start" : "justify-end"} mb-1.5`}
+      initial={{ opacity: 0, y: 5 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, delay: index * 0.02 }}
     >
       <div
         className={cn(
-          "max-w-[75%] rounded-2xl p-2.5 shadow-sm",
+          "max-w-[80%] rounded-2xl p-3 shadow-sm",
           isInbound
-            ? "bg-background/85 backdrop-blur-sm text-foreground"
+            ? "bg-background border border-muted/30 text-foreground"
             : "bg-primary/90 backdrop-blur-sm text-primary-foreground",
           isConsecutive 
             ? isInbound 
@@ -314,16 +318,16 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, profileName, isConse
       >
         {!isConsecutive && (
           <div className={cn(
-            "mb-0.5 text-xs font-medium",
+            "mb-1 text-xs font-medium",
             isInbound ? "text-foreground/90" : "text-primary-foreground/90"
           )}>
             {isInbound ? profileName || "Usuario" : "Asistente"}
           </div>
         )}
-        <div className="whitespace-pre-wrap text-xs">{message.content}</div>
+        <div className="whitespace-pre-wrap text-sm">{message.content}</div>
         <div
           className={cn(
-            "text-[10px] mt-0.5 text-right",
+            "text-[10px] mt-1 text-right",
             isInbound ? "text-foreground/70" : "text-primary-foreground/80"
           )}
         >

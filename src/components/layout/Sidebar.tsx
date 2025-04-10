@@ -1,15 +1,15 @@
+
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
-  Package, 
-  Users, 
-  Calendar, 
-  Settings, 
-  LifeBuoy, 
   Home,
+  Calendar, 
+  Utensils,
+  ClipboardEdit,
+  Package2,
   MessageSquare,
   X,
   ChevronRight
@@ -57,7 +57,7 @@ const NavButton = ({
               to={to} 
               onClick={handleClick}
               className={({isActive}) => cn(
-                "flex items-center justify-center rounded-md h-9 w-9 mx-auto my-1.5 transition-all duration-200",
+                "flex items-center justify-center rounded-md h-9 w-9 mx-auto my-2.5 transition-all duration-200",
                 isActive ? "bg-primary text-primary-foreground shadow-md" : "hover:bg-accent text-foreground/80 hover:text-foreground"
               )}
             >
@@ -148,7 +148,10 @@ export default function Sidebar({ className }: SidebarProps) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}
-              className="space-y-1 py-2"
+              className={cn(
+                "space-y-1 py-2",
+                isCollapsed && "space-y-3 pt-3"  // Increased vertical spacing when collapsed
+              )}
             >
               <NavButton
                 to="/"
@@ -164,19 +167,19 @@ export default function Sidebar({ className }: SidebarProps) {
               />
               <NavButton
                 to="/restaurant-menu"
-                icon={<Package />}
+                icon={<Utensils />}
                 collapsed={isCollapsed}
                 label="Menú Restaurante"
               />
               <NavButton
                 to="/menu"
-                icon={<Package />}
+                icon={<ClipboardEdit />}
                 collapsed={isCollapsed}
                 label="Gestión Menú"
               />
               <NavButton
                 to="/orders"
-                icon={<Package />}
+                icon={<Package2 />}
                 collapsed={isCollapsed}
                 label="Pedidos"
               />

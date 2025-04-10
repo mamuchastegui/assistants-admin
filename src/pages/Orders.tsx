@@ -65,12 +65,8 @@ const translateStatus = (status: string) => {
     'pending': 'Pendiente',
     'confirmed': 'Confirmado',
     'cancelled': 'Cancelado',
-    'processed': 'Procesado',
     'waiting': 'En espera',
-    'failed': 'Fallido',
-    'completed': 'Completado',
-    'refunded': 'Rembolsado',
-    'pending_payment': 'Pendiente de pago'
+    'refunded': 'Rembolsado'
   };
   
   return statusMap[status] || status;
@@ -80,15 +76,9 @@ const getStatusClass = (status: string) => {
   const statusClassMap: Record<string, string> = {
     'pending': 'bg-amber-100 text-amber-800',
     'confirmed': 'bg-blue-100 text-blue-800',
-    'in_progress': 'bg-purple-100 text-purple-800',
-    'delivered': 'bg-green-100 text-green-800',
     'cancelled': 'bg-[#F1F0FB] text-gray-700',
-    'processed': 'bg-[#F2FCE2] text-green-800',
     'waiting': 'bg-[#FEF7CD] text-yellow-800',
-    'failed': 'bg-[#FFDEE2] text-red-800',
-    'completed': 'bg-[#D3E4FD] text-cyan-800',
     'refunded': 'bg-[#F1F0FB] text-gray-800',
-    'pending_payment': 'bg-[#ccc] text-gray-700'
   };
   
   return statusClassMap[status] || 'bg-gray-100 text-gray-800';
@@ -264,15 +254,9 @@ const Orders = () => {
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="pending">Pendiente</SelectItem>
-                                <SelectItem value="pending_payment">Pendiente de pago</SelectItem>
-                                <SelectItem value="processed">Procesado</SelectItem>
                                 <SelectItem value="waiting">En espera</SelectItem>
                                 <SelectItem value="confirmed">Confirmado</SelectItem>
-                                <SelectItem value="in_progress">En preparación</SelectItem>
-                                <SelectItem value="completed">Completado</SelectItem>
-                                <SelectItem value="delivered">Entregado</SelectItem>
                                 <SelectItem value="cancelled">Cancelado</SelectItem>
-                                <SelectItem value="failed">Fallido</SelectItem>
                                 <SelectItem value="refunded">Rembolsado</SelectItem>
                               </SelectContent>
                             </Select>

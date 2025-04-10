@@ -1,4 +1,3 @@
-
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -58,13 +57,20 @@ const NavButton = ({
               onClick={handleClick}
               className={({isActive}) => cn(
                 "flex items-center justify-center rounded-md h-9 w-9 mx-auto my-2.5 transition-all duration-200",
-                isActive ? "bg-primary text-primary-foreground shadow-md" : "hover:bg-accent text-foreground/80 hover:text-foreground"
+                isActive 
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md" 
+                  : "hover:bg-sidebar-accent text-sidebar-foreground/60 hover:text-sidebar-foreground",
+                "hover:scale-110 transition-transform"
               )}
             >
               <div className="flex items-center justify-center">
                 {React.cloneElement(icon as React.ReactElement, { 
                   size: 18,
-                  strokeWidth: 1.5
+                  strokeWidth: 1.5,
+                  className: cn(
+                    "transition-colors duration-200",
+                    "group-hover:text-sidebar-foreground"
+                  )
                 })}
               </div>
             </NavLink>
@@ -150,7 +156,7 @@ export default function Sidebar({ className }: SidebarProps) {
               transition={{ duration: 0.2 }}
               className={cn(
                 "space-y-1 py-2",
-                isCollapsed && "space-y-4 pt-4"  // Increased vertical spacing when collapsed
+                isCollapsed && "space-y-4 pt-4"
               )}
             >
               <NavButton

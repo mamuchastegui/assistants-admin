@@ -150,7 +150,7 @@ export default function Sidebar({ className }: SidebarProps) {
               transition={{ duration: 0.2 }}
               className={cn(
                 "space-y-1 py-2",
-                isCollapsed && "space-y-3 pt-3"  // Increased vertical spacing when collapsed
+                isCollapsed && "space-y-4 pt-4"  // Increased vertical spacing when collapsed
               )}
             >
               <NavButton

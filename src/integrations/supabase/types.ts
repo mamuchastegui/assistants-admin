@@ -166,6 +166,9 @@ export type Database = {
           id: string
           menu_type: string
           number_of_people: number
+          payment_details: Json | null
+          payment_method: string | null
+          payment_status: string | null
           special_requirements: string | null
           status: string | null
           updated_at: string | null
@@ -177,6 +180,9 @@ export type Database = {
           id?: string
           menu_type: string
           number_of_people: number
+          payment_details?: Json | null
+          payment_method?: string | null
+          payment_status?: string | null
           special_requirements?: string | null
           status?: string | null
           updated_at?: string | null
@@ -188,6 +194,9 @@ export type Database = {
           id?: string
           menu_type?: string
           number_of_people?: number
+          payment_details?: Json | null
+          payment_method?: string | null
+          payment_status?: string | null
           special_requirements?: string | null
           status?: string | null
           updated_at?: string | null
@@ -465,6 +474,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      payment_methods: {
+        Row: {
+          created_at: string | null
+          details: Json | null
+          id: string
+          is_active: boolean | null
+          name: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       savings_goals: {
         Row: {

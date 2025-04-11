@@ -1,16 +1,18 @@
+
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { format, parseISO } from "date-fns";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, CreditCard } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import CreateOrderModal from "@/components/orders/CreateOrderModal";
 import { PageHeader } from "@/components/ui/page-header";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
 interface Order {
   id: string;
@@ -22,6 +24,9 @@ interface Order {
   status: string;
   created_at: string;
   updated_at: string;
+  payment_method?: string;
+  payment_status?: string;
+  payment_details?: Record<string, any>;
 }
 
 interface OrdersResponse {
@@ -79,6 +84,30 @@ const getStatusClass = (status: string) => {
     'cancelled': 'bg-[#F1F0FB] text-gray-700',
     'waiting': 'bg-[#FEF7CD] text-yellow-800',
     'refunded': 'bg-[#F1F0FB] text-gray-800',
+  };
+  
+  return statusClassMap[status] || 'bg-gray-100 text-gray-800';
+};
+
+const translatePaymentStatus = (status: string) => {
+  const statusMap: Record<string, string> = {
+    'pending': 'Pendiente',
+    'paid': 'Pagado',
+    'failed': 'Fallido',
+    'refunded': 'Reembolsado',
+    'partial': 'Parcial'
+  };
+  
+  return statusMap[status] || status;
+};
+
+const getPaymentStatusClass = (status: string) => {
+  const statusClassMap: Record<string, string> = {
+    'pending': 'bg-yellow-100 text-yellow-800',
+    'paid': 'bg-green-100 text-green-800',
+    'failed': 'bg-red-100 text-red-800',
+    'refunded': 'bg-blue-100 text-blue-800',
+    'partial': 'bg-purple-100 text-purple-800'
   };
   
   return statusClassMap[status] || 'bg-gray-100 text-gray-800';
@@ -144,7 +173,7 @@ const Orders = () => {
           }
         />
         
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Total de Pedidos</CardTitle>
@@ -185,7 +214,30 @@ const Orders = () => {
             </CardContent>
           </Card>
           
-          <Card className="sm:col-span-2 lg:col-span-1">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Pagos Pendientes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <Skeleton className="h-8 w-20" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">
+                    {ordersState?.filter(order => 
+                      order.payment_status === 'pending' || !order.payment_status
+                    ).length || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    <CreditCard className="h-3 w-3 inline mr-1" />
+                    Pagos por confirmar
+                  </p>
+                </>
+              )}
+            </CardContent>
+          </Card>
+          
+          <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Ingreso Estimado</CardTitle>
             </CardHeader>
@@ -231,6 +283,7 @@ const Orders = () => {
                       <TableHead className="w-[80px] text-center">Personas</TableHead>
                       <TableHead className="hidden sm:table-cell">Fecha</TableHead>
                       <TableHead>Estado</TableHead>
+                      <TableHead className="hidden lg:table-cell">Pago</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -261,11 +314,18 @@ const Orders = () => {
                               </SelectContent>
                             </Select>
                           </TableCell>
+                          <TableCell className="hidden lg:table-cell">
+                            {order.payment_status && (
+                              <Badge variant="outline" className={getPaymentStatusClass(order.payment_status)}>
+                                {translatePaymentStatus(order.payment_status)}
+                              </Badge>
+                            )}
+                          </TableCell>
                         </TableRow>
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-4">
+                        <TableCell colSpan={7} className="text-center py-4">
                           No hay pedidos disponibles
                         </TableCell>
                       </TableRow>

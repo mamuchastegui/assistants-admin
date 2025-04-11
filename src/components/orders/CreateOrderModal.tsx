@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,12 +21,22 @@ interface MenuItem {
   price: number | null;
 }
 
+interface PaymentMethod {
+  id: string;
+  name: string;
+  type: string;
+  details: Record<string, any>;
+  is_active: boolean;
+}
+
 const orderSchema = z.object({
   client_name: z.string().min(1, "El nombre del cliente es requerido"),
   event_date: z.string().min(1, "La fecha del evento es requerida"),
   number_of_people: z.coerce.number().positive("Debe ser un número mayor a 0"),
   menu_type: z.string().min(1, "El tipo de menú es requerido"),
   special_requirements: z.string().optional(),
+  payment_method: z.string().min(1, "El método de pago es requerido"),
+  payment_status: z.string().default("pending"),
 });
 
 type OrderFormValues = z.infer<typeof orderSchema>;
@@ -38,6 +48,8 @@ interface CreateOrderModalProps {
 
 const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange }) => {
   const queryClient = useQueryClient();
+  const [paymentDetails, setPaymentDetails] = useState<Record<string, any>>({});
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
   
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderSchema),
@@ -47,6 +59,8 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
       number_of_people: undefined,
       menu_type: "",
       special_requirements: "",
+      payment_method: "",
+      payment_status: "pending",
     },
   });
 
@@ -64,12 +78,40 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
     },
   });
 
+  // Consulta para obtener los métodos de pago
+  const { data: paymentMethods, isLoading: paymentMethodsLoading } = useQuery({
+    queryKey: ["payment-methods"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("payment_methods")
+        .select("*")
+        .eq("is_active", true)
+        .order("name", { ascending: true });
+      
+      if (error) throw error;
+      return data as PaymentMethod[];
+    },
+  });
+
   // Reset form when modal opens/closes
   useEffect(() => {
     if (!open) {
       form.reset();
+      setPaymentDetails({});
+      setSelectedPaymentMethod(null);
     }
   }, [open, form]);
+
+  // Update selected payment method when payment_method changes
+  useEffect(() => {
+    const paymentMethodValue = form.watch("payment_method");
+    if (paymentMethodValue && paymentMethods) {
+      const selected = paymentMethods.find(method => method.id === paymentMethodValue);
+      setSelectedPaymentMethod(selected || null);
+    } else {
+      setSelectedPaymentMethod(null);
+    }
+  }, [form.watch("payment_method"), paymentMethods]);
 
   const createOrderMutation = useMutation({
     mutationFn: async (data: OrderFormValues) => {
@@ -84,6 +126,9 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
           number_of_people: data.number_of_people,
           menu_type: data.menu_type,
           special_requirements: data.special_requirements || "",
+          payment_method: data.payment_method,
+          payment_status: data.payment_status,
+          payment_details: paymentDetails
         }),
       });
 
@@ -97,6 +142,8 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       onOpenChange(false);
       form.reset();
+      setPaymentDetails({});
+      setSelectedPaymentMethod(null);
       toast.success("Pedido creado exitosamente");
     },
     onError: (error) => {
@@ -107,6 +154,104 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
 
   const onSubmit = (data: OrderFormValues) => {
     createOrderMutation.mutate(data);
+  };
+
+  const handlePaymentDetailChange = (key: string, value: string) => {
+    setPaymentDetails(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const renderPaymentDetailsFields = () => {
+    if (!selectedPaymentMethod) return null;
+
+    switch (selectedPaymentMethod.type) {
+      case 'transfer':
+        return (
+          <div className="space-y-4">
+            <FormItem>
+              <FormLabel>Número de cuenta destino</FormLabel>
+              <FormControl>
+                <Input 
+                  readOnly 
+                  value={selectedPaymentMethod.details.account_number || ""} 
+                  className="bg-gray-50" 
+                />
+              </FormControl>
+            </FormItem>
+            <FormItem>
+              <FormLabel>Banco</FormLabel>
+              <FormControl>
+                <Input 
+                  readOnly 
+                  value={selectedPaymentMethod.details.bank || ""} 
+                  className="bg-gray-50" 
+                />
+              </FormControl>
+            </FormItem>
+            <FormItem>
+              <FormLabel>Número de comprobante</FormLabel>
+              <FormControl>
+                <Input 
+                  placeholder="Número de comprobante de transferencia" 
+                  onChange={(e) => handlePaymentDetailChange("receipt_number", e.target.value)} 
+                />
+              </FormControl>
+            </FormItem>
+          </div>
+        );
+      case 'alias':
+        return (
+          <div className="space-y-4">
+            <FormItem>
+              <FormLabel>Alias</FormLabel>
+              <FormControl>
+                <Input 
+                  readOnly 
+                  value={selectedPaymentMethod.details.alias || ""} 
+                  className="bg-gray-50" 
+                />
+              </FormControl>
+            </FormItem>
+            <FormItem>
+              <FormLabel>Número de comprobante</FormLabel>
+              <FormControl>
+                <Input 
+                  placeholder="Número de comprobante" 
+                  onChange={(e) => handlePaymentDetailChange("receipt_number", e.target.value)} 
+                />
+              </FormControl>
+            </FormItem>
+          </div>
+        );
+      case 'cbu':
+        return (
+          <div className="space-y-4">
+            <FormItem>
+              <FormLabel>CBU</FormLabel>
+              <FormControl>
+                <Input 
+                  readOnly 
+                  value={selectedPaymentMethod.details.cbu || ""} 
+                  className="bg-gray-50" 
+                />
+              </FormControl>
+            </FormItem>
+            <FormItem>
+              <FormLabel>Número de comprobante</FormLabel>
+              <FormControl>
+                <Input 
+                  placeholder="Número de comprobante" 
+                  onChange={(e) => handlePaymentDetailChange("receipt_number", e.target.value)} 
+                />
+              </FormControl>
+            </FormItem>
+          </div>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
@@ -198,6 +343,50 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="payment_method"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Método de Pago</FormLabel>
+                  <FormControl>
+                    {paymentMethodsLoading ? (
+                      <div className="flex items-center space-x-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="text-sm text-muted-foreground">Cargando métodos de pago...</span>
+                      </div>
+                    ) : paymentMethods && paymentMethods.length > 0 ? (
+                      <Select 
+                        onValueChange={field.onChange} 
+                        value={field.value}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccione un método de pago" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {paymentMethods.map((method) => (
+                            <SelectItem key={method.id} value={method.id}>
+                              {method.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input placeholder="Método de pago" {...field} />
+                    )}
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {selectedPaymentMethod && (
+              <div className="rounded-md border border-gray-200 p-4 bg-gray-50">
+                <h4 className="font-medium mb-3">Detalles del Pago</h4>
+                {renderPaymentDetailsFields()}
+              </div>
+            )}
             
             <FormField
               control={form.control}

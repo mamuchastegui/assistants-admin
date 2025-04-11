@@ -90,7 +90,7 @@ const ChatThreadList: React.FC<ChatThreadListProps> = ({
   }
 
   return (
-    <Card className="h-full flex flex-col bg-card/80 backdrop-blur-sm shadow-lg border-muted">
+    <Card className="h-full flex flex-col bg-card/80 backdrop-blur-sm shadow-lg border-muted md:border-r">
       <CardHeader className="flex flex-row items-center justify-between p-3 pb-2 border-b bg-gradient-to-r from-background to-muted/30">
         <div>
           <CardTitle className="text-sm sm:text-base">Conversaciones</CardTitle>

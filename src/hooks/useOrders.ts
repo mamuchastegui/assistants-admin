@@ -68,6 +68,16 @@ export const useOrders = () => {
   }, [orders]);
 
   const updateOrderStatus = (orderId: string, newStatus: string) => {
+    // Find the order to check payment method
+    const order = ordersState?.find(o => o.id === orderId);
+    
+    // Validar reglas de negocio
+    if (order?.payment_method === 'mercado_pago' && order.status === 'confirmed' && 
+        newStatus !== 'cancelled' && newStatus !== 'refunded') {
+      toast.error("Los pedidos pagados por MercadoPago solo pueden cambiarse a Cancelado o Reembolsado");
+      return;
+    }
+    
     // Optimistically update the UI
     const updatedOrders = ordersState?.map(order =>
       order.id === orderId ? { ...order, status: newStatus } : order

@@ -16,11 +16,10 @@ export const translateMenuType = (menuType: MenuType): string => {
 
 export const translateStatus = (status: string): string => {
   const statusMap: Record<string, string> = {
-    'pending': 'Pending',
-    'confirmed': 'Paid',
-    'cancelled': 'Canceled',
-    'waiting': 'Rembolsado',
-    'refunded': 'Rembolsado'
+    'pending': 'Pendiente',
+    'confirmed': 'Pagado',
+    'cancelled': 'Cancelado',
+    'refunded': 'Reembolsado'
   };
   
   return statusMap[status] || status;
@@ -29,10 +28,9 @@ export const translateStatus = (status: string): string => {
 export const getStatusClass = (status: string): string => {
   const statusClassMap: Record<string, string> = {
     'pending': 'bg-amber-100 text-amber-800',
-    'confirmed': 'bg-blue-100 text-blue-800',
-    'cancelled': 'bg-[#F1F0FB] text-gray-700',
-    'waiting': 'bg-[#FEF7CD] text-yellow-800',
-    'refunded': 'bg-[#F1F0FB] text-gray-800',
+    'confirmed': 'bg-green-100 text-green-800',
+    'cancelled': 'bg-gray-100 text-gray-700',
+    'refunded': 'bg-purple-100 text-purple-800',
   };
   
   return statusClassMap[status] || 'bg-gray-100 text-gray-800';
@@ -43,7 +41,7 @@ export const translatePaymentStatus = (status: string): string => {
     'pending': 'Pendiente',
     'paid': 'Pagado',
     'cancelled': 'Cancelado',
-    'refunded': 'Rembolsado'
+    'refunded': 'Reembolsado'
   };
   
   return paymentStatusMap[status] || status;
@@ -64,9 +62,7 @@ export const translatePaymentMethod = (method: PaymentMethod | string | null): s
   const paymentMethodMap: Record<string, string> = {
     'cash': 'Efectivo',
     'transfer': 'Transferencia',
-    'mercado_pago': 'MercadoPago',
-    'card': 'Tarjeta',
-    'check': 'Cheque'
+    'mercado_pago': 'MercadoPago'
   };
   
   if (!method) return 'No especificado';
@@ -83,10 +79,6 @@ export const getPaymentMethodIcon = (method: PaymentMethod | string | null) => {
       return '🏦';
     case 'mercado_pago':
       return '💳';
-    case 'card':
-      return '💳';
-    case 'check':
-      return '🧾';
     default:
       return '💰';
   }

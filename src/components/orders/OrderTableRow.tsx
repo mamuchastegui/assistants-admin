@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -41,6 +41,42 @@ const OrderTableRow = ({
     }
   };
 
+  // Determinar si el estado del pedido puede ser modificado según el método de pago
+  const canChangeStatus = useMemo(() => {
+    if (!order.payment_method) return true;
+    
+    // Si es efectivo o transferencia, siempre puede cambiar
+    if (order.payment_method === 'cash' || order.payment_method === 'transfer') {
+      return true;
+    }
+    
+    // Si es MercadoPago y está pagado, solo puede cambiar a cancelado o reembolsado
+    if (order.payment_method === 'mercado_pago' && order.status === 'confirmed') {
+      return false; // Restricción completa, luego filtramos en el renderizado
+    }
+    
+    return true;
+  }, [order.payment_method, order.status]);
+
+  // Determinar qué estados están disponibles según el método de pago y estado actual
+  const availableStatuses = useMemo(() => {
+    const allStatuses = [
+      { value: "pending", label: "Pendiente" },
+      { value: "confirmed", label: "Pagado" },
+      { value: "cancelled", label: "Cancelado" },
+      { value: "refunded", label: "Reembolsado" }
+    ];
+
+    // Si es MercadoPago y está pagado, solo puede cambiar a cancelado o reembolsado
+    if (order.payment_method === 'mercado_pago' && order.status === 'confirmed') {
+      return allStatuses.filter(status => 
+        status.value === 'cancelled' || status.value === 'refunded' || status.value === order.status
+      );
+    }
+    
+    return allStatuses;
+  }, [order.payment_method, order.status]);
+
   return (
     <TableRow key={order.id}>
       <TableCell className="font-medium">{order.id.substring(0, 5)}...</TableCell>
@@ -54,16 +90,15 @@ const OrderTableRow = ({
         <Select 
           defaultValue={order.status} 
           onValueChange={(value) => onStatusChange(order.id, value)}
+          disabled={!canChangeStatus && order.payment_method === 'mercado_pago' && order.status === 'confirmed'}
         >
           <SelectTrigger className={`h-7 w-full max-w-[180px] px-2 py-1 rounded-full text-xs ${getStatusClass(order.status)}`}>
             <SelectValue placeholder={translateStatus(order.status)} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="pending">Pendiente</SelectItem>
-            <SelectItem value="waiting">En espera</SelectItem>
-            <SelectItem value="confirmed">Confirmado</SelectItem>
-            <SelectItem value="cancelled">Cancelado</SelectItem>
-            <SelectItem value="refunded">Rembolsado</SelectItem>
+            {availableStatuses.map(status => (
+              <SelectItem key={status.value} value={status.value}>{status.label}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </TableCell>
@@ -79,7 +114,7 @@ const OrderTableRow = ({
             <SelectItem value="pending">Pendiente</SelectItem>
             <SelectItem value="paid">Pagado</SelectItem>
             <SelectItem value="cancelled">Cancelado</SelectItem>
-            <SelectItem value="refunded">Rembolsado</SelectItem>
+            <SelectItem value="refunded">Reembolsado</SelectItem>
           </SelectContent>
         </Select>
       </TableCell>

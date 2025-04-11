@@ -12,7 +12,7 @@ export interface Payment {
   id: string;
   amount: number;
   payment_method: string;
-  payment_status: string;
+  payment_status: "pending" | "paid" | "cancelled" | "refunded";
   payment_details?: Record<string, any>;
   reference_number?: string;
 }
@@ -28,7 +28,7 @@ export interface Order {
   created_at: string;
   updated_at: string;
   payment_method?: string;
-  payment_status?: string;
+  payment_status?: "pending" | "paid" | "cancelled" | "refunded";
   payment_details?: Record<string, any>;
   dinner_group?: DinnerGroup;
   dinner_group_id?: string;

@@ -11,7 +11,13 @@ import { useOrders } from "@/hooks/useOrders";
 
 const Orders = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const { orders, isLoading, isError, updateOrderStatus } = useOrders();
+  const { 
+    orders, 
+    isLoading, 
+    isError, 
+    updateOrderStatus,
+    updatePaymentStatus 
+  } = useOrders();
 
   return (
     <DashboardLayout>
@@ -36,6 +42,7 @@ const Orders = () => {
           isLoading={isLoading}
           isError={isError}
           onStatusChange={updateOrderStatus}
+          onPaymentStatusChange={updatePaymentStatus}
         />
       </div>
       

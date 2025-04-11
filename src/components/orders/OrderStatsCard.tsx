@@ -7,14 +7,18 @@ interface OrderStatsCardProps {
   title: string;
   value: React.ReactNode;
   description?: React.ReactNode;
+  icon?: React.ReactNode;
   isLoading?: boolean;
 }
 
-const OrderStatsCard = ({ title, value, description, isLoading = false }: OrderStatsCardProps) => {
+const OrderStatsCard = ({ title, value, description, icon, isLoading = false }: OrderStatsCardProps) => {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <CardTitle className="text-sm font-medium">
+          {icon && <span className="mr-2">{icon}</span>}
+          {title}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {isLoading ? (

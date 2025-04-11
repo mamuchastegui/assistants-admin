@@ -3,16 +3,24 @@ import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { translatePaymentStatus, getPaymentStatusClass } from "@/services/paymentService";
 import { Order } from "@/types/order";
-import { translateMenuType } from "./utils/orderUtils";
+import { 
+  translateMenuType, 
+  translateStatus, 
+  getStatusClass,
+  translatePaymentStatus,
+  getPaymentStatusClass,
+  translatePaymentMethod,
+  getPaymentMethodIcon
+} from "./utils/orderUtils";
 
 interface OrderTableRowProps {
   order: Order;
   onStatusChange: (orderId: string, newStatus: string) => void;
+  onPaymentStatusChange?: (orderId: string, newStatus: string) => void;
 }
 
-const OrderTableRow = ({ order, onStatusChange }: OrderTableRowProps) => {
+const OrderTableRow = ({ order, onStatusChange, onPaymentStatusChange }: OrderTableRowProps) => {
   const formatDate = (dateString: string) => {
     try {
       return new Date(dateString).toLocaleString('es', {
@@ -25,30 +33,6 @@ const OrderTableRow = ({ order, onStatusChange }: OrderTableRowProps) => {
     } catch (error) {
       return dateString;
     }
-  };
-
-  const translateStatus = (status: string) => {
-    const statusMap: Record<string, string> = {
-      'pending': 'Pendiente',
-      'confirmed': 'Confirmado',
-      'cancelled': 'Cancelado',
-      'waiting': 'En espera',
-      'refunded': 'Rembolsado'
-    };
-    
-    return statusMap[status] || status;
-  };
-
-  const getStatusClass = (status: string) => {
-    const statusClassMap: Record<string, string> = {
-      'pending': 'bg-amber-100 text-amber-800',
-      'confirmed': 'bg-blue-100 text-blue-800',
-      'cancelled': 'bg-[#F1F0FB] text-gray-700',
-      'waiting': 'bg-[#FEF7CD] text-yellow-800',
-      'refunded': 'bg-[#F1F0FB] text-gray-800',
-    };
-    
-    return statusClassMap[status] || 'bg-gray-100 text-gray-800';
   };
 
   return (
@@ -78,10 +62,33 @@ const OrderTableRow = ({ order, onStatusChange }: OrderTableRowProps) => {
         </Select>
       </TableCell>
       <TableCell className="hidden lg:table-cell">
-        {order.payment_status && (
-          <Badge variant="outline" className={getPaymentStatusClass(order.payment_status)}>
-            {translatePaymentStatus(order.payment_status)}
+        {order.payment_status && onPaymentStatusChange ? (
+          <Select
+            defaultValue={order.payment_status}
+            onValueChange={(value) => onPaymentStatusChange(order.id, value)}
+          >
+            <SelectTrigger className={`h-7 w-full max-w-[160px] px-2 py-1 text-xs ${getPaymentStatusClass(order.payment_status)}`}>
+              <SelectValue placeholder={translatePaymentStatus(order.payment_status)} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pending">Pendiente</SelectItem>
+              <SelectItem value="paid">Pagado</SelectItem>
+              <SelectItem value="cancelled">Cancelado</SelectItem>
+              <SelectItem value="refunded">Rembolsado</SelectItem>
+            </SelectContent>
+          </Select>
+        ) : (
+          <Badge variant="outline" className={getPaymentStatusClass(order.payment_status || "pending")}>
+            {translatePaymentStatus(order.payment_status || "pending")}
           </Badge>
+        )}
+      </TableCell>
+      <TableCell className="hidden xl:table-cell">
+        {order.payment_method && (
+          <div className="flex items-center gap-1">
+            <span>{getPaymentMethodIcon(order.payment_method)}</span>
+            <span>{translatePaymentMethod(order.payment_method)}</span>
+          </div>
         )}
       </TableCell>
     </TableRow>

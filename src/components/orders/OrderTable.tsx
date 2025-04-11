@@ -11,9 +11,10 @@ interface OrderTableProps {
   isLoading: boolean;
   isError: boolean;
   onStatusChange: (orderId: string, newStatus: string) => void;
+  onPaymentStatusChange?: (orderId: string, newStatus: string) => void;
 }
 
-const OrderTable = ({ orders, isLoading, isError, onStatusChange }: OrderTableProps) => {
+const OrderTable = ({ orders, isLoading, isError, onStatusChange, onPaymentStatusChange }: OrderTableProps) => {
   return (
     <Card className="overflow-hidden">
       <CardHeader>
@@ -43,6 +44,7 @@ const OrderTable = ({ orders, isLoading, isError, onStatusChange }: OrderTablePr
                   <TableHead className="hidden sm:table-cell">Fecha</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead className="hidden lg:table-cell">Pago</TableHead>
+                  <TableHead className="hidden xl:table-cell">Método</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -52,11 +54,12 @@ const OrderTable = ({ orders, isLoading, isError, onStatusChange }: OrderTablePr
                       key={order.id} 
                       order={order} 
                       onStatusChange={onStatusChange} 
+                      onPaymentStatusChange={onPaymentStatusChange}
                     />
                   ))
                 ) : (
                   <TableRow>
-                    <td colSpan={7} className="text-center py-4">
+                    <td colSpan={8} className="text-center py-4">
                       No hay pedidos disponibles
                     </td>
                   </TableRow>

@@ -1,8 +1,9 @@
 
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Order } from "@/types/order";
+import { supabase } from "@/integrations/supabase/client";
 
 interface OrdersResponse {
   response: Order[];
@@ -11,20 +12,39 @@ interface OrdersResponse {
 const fetchOrders = async (): Promise<Order[]> => {
   try {
     console.log('Fetching orders...');
-    const response = await fetch('https://api.condamind.com/v1/catering/orders', {
-      headers: {
-        'Content-Type': 'application/json',
-        'assistant-id': 'asst_OS4bPZIMBpvpYo2GMkG0ast5'
+    // First, try to fetch from Supabase if it's available
+    if (supabase) {
+      const { data, error } = await supabase
+        .from('catering_orders')
+        .select(`
+          *,
+          dinner_group:dinner_group_id(*),
+          payments:order_payments(*)
+        `)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        throw error;
       }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Error al cargar los pedidos: ${response.status}`);
+      
+      return data as Order[];
+    } else {
+      // Fallback to the mock API if Supabase is not configured
+      const response = await fetch('https://api.condamind.com/v1/catering/orders', {
+        headers: {
+          'Content-Type': 'application/json',
+          'assistant-id': 'asst_OS4bPZIMBpvpYo2GMkG0ast5'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Error al cargar los pedidos: ${response.status}`);
+      }
+      
+      const data: OrdersResponse = await response.json();
+      console.log('Orders fetched successfully:', data.response);
+      return data.response;
     }
-    
-    const data: OrdersResponse = await response.json();
-    console.log('Orders fetched successfully:', data.response);
-    return data.response;
   } catch (error) {
     console.error("Error fetching orders:", error);
     toast.error("No se pudieron cargar los pedidos");
@@ -33,6 +53,7 @@ const fetchOrders = async (): Promise<Order[]> => {
 };
 
 export const useOrders = () => {
+  const queryClient = useQueryClient();
   const { data: orders, isLoading, error, isError } = useQuery({
     queryKey: ['orders'],
     queryFn: fetchOrders,
@@ -43,16 +64,79 @@ export const useOrders = () => {
   useEffect(() => {
     if (orders) {
       setOrders(orders);
-      console.log('Orders state updated:', orders);
     }
   }, [orders]);
 
   const updateOrderStatus = (orderId: string, newStatus: string) => {
+    // Optimistically update the UI
     const updatedOrders = ordersState?.map(order =>
       order.id === orderId ? { ...order, status: newStatus } : order
     );
     setOrders(updatedOrders);
-    toast.success(`Estado del pedido ${orderId} actualizado a: ${newStatus}`);
+    
+    // If Supabase is available, update the database
+    if (supabase) {
+      supabase
+        .from('catering_orders')
+        .update({ status: newStatus })
+        .eq('id', orderId)
+        .then(({ error }) => {
+          if (error) {
+            console.error("Error updating order status:", error);
+            toast.error(`Error al actualizar el estado del pedido: ${error.message}`);
+            // Revert to original state on error
+            setOrders(orders);
+          } else {
+            toast.success(`Estado del pedido actualizado a: ${newStatus}`);
+            // Refresh orders data
+            queryClient.invalidateQueries({ queryKey: ['orders'] });
+          }
+        });
+    } else {
+      // Mock success for demo
+      toast.success(`Estado del pedido ${orderId.substring(0, 5)}... actualizado a: ${newStatus}`);
+    }
+  };
+
+  const updatePaymentStatus = (orderId: string, newStatus: string) => {
+    // Optimistically update the UI
+    const updatedOrders = ordersState?.map(order =>
+      order.id === orderId ? { ...order, payment_status: newStatus as any } : order
+    );
+    setOrders(updatedOrders);
+    
+    // If Supabase is available, update the database
+    if (supabase) {
+      supabase
+        .from('catering_orders')
+        .update({ payment_status: newStatus })
+        .eq('id', orderId)
+        .then(({ error }) => {
+          if (error) {
+            console.error("Error updating payment status:", error);
+            toast.error(`Error al actualizar el estado del pago: ${error.message}`);
+            // Revert to original state on error
+            setOrders(orders);
+          } else {
+            toast.success(`Estado del pago actualizado a: ${newStatus}`);
+            
+            // If the payment is now paid, update any pending payments associated with this order
+            if (newStatus === 'paid') {
+              supabase
+                .from('order_payments')
+                .update({ payment_status: newStatus })
+                .eq('order_id', orderId)
+                .eq('payment_status', 'pending');
+            }
+            
+            // Refresh orders data
+            queryClient.invalidateQueries({ queryKey: ['orders'] });
+          }
+        });
+    } else {
+      // Mock success for demo
+      toast.success(`Estado del pago ${orderId.substring(0, 5)}... actualizado a: ${newStatus}`);
+    }
   };
 
   return {
@@ -60,6 +144,7 @@ export const useOrders = () => {
     isLoading,
     isError,
     error,
-    updateOrderStatus
+    updateOrderStatus,
+    updatePaymentStatus
   };
 };

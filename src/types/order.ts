@@ -17,12 +17,14 @@ export interface Payment {
   reference_number?: string;
 }
 
+export type MenuType = "standard" | "vegetarian" | "vegan" | "gluten_free" | "premium" | "custom";
+
 export interface Order {
   id: string;
   client_name: string;
   event_date: string;
   number_of_people: number;
-  menu_type: string;
+  menu_type: MenuType;
   special_requirements: string;
   status: string;
   created_at: string;

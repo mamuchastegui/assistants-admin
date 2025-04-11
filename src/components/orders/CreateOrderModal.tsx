@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchPaymentMethods, PaymentMethod } from "@/services/paymentService";
+import { MenuType } from "@/types/order";
 
 interface MenuItem {
   id: string;
@@ -31,12 +31,22 @@ interface DinnerGroup {
   notes?: string;
 }
 
+// Define the menu type enum for zod schema
+const menuTypeEnum = z.enum([
+  "standard", 
+  "vegetarian", 
+  "vegan", 
+  "gluten_free", 
+  "premium", 
+  "custom"
+]);
+
 // Define the order schema with support for dinner groups
 const orderSchema = z.object({
   client_name: z.string().min(1, "El nombre del cliente es requerido"),
   event_date: z.string().min(1, "La fecha del evento es requerida"),
   number_of_people: z.coerce.number().positive("Debe ser un número mayor a 0"),
-  menu_type: z.string().min(1, "El tipo de menú es requerido"),
+  menu_type: menuTypeEnum,
   special_requirements: z.string().optional(),
   payment_method: z.string().min(1, "El método de pago es requerido"),
   payment_status: z.string().default("pending"),
@@ -69,7 +79,7 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
       client_name: "",
       event_date: "",
       number_of_people: undefined,
-      menu_type: "",
+      menu_type: "standard" as MenuType,
       special_requirements: "",
       payment_method: "",
       payment_status: "pending",
@@ -83,7 +93,6 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
     },
   });
 
-  // Fetch existing dinner groups
   const { data: dinnerGroups, isLoading: groupsLoading } = useQuery({
     queryKey: ["dinner-groups"],
     queryFn: async () => {
@@ -103,7 +112,6 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
     }
   }, [dinnerGroups]);
 
-  // Consulta para obtener los tipos de menú
   const { data: menuItems, isLoading: menuItemsLoading } = useQuery({
     queryKey: ["menu-items-select"],
     queryFn: async () => {
@@ -117,13 +125,11 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
     },
   });
 
-  // Consulta para obtener los métodos de pago
   const { data: paymentMethods, isLoading: paymentMethodsLoading } = useQuery({
     queryKey: ["payment-methods"],
     queryFn: fetchPaymentMethods,
   });
 
-  // Reset form when modal opens/closes
   useEffect(() => {
     if (!open) {
       form.reset();
@@ -133,7 +139,6 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
     }
   }, [open, form]);
 
-  // Update selected payment method when payment_method changes
   useEffect(() => {
     const paymentMethodValue = form.watch("payment_method");
     
@@ -141,7 +146,6 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
       const selected = paymentMethods.find(method => method.id === paymentMethodValue);
       setSelectedPaymentMethod(selected || null);
       
-      // Show cash form when cash payment is selected
       if (selected?.type === 'cash') {
         setShowCashForm(true);
       } else {
@@ -153,18 +157,15 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
     }
   }, [form.watch("payment_method"), paymentMethods]);
 
-  // Toggle dinner group selection fields based on use_existing_group value
   const useExistingGroup = form.watch("use_existing_group");
 
   const createOrderMutation = useMutation({
     mutationFn: async (data: OrderFormValues) => {
-      // Step 1: Create or get dinner group
       let dinnerGroupId: string | null = null;
       
       if (data.use_existing_group && data.dinner_group_id) {
         dinnerGroupId = data.dinner_group_id;
       } else {
-        // Create a new dinner group
         const { data: newGroup, error: groupError } = await supabase
           .from("dinner_groups")
           .insert({
@@ -181,7 +182,6 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
         dinnerGroupId = newGroup.id;
       }
 
-      // Step 2: Create order
       const { data: newOrder, error: orderError } = await supabase
         .from("catering_orders")
         .insert({
@@ -201,10 +201,8 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
 
       if (orderError) throw orderError;
       
-      // Step 3: Create payment record
       let paymentAmount = 0;
       
-      // Calculate payment amount based on menu item price or default to 12000 per person
       if (menuItems && data.menu_type) {
         const selectedMenu = menuItems.find(item => item.name === data.menu_type);
         paymentAmount = (selectedMenu?.price || 12000) * data.number_of_people;

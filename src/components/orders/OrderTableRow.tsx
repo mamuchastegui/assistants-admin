@@ -62,26 +62,20 @@ const OrderTableRow = ({ order, onStatusChange, onPaymentStatusChange }: OrderTa
         </Select>
       </TableCell>
       <TableCell className="hidden lg:table-cell">
-        {order.payment_status && onPaymentStatusChange ? (
-          <Select
-            defaultValue={order.payment_status}
-            onValueChange={(value) => onPaymentStatusChange(order.id, value)}
-          >
-            <SelectTrigger className={`h-7 w-full max-w-[160px] px-2 py-1 text-xs ${getPaymentStatusClass(order.payment_status)}`}>
-              <SelectValue placeholder={translatePaymentStatus(order.payment_status)} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="pending">Pendiente</SelectItem>
-              <SelectItem value="paid">Pagado</SelectItem>
-              <SelectItem value="cancelled">Cancelado</SelectItem>
-              <SelectItem value="refunded">Rembolsado</SelectItem>
-            </SelectContent>
-          </Select>
-        ) : (
-          <Badge variant="outline" className={getPaymentStatusClass(order.payment_status || "pending")}>
-            {translatePaymentStatus(order.payment_status || "pending")}
-          </Badge>
-        )}
+        <Select
+          defaultValue={order.payment_status || 'pending'}
+          onValueChange={(value) => onPaymentStatusChange?.(order.id, value)}
+        >
+          <SelectTrigger className={`h-7 w-full max-w-[160px] px-2 py-1 rounded-full text-xs ${getPaymentStatusClass(order.payment_status || 'pending')}`}>
+            <SelectValue placeholder={translatePaymentStatus(order.payment_status || 'pending')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="pending">Pendiente</SelectItem>
+            <SelectItem value="paid">Pagado</SelectItem>
+            <SelectItem value="cancelled">Cancelado</SelectItem>
+            <SelectItem value="refunded">Rembolsado</SelectItem>
+          </SelectContent>
+        </Select>
       </TableCell>
       <TableCell className="hidden xl:table-cell">
         {order.payment_method && (

@@ -14,6 +14,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { translatePaymentStatus, getPaymentStatusClass } from "@/services/paymentService";
 
+interface DinnerGroup {
+  id: string;
+  requester_name: string;
+  contact_email?: string;
+  contact_phone?: string;
+  company?: string;
+  notes?: string;
+}
+
+interface Payment {
+  id: string;
+  amount: number;
+  payment_method: string;
+  payment_status: string;
+  payment_details?: Record<string, any>;
+  reference_number?: string;
+}
+
 interface Order {
   id: string;
   client_name: string;
@@ -27,6 +45,9 @@ interface Order {
   payment_method?: string;
   payment_status?: string;
   payment_details?: Record<string, any>;
+  dinner_group?: DinnerGroup;
+  dinner_group_id?: string;
+  payments?: Payment[];
 }
 
 interface OrdersResponse {
@@ -87,6 +108,19 @@ const getStatusClass = (status: string) => {
   };
   
   return statusClassMap[status] || 'bg-gray-100 text-gray-800';
+};
+
+const translateMenuType = (menuType: string): string => {
+  const menuTypeMap: Record<string, string> = {
+    'standard': 'Estándar',
+    'vegetarian': 'Vegetariano',
+    'vegan': 'Vegano',
+    'gluten_free': 'Sin Gluten',
+    'premium': 'Premium',
+    'custom': 'Personalizado'
+  };
+  
+  return menuTypeMap[menuType] || menuType;
 };
 
 const Orders = () => {
@@ -269,7 +303,7 @@ const Orders = () => {
                           <TableCell className="font-medium">{order.id.substring(0, 5)}...</TableCell>
                           <TableCell className="max-w-[120px] truncate">{order.client_name}</TableCell>
                           <TableCell className="hidden md:table-cell max-w-[150px] truncate" title={order.menu_type}>
-                            {order.menu_type}
+                            {translateMenuType(order.menu_type)}
                           </TableCell>
                           <TableCell className="text-center">{order.number_of_people}</TableCell>
                           <TableCell className="hidden sm:table-cell whitespace-nowrap">{formatDate(order.event_date)}</TableCell>

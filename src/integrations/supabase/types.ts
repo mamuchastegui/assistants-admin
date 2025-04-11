@@ -162,9 +162,10 @@ export type Database = {
         Row: {
           client_name: string
           created_at: string | null
+          dinner_group_id: string | null
           event_date: string
           id: string
-          menu_type: string
+          menu_type: Database["public"]["Enums"]["menu_type_enum"]
           number_of_people: number
           payment_details: Json | null
           payment_method: string | null
@@ -176,9 +177,10 @@ export type Database = {
         Insert: {
           client_name: string
           created_at?: string | null
+          dinner_group_id?: string | null
           event_date: string
           id?: string
-          menu_type: string
+          menu_type: Database["public"]["Enums"]["menu_type_enum"]
           number_of_people: number
           payment_details?: Json | null
           payment_method?: string | null
@@ -190,15 +192,57 @@ export type Database = {
         Update: {
           client_name?: string
           created_at?: string | null
+          dinner_group_id?: string | null
           event_date?: string
           id?: string
-          menu_type?: string
+          menu_type?: Database["public"]["Enums"]["menu_type_enum"]
           number_of_people?: number
           payment_details?: Json | null
           payment_method?: string | null
           payment_status?: string | null
           special_requirements?: string | null
           status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catering_orders_dinner_group_id_fkey"
+            columns: ["dinner_group_id"]
+            isOneToOne: false
+            referencedRelation: "dinner_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dinner_groups: {
+        Row: {
+          company: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          requester_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          company?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          requester_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          company?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          requester_name?: string
           updated_at?: string | null
         }
         Relationships: []
@@ -475,6 +519,50 @@ export type Database = {
           },
         ]
       }
+      order_payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          order_id: string | null
+          payment_details: Json | null
+          payment_method: string
+          payment_status: string
+          reference_number: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          order_id?: string | null
+          payment_details?: Json | null
+          payment_method: string
+          payment_status?: string
+          reference_number?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          order_id?: string | null
+          payment_details?: Json | null
+          payment_method?: string
+          payment_status?: string
+          reference_number?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_payments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "catering_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_methods: {
         Row: {
           created_at: string | null
@@ -743,7 +831,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      menu_type_enum:
+        | "standard"
+        | "vegetarian"
+        | "vegan"
+        | "gluten_free"
+        | "premium"
+        | "custom"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -858,6 +952,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      menu_type_enum: [
+        "standard",
+        "vegetarian",
+        "vegan",
+        "gluten_free",
+        "premium",
+        "custom",
+      ],
+    },
   },
 } as const

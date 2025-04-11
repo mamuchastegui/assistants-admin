@@ -93,7 +93,9 @@ const OrderTableRow = ({
           disabled={!canChangeStatus && order.payment_method === 'mercado_pago' && order.status === 'confirmed'}
         >
           <SelectTrigger className={`h-7 w-full max-w-[180px] px-2 py-1 rounded-full text-xs ${getStatusClass(order.status)}`}>
-            <SelectValue placeholder={translateStatus(order.status)} />
+            <div className="flex items-center gap-1">
+              <SelectValue placeholder={translateStatus(order.status)} />
+            </div>
           </SelectTrigger>
           <SelectContent>
             {availableStatuses.map(status => (
@@ -108,7 +110,9 @@ const OrderTableRow = ({
           onValueChange={(value) => onPaymentStatusChange?.(order.id, value)}
         >
           <SelectTrigger className={`h-7 w-full max-w-[160px] px-2 py-1 rounded-full text-xs ${getPaymentStatusClass(order.payment_status || 'pending')}`}>
-            <SelectValue placeholder={translatePaymentStatus(order.payment_status || 'pending')} />
+            <div className="flex items-center gap-1">
+              <SelectValue placeholder={translatePaymentStatus(order.payment_status || 'pending')} />
+            </div>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="pending">Pendiente</SelectItem>
@@ -123,7 +127,7 @@ const OrderTableRow = ({
           defaultValue={order.payment_method || 'cash'}
           onValueChange={(value) => onPaymentMethodChange?.(order.id, value as PaymentMethod)}
         >
-          <SelectTrigger className="h-7 w-full max-w-[160px] px-2 py-1 rounded text-xs">
+          <SelectTrigger className="h-7 w-full max-w-[160px] px-2 py-1 rounded-full text-xs">
             <div className="flex items-center gap-1">
               <span>{getPaymentMethodIcon(order.payment_method || null)}</span>
               <SelectValue placeholder={translatePaymentMethod(order.payment_method || null)} />

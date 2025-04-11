@@ -49,9 +49,9 @@ export const translatePaymentStatus = (status: string): string => {
 
 export const getPaymentStatusClass = (status: string): string => {
   const paymentStatusClassMap: Record<string, string> = {
-    'pending': 'bg-yellow-100 text-yellow-800',
+    'pending': 'bg-amber-100 text-amber-800',
     'paid': 'bg-green-100 text-green-800',
-    'cancelled': 'bg-gray-100 text-gray-800',
+    'cancelled': 'bg-gray-100 text-gray-700',
     'refunded': 'bg-purple-100 text-purple-800',
   };
   

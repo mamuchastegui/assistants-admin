@@ -12,14 +12,17 @@ interface OrderDashboardCardsProps {
 
 const OrderDashboardCards = ({ orders, isLoading }: OrderDashboardCardsProps) => {
   // Helper functions
-  const countOrders = (status?: string) => {
+  const countOrders = () => {
+    if (!orders) return 0;
+    return orders.length;
+  };
+
+  const countPendingOrders = () => {
     if (!orders) return 0;
     
-    if (!status) {
-      return orders.length;
-    }
-    
-    return orders.filter(order => order.status === status).length;
+    return orders.filter(order => 
+      order.payment_status === 'pending' || !order.payment_status
+    ).length;
   };
 
   const calculateTotalRevenue = () => {
@@ -61,7 +64,7 @@ const OrderDashboardCards = ({ orders, isLoading }: OrderDashboardCardsProps) =>
       <OrderStatsCard 
         title="Total de Pedidos" 
         value={countOrders()}
-        description={`${countOrders('pending')} pendientes`}
+        description={`${countPendingOrders()} pendientes`}
         isLoading={isLoading}
       />
       

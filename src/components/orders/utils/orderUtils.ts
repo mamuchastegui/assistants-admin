@@ -14,50 +14,6 @@ export const translateMenuType = (menuType: MenuType): string => {
   return menuTypeMap[menuType] || menuType;
 };
 
-export const translateStatus = (status: string): string => {
-  const statusMap: Record<string, string> = {
-    'pending': 'Pendiente',
-    'confirmed': 'Pagado',
-    'cancelled': 'Cancelado',
-    'refunded': 'Reembolsado'
-  };
-  
-  return statusMap[status] || status;
-};
-
-export const getStatusClass = (status: string): string => {
-  const statusClassMap: Record<string, string> = {
-    'pending': 'bg-amber-100 text-amber-800',
-    'confirmed': 'bg-green-100 text-green-800',
-    'cancelled': 'bg-gray-100 text-gray-700',
-    'refunded': 'bg-purple-100 text-purple-800',
-  };
-  
-  return statusClassMap[status] || 'bg-gray-100 text-gray-800';
-};
-
-export const translatePaymentStatus = (status: string): string => {
-  const paymentStatusMap: Record<string, string> = {
-    'pending': 'Pendiente',
-    'paid': 'Pagado',
-    'cancelled': 'Cancelado',
-    'refunded': 'Reembolsado'
-  };
-  
-  return paymentStatusMap[status] || status;
-};
-
-export const getPaymentStatusClass = (status: string): string => {
-  const paymentStatusClassMap: Record<string, string> = {
-    'pending': 'bg-amber-100 text-amber-800',
-    'paid': 'bg-green-100 text-green-800',
-    'cancelled': 'bg-gray-100 text-gray-700',
-    'refunded': 'bg-purple-100 text-purple-800',
-  };
-  
-  return paymentStatusClassMap[status] || 'bg-gray-100 text-gray-800';
-};
-
 export const translatePaymentMethod = (method: PaymentMethod | string | null): string => {
   const paymentMethodMap: Record<string, string> = {
     'cash': 'Efectivo',
@@ -82,4 +38,15 @@ export const getPaymentMethodIcon = (method: PaymentMethod | string | null) => {
     default:
       return '💰';
   }
+};
+
+export const getPaymentMethodClass = (method: PaymentMethod | string | null): string => {
+  const methodClassMap: Record<string, string> = {
+    'cash': 'bg-emerald-100 text-emerald-800',
+    'transfer': 'bg-blue-100 text-blue-800',
+    'mercado_pago': 'bg-purple-100 text-purple-800',
+  };
+  
+  if (!method) return 'bg-gray-100 text-gray-800';
+  return methodClassMap[method.toString()] || 'bg-gray-100 text-gray-800';
 };

@@ -15,8 +15,6 @@ const Orders = () => {
     orders, 
     isLoading, 
     isError, 
-    updateOrderStatus,
-    updatePaymentStatus,
     updatePaymentMethod
   } = useOrders();
 
@@ -42,8 +40,6 @@ const Orders = () => {
           orders={orders}
           isLoading={isLoading}
           isError={isError}
-          onStatusChange={updateOrderStatus}
-          onPaymentStatusChange={updatePaymentStatus}
           onPaymentMethodChange={updatePaymentMethod}
         />
       </div>

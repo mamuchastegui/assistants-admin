@@ -27,7 +27,6 @@ export interface Order {
   number_of_people: number;
   menu_type: MenuType;
   special_requirements: string;
-  status: string;
   created_at: string;
   updated_at: string;
   payment_method?: PaymentMethod;

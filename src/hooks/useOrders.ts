@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Order, MenuType, PaymentMethod } from "@/types/order";
 import { supabase } from "@/lib/supabase";
+import { translatePaymentMethod } from "@/components/orders/utils/orderUtils";
 
 interface OrdersResponse {
   response: Order[];
@@ -67,89 +68,16 @@ export const useOrders = () => {
     }
   }, [orders]);
 
-  const updateOrderStatus = (orderId: string, newStatus: string) => {
-    // Find the order to check payment method
+  const updatePaymentMethod = (orderId: string, newMethod: PaymentMethod) => {
+    // Find the order to check payment method and status
     const order = ordersState?.find(o => o.id === orderId);
     
-    // Validar reglas de negocio
-    if (order?.payment_method === 'mercado_pago' && order.status === 'confirmed' && 
-        newStatus !== 'cancelled' && newStatus !== 'refunded') {
-      toast.error("Los pedidos pagados por MercadoPago solo pueden cambiarse a Cancelado o Reembolsado");
+    // Validate business rules
+    if (order?.payment_method === 'mercado_pago' && order.payment_status === 'paid') {
+      toast.error("Los pedidos pagados por MercadoPago no pueden cambiar el método de pago");
       return;
     }
     
-    // Optimistically update the UI
-    const updatedOrders = ordersState?.map(order =>
-      order.id === orderId ? { ...order, status: newStatus } : order
-    );
-    setOrders(updatedOrders);
-    
-    // If Supabase is available, update the database
-    if (supabase) {
-      supabase
-        .from('catering_orders')
-        .update({ status: newStatus })
-        .eq('id', orderId)
-        .then(({ error }) => {
-          if (error) {
-            console.error("Error updating order status:", error);
-            toast.error(`Error al actualizar el estado del pedido: ${error.message}`);
-            // Revert to original state on error
-            setOrders(orders);
-          } else {
-            toast.success(`Estado del pedido actualizado a: ${newStatus}`);
-            // Refresh orders data
-            queryClient.invalidateQueries({ queryKey: ['orders'] });
-          }
-        });
-    } else {
-      // Mock success for demo
-      toast.success(`Estado del pedido ${orderId.substring(0, 5)}... actualizado a: ${newStatus}`);
-    }
-  };
-
-  const updatePaymentStatus = (orderId: string, newStatus: string) => {
-    // Optimistically update the UI
-    const updatedOrders = ordersState?.map(order =>
-      order.id === orderId ? { ...order, payment_status: newStatus as any } : order
-    );
-    setOrders(updatedOrders);
-    
-    // If Supabase is available, update the database
-    if (supabase) {
-      supabase
-        .from('catering_orders')
-        .update({ payment_status: newStatus })
-        .eq('id', orderId)
-        .then(({ error }) => {
-          if (error) {
-            console.error("Error updating payment status:", error);
-            toast.error(`Error al actualizar el estado del pago: ${error.message}`);
-            // Revert to original state on error
-            setOrders(orders);
-          } else {
-            toast.success(`Estado del pago actualizado a: ${newStatus}`);
-            
-            // If the payment is now paid, update any pending payments associated with this order
-            if (newStatus === 'paid') {
-              supabase
-                .from('order_payments')
-                .update({ payment_status: newStatus })
-                .eq('order_id', orderId)
-                .eq('payment_status', 'pending');
-            }
-            
-            // Refresh orders data
-            queryClient.invalidateQueries({ queryKey: ['orders'] });
-          }
-        });
-    } else {
-      // Mock success for demo
-      toast.success(`Estado del pago ${orderId.substring(0, 5)}... actualizado a: ${newStatus}`);
-    }
-  };
-
-  const updatePaymentMethod = (orderId: string, newMethod: PaymentMethod) => {
     // Optimistically update the UI
     const updatedOrders = ordersState?.map(order =>
       order.id === orderId ? { ...order, payment_method: newMethod } : order
@@ -192,21 +120,6 @@ export const useOrders = () => {
     isLoading,
     isError,
     error,
-    updateOrderStatus,
-    updatePaymentStatus,
     updatePaymentMethod
   };
-};
-
-// Esta es una función auxiliar interna que debemos importar del archivo orderUtils.ts
-// pero la definimos aquí para evitar problemas de importación circular
-const translatePaymentMethod = (method: PaymentMethod | string | null): string => {
-  const paymentMethodMap: Record<string, string> = {
-    'cash': 'Efectivo',
-    'transfer': 'Transferencia',
-    'mercado_pago': 'MercadoPago'
-  };
-  
-  if (!method) return 'No especificado';
-  return paymentMethodMap[method] || method.toString();
 };

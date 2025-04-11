@@ -10,17 +10,13 @@ interface OrderTableProps {
   orders?: Order[];
   isLoading: boolean;
   isError: boolean;
-  onStatusChange: (orderId: string, newStatus: string) => void;
-  onPaymentStatusChange?: (orderId: string, newStatus: string) => void;
   onPaymentMethodChange?: (orderId: string, newMethod: PaymentMethod) => void;
 }
 
 const OrderTable = ({ 
   orders, 
   isLoading, 
-  isError, 
-  onStatusChange, 
-  onPaymentStatusChange,
+  isError,
   onPaymentMethodChange 
 }: OrderTableProps) => {
   return (
@@ -50,9 +46,7 @@ const OrderTable = ({
                   <TableHead className="hidden md:table-cell">Menú</TableHead>
                   <TableHead className="w-[80px] text-center">Personas</TableHead>
                   <TableHead className="hidden sm:table-cell">Fecha</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="hidden lg:table-cell">Pago</TableHead>
-                  <TableHead className="hidden xl:table-cell">Método</TableHead>
+                  <TableHead>Método de Pago</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -60,15 +54,13 @@ const OrderTable = ({
                   orders.map((order) => (
                     <OrderTableRow 
                       key={order.id} 
-                      order={order} 
-                      onStatusChange={onStatusChange} 
-                      onPaymentStatusChange={onPaymentStatusChange}
+                      order={order}
                       onPaymentMethodChange={onPaymentMethodChange}
                     />
                   ))
                 ) : (
                   <TableRow>
-                    <td colSpan={8} className="text-center py-4">
+                    <td colSpan={6} className="text-center py-4">
                       No hay pedidos disponibles
                     </td>
                   </TableRow>

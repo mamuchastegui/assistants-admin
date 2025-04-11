@@ -1,3 +1,4 @@
+
 export const translateMenuType = (menuType: string): string => {
   const menuTypeMap: Record<string, string> = {
     'standard': 'Estándar',

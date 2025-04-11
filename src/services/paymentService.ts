@@ -59,6 +59,7 @@ export const translatePaymentType = (type: string): string => {
     'cbu': 'CBU',
     'credit_card': 'Tarjeta de Crédito',
     'debit_card': 'Tarjeta de Débito',
+    'mercado_pago': 'MercadoPago',
     'other': 'Otro'
   };
   

@@ -13,6 +13,7 @@ import CreateOrderModal from "@/components/orders/CreateOrderModal";
 import { PageHeader } from "@/components/ui/page-header";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { translatePaymentStatus, getPaymentStatusClass } from "@/services/paymentService";
 
 interface Order {
   id: string;

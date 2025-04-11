@@ -14,19 +14,12 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchPaymentMethods, PaymentMethod } from "@/services/paymentService";
 
 interface MenuItem {
   id: string;
   name: string;
   price: number | null;
-}
-
-interface PaymentMethod {
-  id: string;
-  name: string;
-  type: string;
-  details: Record<string, any>;
-  is_active: boolean;
 }
 
 const orderSchema = z.object({
@@ -81,16 +74,7 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
   // Consulta para obtener los métodos de pago
   const { data: paymentMethods, isLoading: paymentMethodsLoading } = useQuery({
     queryKey: ["payment-methods"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("payment_methods")
-        .select("*")
-        .eq("is_active", true)
-        .order("name", { ascending: true });
-      
-      if (error) throw error;
-      return data as PaymentMethod[];
-    },
+    queryFn: fetchPaymentMethods,
   });
 
   // Reset form when modal opens/closes
@@ -244,6 +228,54 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
                 <Input 
                   placeholder="Número de comprobante" 
                   onChange={(e) => handlePaymentDetailChange("receipt_number", e.target.value)} 
+                />
+              </FormControl>
+            </FormItem>
+          </div>
+        );
+      case 'mercado_pago':
+        return (
+          <div className="space-y-4">
+            <FormItem>
+              <FormLabel>Usuario de MercadoPago</FormLabel>
+              <FormControl>
+                <Input 
+                  readOnly 
+                  value={selectedPaymentMethod.details.username || ""} 
+                  className="bg-gray-50" 
+                />
+              </FormControl>
+            </FormItem>
+            <FormItem>
+              <FormLabel>Referencia de pago</FormLabel>
+              <FormControl>
+                <Input 
+                  placeholder="Referencia o comprobante de pago" 
+                  onChange={(e) => handlePaymentDetailChange("reference", e.target.value)} 
+                />
+              </FormControl>
+            </FormItem>
+          </div>
+        );
+      case 'cash':
+        return (
+          <div className="space-y-4">
+            <FormItem>
+              <FormLabel>Monto en efectivo</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  placeholder="Ingrese monto" 
+                  onChange={(e) => handlePaymentDetailChange("amount", e.target.value)} 
+                />
+              </FormControl>
+            </FormItem>
+            <FormItem>
+              <FormLabel>Notas</FormLabel>
+              <FormControl>
+                <Input 
+                  placeholder="Notas adicionales" 
+                  onChange={(e) => handlePaymentDetailChange("notes", e.target.value)} 
                 />
               </FormControl>
             </FormItem>

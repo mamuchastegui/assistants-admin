@@ -4,20 +4,22 @@ import { Table, TableHeader, TableBody, TableRow, TableHead } from "@/components
 import { Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import OrderTableRow from "./OrderTableRow";
-import { Order, PaymentMethod } from "@/types/order";
+import { Order, PaymentMethod, OrderStatus } from "@/types/order";
 
 interface OrderTableProps {
   orders?: Order[];
   isLoading: boolean;
   isError: boolean;
   onPaymentMethodChange?: (orderId: string, newMethod: PaymentMethod) => void;
+  onOrderStatusChange?: (orderId: string, newStatus: OrderStatus) => void;
 }
 
 const OrderTable = ({ 
   orders, 
   isLoading, 
   isError,
-  onPaymentMethodChange 
+  onPaymentMethodChange,
+  onOrderStatusChange
 }: OrderTableProps) => {
   return (
     <Card className="overflow-hidden">
@@ -46,6 +48,7 @@ const OrderTable = ({
                   <TableHead className="hidden md:table-cell">Menú</TableHead>
                   <TableHead className="w-[80px] text-center">Personas</TableHead>
                   <TableHead className="hidden sm:table-cell">Fecha</TableHead>
+                  <TableHead>Estado</TableHead>
                   <TableHead>Método de Pago</TableHead>
                 </TableRow>
               </TableHeader>
@@ -56,11 +59,12 @@ const OrderTable = ({
                       key={order.id} 
                       order={order}
                       onPaymentMethodChange={onPaymentMethodChange}
+                      onOrderStatusChange={onOrderStatusChange}
                     />
                   ))
                 ) : (
                   <TableRow>
-                    <td colSpan={6} className="text-center py-4">
+                    <td colSpan={7} className="text-center py-4">
                       No hay pedidos disponibles
                     </td>
                   </TableRow>

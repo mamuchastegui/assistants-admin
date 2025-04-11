@@ -19,6 +19,7 @@ export interface Payment {
 
 export type MenuType = "standard" | "vegetarian" | "vegan" | "gluten_free" | "premium" | "custom";
 export type PaymentMethod = "mercado_pago" | "cash" | "transfer";
+export type OrderStatus = "pending" | "approved" | "cancelled" | "refunded";
 
 export interface Order {
   id: string;
@@ -35,4 +36,5 @@ export interface Order {
   dinner_group?: DinnerGroup;
   dinner_group_id?: string;
   payments?: Payment[];
+  status: OrderStatus;
 }

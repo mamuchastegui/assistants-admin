@@ -21,7 +21,7 @@ const OrderDashboardCards = ({ orders, isLoading }: OrderDashboardCardsProps) =>
     if (!orders) return 0;
     
     return orders.filter(order => 
-      order.payment_status === 'pending' || !order.payment_status
+      order.status === 'pending'
     ).length;
   };
 

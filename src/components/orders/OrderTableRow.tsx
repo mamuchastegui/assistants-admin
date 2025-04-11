@@ -2,22 +2,27 @@
 import React, { useMemo } from "react";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Order, PaymentMethod } from "@/types/order";
+import { Order, PaymentMethod, OrderStatus } from "@/types/order";
 import { 
   translateMenuType, 
   translatePaymentMethod,
   getPaymentMethodIcon,
-  getPaymentMethodClass
+  getPaymentMethodClass,
+  translateOrderStatus,
+  getOrderStatusIcon,
+  getOrderStatusClass
 } from "./utils/orderUtils";
 
 interface OrderTableRowProps {
   order: Order;
   onPaymentMethodChange?: (orderId: string, newMethod: PaymentMethod) => void;
+  onOrderStatusChange?: (orderId: string, newStatus: OrderStatus) => void;
 }
 
 const OrderTableRow = ({ 
   order, 
-  onPaymentMethodChange
+  onPaymentMethodChange,
+  onOrderStatusChange
 }: OrderTableRowProps) => {
   const formatDate = (dateString: string) => {
     try {
@@ -52,6 +57,25 @@ const OrderTableRow = ({
       </TableCell>
       <TableCell className="text-center">{order.number_of_people}</TableCell>
       <TableCell className="hidden sm:table-cell whitespace-nowrap">{formatDate(order.event_date)}</TableCell>
+      <TableCell>
+        <Select
+          defaultValue={order.status || 'pending'}
+          onValueChange={(value) => onOrderStatusChange?.(order.id, value as OrderStatus)}
+        >
+          <SelectTrigger className={`h-7 w-full max-w-[160px] px-2 py-1 rounded-full text-xs ${getOrderStatusClass(order.status || 'pending')}`}>
+            <div className="flex items-center gap-1">
+              <span>{getOrderStatusIcon(order.status || 'pending')}</span>
+              <SelectValue placeholder={translateOrderStatus(order.status || 'pending')} />
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="pending">Pendiente</SelectItem>
+            <SelectItem value="approved">Aprobado</SelectItem>
+            <SelectItem value="cancelled">Cancelado</SelectItem>
+            <SelectItem value="refunded">Rembolsado</SelectItem>
+          </SelectContent>
+        </Select>
+      </TableCell>
       <TableCell>
         <Select
           defaultValue={order.payment_method || 'cash'}

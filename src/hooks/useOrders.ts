@@ -2,9 +2,9 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Order, MenuType, PaymentMethod } from "@/types/order";
+import { Order, MenuType, PaymentMethod, OrderStatus } from "@/types/order";
 import { supabase } from "@/lib/supabase";
-import { translatePaymentMethod } from "@/components/orders/utils/orderUtils";
+import { translatePaymentMethod, translateOrderStatus } from "@/components/orders/utils/orderUtils";
 
 interface OrdersResponse {
   response: Order[];
@@ -28,7 +28,11 @@ const fetchOrders = async (): Promise<Order[]> => {
         throw error;
       }
       
-      return data as Order[];
+      // Ensure all orders have a status even if not set in database
+      return data.map(order => ({
+        ...order,
+        status: order.status || 'pending'
+      })) as Order[];
     } else {
       // Fallback to the mock API if Supabase is not configured
       const response = await fetch('https://api.condamind.com/v1/catering/orders', {
@@ -44,7 +48,12 @@ const fetchOrders = async (): Promise<Order[]> => {
       
       const data: OrdersResponse = await response.json();
       console.log('Orders fetched successfully:', data.response);
-      return data.response;
+      
+      // Ensure all orders have a status even if not set in mock API
+      return data.response.map(order => ({
+        ...order,
+        status: order.status || 'pending'
+      }));
     }
   } catch (error) {
     console.error("Error fetching orders:", error);
@@ -115,11 +124,44 @@ export const useOrders = () => {
     }
   };
 
+  const updateOrderStatus = (orderId: string, newStatus: OrderStatus) => {
+    // Optimistically update the UI
+    const updatedOrders = ordersState?.map(order =>
+      order.id === orderId ? { ...order, status: newStatus } : order
+    );
+    setOrders(updatedOrders);
+    
+    // If Supabase is available, update the database
+    if (supabase) {
+      supabase
+        .from('catering_orders')
+        .update({ status: newStatus })
+        .eq('id', orderId)
+        .then(({ error }) => {
+          if (error) {
+            console.error("Error updating order status:", error);
+            toast.error(`Error al actualizar el estado del pedido: ${error.message}`);
+            // Revert to original state on error
+            setOrders(orders);
+          } else {
+            toast.success(`Estado del pedido actualizado a: ${translateOrderStatus(newStatus)}`);
+            
+            // Refresh orders data
+            queryClient.invalidateQueries({ queryKey: ['orders'] });
+          }
+        });
+    } else {
+      // Mock success for demo
+      toast.success(`Estado de pedido ${orderId.substring(0, 5)}... actualizado a: ${translateOrderStatus(newStatus)}`);
+    }
+  };
+
   return {
     orders: ordersState,
     isLoading,
     isError,
     error,
-    updatePaymentMethod
+    updatePaymentMethod,
+    updateOrderStatus
   };
 };

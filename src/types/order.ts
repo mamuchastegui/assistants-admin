@@ -11,13 +11,14 @@ export interface DinnerGroup {
 export interface Payment {
   id: string;
   amount: number;
-  payment_method: string;
+  payment_method: PaymentMethod;
   payment_status: "pending" | "paid" | "cancelled" | "refunded";
   payment_details?: Record<string, any>;
   reference_number?: string;
 }
 
 export type MenuType = "standard" | "vegetarian" | "vegan" | "gluten_free" | "premium" | "custom";
+export type PaymentMethod = "mercado_pago" | "cash" | "transfer";
 
 export interface Order {
   id: string;
@@ -29,7 +30,7 @@ export interface Order {
   status: string;
   created_at: string;
   updated_at: string;
-  payment_method?: string;
+  payment_method?: PaymentMethod;
   payment_status?: "pending" | "paid" | "cancelled" | "refunded";
   payment_details?: Record<string, any>;
   dinner_group?: DinnerGroup;

@@ -1,5 +1,5 @@
 
-import { MenuType } from "@/types/order";
+import { MenuType, PaymentMethod } from "@/types/order";
 
 export const translateMenuType = (menuType: MenuType): string => {
   const menuTypeMap: Record<MenuType, string> = {
@@ -60,7 +60,7 @@ export const getPaymentStatusClass = (status: string): string => {
   return paymentStatusClassMap[status] || 'bg-gray-100 text-gray-800';
 };
 
-export const translatePaymentMethod = (method: string): string => {
+export const translatePaymentMethod = (method: PaymentMethod | string | null): string => {
   const paymentMethodMap: Record<string, string> = {
     'cash': 'Efectivo',
     'transfer': 'Transferencia',
@@ -69,10 +69,13 @@ export const translatePaymentMethod = (method: string): string => {
     'check': 'Cheque'
   };
   
+  if (!method) return 'No especificado';
   return paymentMethodMap[method] || method;
 };
 
-export const getPaymentMethodIcon = (method: string) => {
+export const getPaymentMethodIcon = (method: PaymentMethod | string | null) => {
+  if (!method) return '❓';
+  
   switch (method) {
     case 'cash':
       return '💵';

@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Order, MenuType } from "@/types/order";
+import { Order, MenuType, PaymentMethod } from "@/types/order";
 import { supabase } from "@/lib/supabase";
 
 interface OrdersResponse {
@@ -139,12 +139,64 @@ export const useOrders = () => {
     }
   };
 
+  const updatePaymentMethod = (orderId: string, newMethod: PaymentMethod) => {
+    // Optimistically update the UI
+    const updatedOrders = ordersState?.map(order =>
+      order.id === orderId ? { ...order, payment_method: newMethod } : order
+    );
+    setOrders(updatedOrders);
+    
+    // If Supabase is available, update the database
+    if (supabase) {
+      supabase
+        .from('catering_orders')
+        .update({ payment_method: newMethod })
+        .eq('id', orderId)
+        .then(({ error }) => {
+          if (error) {
+            console.error("Error updating payment method:", error);
+            toast.error(`Error al actualizar el método de pago: ${error.message}`);
+            // Revert to original state on error
+            setOrders(orders);
+          } else {
+            toast.success(`Método de pago actualizado a: ${translatePaymentMethod(newMethod)}`);
+            
+            // Update any payments associated with this order
+            supabase
+              .from('order_payments')
+              .update({ payment_method: newMethod })
+              .eq('order_id', orderId);
+            
+            // Refresh orders data
+            queryClient.invalidateQueries({ queryKey: ['orders'] });
+          }
+        });
+    } else {
+      // Mock success for demo
+      toast.success(`Método de pago ${orderId.substring(0, 5)}... actualizado a: ${translatePaymentMethod(newMethod)}`);
+    }
+  };
+
   return {
     orders: ordersState,
     isLoading,
     isError,
     error,
     updateOrderStatus,
-    updatePaymentStatus
+    updatePaymentStatus,
+    updatePaymentMethod
   };
+};
+
+// Esta es una función auxiliar interna que debemos importar del archivo orderUtils.ts
+// pero la definimos aquí para evitar problemas de importación circular
+const translatePaymentMethod = (method: PaymentMethod | string | null): string => {
+  const paymentMethodMap: Record<string, string> = {
+    'cash': 'Efectivo',
+    'transfer': 'Transferencia',
+    'mercado_pago': 'MercadoPago'
+  };
+  
+  if (!method) return 'No especificado';
+  return paymentMethodMap[method] || method.toString();
 };

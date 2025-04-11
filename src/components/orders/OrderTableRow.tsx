@@ -3,7 +3,7 @@ import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Order } from "@/types/order";
+import { Order, PaymentMethod } from "@/types/order";
 import { 
   translateMenuType, 
   translateStatus, 
@@ -18,9 +18,15 @@ interface OrderTableRowProps {
   order: Order;
   onStatusChange: (orderId: string, newStatus: string) => void;
   onPaymentStatusChange?: (orderId: string, newStatus: string) => void;
+  onPaymentMethodChange?: (orderId: string, newMethod: PaymentMethod) => void;
 }
 
-const OrderTableRow = ({ order, onStatusChange, onPaymentStatusChange }: OrderTableRowProps) => {
+const OrderTableRow = ({ 
+  order, 
+  onStatusChange, 
+  onPaymentStatusChange,
+  onPaymentMethodChange
+}: OrderTableRowProps) => {
   const formatDate = (dateString: string) => {
     try {
       return new Date(dateString).toLocaleString('es', {
@@ -78,12 +84,22 @@ const OrderTableRow = ({ order, onStatusChange, onPaymentStatusChange }: OrderTa
         </Select>
       </TableCell>
       <TableCell className="hidden xl:table-cell">
-        {order.payment_method && (
-          <div className="flex items-center gap-1">
-            <span>{getPaymentMethodIcon(order.payment_method)}</span>
-            <span>{translatePaymentMethod(order.payment_method)}</span>
-          </div>
-        )}
+        <Select
+          defaultValue={order.payment_method || 'cash'}
+          onValueChange={(value) => onPaymentMethodChange?.(order.id, value as PaymentMethod)}
+        >
+          <SelectTrigger className="h-7 w-full max-w-[160px] px-2 py-1 rounded text-xs">
+            <div className="flex items-center gap-1">
+              <span>{getPaymentMethodIcon(order.payment_method || null)}</span>
+              <SelectValue placeholder={translatePaymentMethod(order.payment_method || null)} />
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="cash">Efectivo</SelectItem>
+            <SelectItem value="transfer">Transferencia</SelectItem>
+            <SelectItem value="mercado_pago">MercadoPago</SelectItem>
+          </SelectContent>
+        </Select>
       </TableCell>
     </TableRow>
   );

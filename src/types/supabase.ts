@@ -51,7 +51,7 @@ export interface Database {
           status: string | null;
           created_at: string | null;
           updated_at: string | null;
-          payment_method: string | null;
+          payment_method: "mercado_pago" | "cash" | "transfer" | null;
           payment_status: string | null;
           payment_details: Record<string, any> | null;
           dinner_group_id: string | null;
@@ -66,7 +66,7 @@ export interface Database {
           status?: string | null;
           created_at?: string | null;
           updated_at?: string | null;
-          payment_method?: string | null;
+          payment_method?: "mercado_pago" | "cash" | "transfer" | null;
           payment_status?: string | null;
           payment_details?: Record<string, any> | null;
           dinner_group_id?: string | null;
@@ -81,7 +81,7 @@ export interface Database {
           status?: string | null;
           created_at?: string | null;
           updated_at?: string | null;
-          payment_method?: string | null;
+          payment_method?: "mercado_pago" | "cash" | "transfer" | null;
           payment_status?: string | null;
           payment_details?: Record<string, any> | null;
           dinner_group_id?: string | null;
@@ -98,6 +98,7 @@ export interface Database {
     Functions: Record<string, unknown>;
     Enums: {
       menu_type_enum: "standard" | "vegetarian" | "vegan" | "gluten_free" | "premium" | "custom";
+      payment_method_enum: "mercado_pago" | "cash" | "transfer";
     };
   };
 }

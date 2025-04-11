@@ -4,7 +4,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead } from "@/components
 import { Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import OrderTableRow from "./OrderTableRow";
-import { Order } from "@/types/order";
+import { Order, PaymentMethod } from "@/types/order";
 
 interface OrderTableProps {
   orders?: Order[];
@@ -12,9 +12,17 @@ interface OrderTableProps {
   isError: boolean;
   onStatusChange: (orderId: string, newStatus: string) => void;
   onPaymentStatusChange?: (orderId: string, newStatus: string) => void;
+  onPaymentMethodChange?: (orderId: string, newMethod: PaymentMethod) => void;
 }
 
-const OrderTable = ({ orders, isLoading, isError, onStatusChange, onPaymentStatusChange }: OrderTableProps) => {
+const OrderTable = ({ 
+  orders, 
+  isLoading, 
+  isError, 
+  onStatusChange, 
+  onPaymentStatusChange,
+  onPaymentMethodChange 
+}: OrderTableProps) => {
   return (
     <Card className="overflow-hidden">
       <CardHeader>
@@ -55,6 +63,7 @@ const OrderTable = ({ orders, isLoading, isError, onStatusChange, onPaymentStatu
                       order={order} 
                       onStatusChange={onStatusChange} 
                       onPaymentStatusChange={onPaymentStatusChange}
+                      onPaymentMethodChange={onPaymentMethodChange}
                     />
                   ))
                 ) : (

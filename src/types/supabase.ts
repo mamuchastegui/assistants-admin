@@ -40,6 +40,53 @@ export interface Database {
           updated_at?: string;
         };
       };
+      catering_orders: {
+        Row: {
+          id: string;
+          client_name: string;
+          event_date: string;
+          number_of_people: number;
+          menu_type: "standard" | "vegetarian" | "vegan" | "gluten_free" | "premium" | "custom";
+          special_requirements: string | null;
+          status: string | null;
+          created_at: string | null;
+          updated_at: string | null;
+          payment_method: string | null;
+          payment_status: string | null;
+          payment_details: Record<string, any> | null;
+          dinner_group_id: string | null;
+        };
+        Insert: {
+          id?: string;
+          client_name: string;
+          event_date: string;
+          number_of_people: number;
+          menu_type: "standard" | "vegetarian" | "vegan" | "gluten_free" | "premium" | "custom";
+          special_requirements?: string | null;
+          status?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+          payment_method?: string | null;
+          payment_status?: string | null;
+          payment_details?: Record<string, any> | null;
+          dinner_group_id?: string | null;
+        };
+        Update: {
+          id?: string;
+          client_name?: string;
+          event_date?: string;
+          number_of_people?: number;
+          menu_type?: "standard" | "vegetarian" | "vegan" | "gluten_free" | "premium" | "custom";
+          special_requirements?: string | null;
+          status?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+          payment_method?: string | null;
+          payment_status?: string | null;
+          payment_details?: Record<string, any> | null;
+          dinner_group_id?: string | null;
+        };
+      };
     };
     Views: {
       [key: string]: {
@@ -49,5 +96,8 @@ export interface Database {
       };
     };
     Functions: Record<string, unknown>;
+    Enums: {
+      menu_type_enum: "standard" | "vegetarian" | "vegan" | "gluten_free" | "premium" | "custom";
+    };
   };
 }

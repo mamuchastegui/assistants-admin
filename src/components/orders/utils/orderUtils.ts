@@ -1,5 +1,8 @@
-export const translateMenuType = (menuType: string): string => {
-  const menuTypeMap: Record<string, string> = {
+
+import { MenuType } from "@/types/order";
+
+export const translateMenuType = (menuType: MenuType): string => {
+  const menuTypeMap: Record<MenuType, string> = {
     'standard': 'Estándar',
     'vegetarian': 'Vegetariano',
     'vegan': 'Vegano',

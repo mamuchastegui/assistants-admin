@@ -2,8 +2,8 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Order } from "@/types/order";
-import { supabase } from "@/integrations/supabase/client";
+import { Order, MenuType } from "@/types/order";
+import { supabase } from "@/lib/supabase";
 
 interface OrdersResponse {
   response: Order[];

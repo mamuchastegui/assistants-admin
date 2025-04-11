@@ -1,4 +1,3 @@
-
 export const translateMenuType = (menuType: string): string => {
   const menuTypeMap: Record<string, string> = {
     'standard': 'Estándar',
@@ -15,9 +14,9 @@ export const translateMenuType = (menuType: string): string => {
 export const translateStatus = (status: string): string => {
   const statusMap: Record<string, string> = {
     'pending': 'Pendiente',
-    'confirmed': 'Confirmado',
+    'confirmed': 'Pagado',
     'cancelled': 'Cancelado',
-    'waiting': 'En espera',
+    'waiting': 'Rembolsado',
     'refunded': 'Rembolsado'
   };
   

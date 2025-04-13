@@ -31,11 +31,12 @@ const fetchOrders = async (): Promise<Order[]> => {
       // Ensure all orders have a status even if not set in database
       return data.map(order => ({
         ...order,
-        status: order.status || 'pending'
+        status: order.status || 'pending',
+        number_of_people: order.total_guests || 0
       })) as Order[];
     } else {
-      // Fallback to the mock API if Supabase is not configured
-      const response = await fetch('https://api.condamind.com/v1/catering/orders', {
+      // Fallback to the mock API with the new endpoint
+      const response = await fetch('https://api.condamind.com/v1/catering/orders/summary', {
         headers: {
           'Content-Type': 'application/json',
           'assistant-id': 'asst_OS4bPZIMBpvpYo2GMkG0ast5'
@@ -49,10 +50,11 @@ const fetchOrders = async (): Promise<Order[]> => {
       const data: OrdersResponse = await response.json();
       console.log('Orders fetched successfully:', data.response);
       
-      // Ensure all orders have a status even if not set in mock API
+      // Map the new format to include backward compatibility fields
       return data.response.map(order => ({
         ...order,
-        status: order.status || 'pending'
+        number_of_people: order.total_guests || 0,
+        status: order.status as OrderStatus || 'pending'
       }));
     }
   } catch (error) {

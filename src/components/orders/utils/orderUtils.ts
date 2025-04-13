@@ -27,6 +27,7 @@ export const translatePaymentMethod = (method: PaymentMethod | string | null): s
 
 export const translateOrderStatus = (status: OrderStatus | string | null): string => {
   const statusMap: Record<string, string> = {
+    'draft': 'Borrador',
     'pending': 'Pendiente',
     'approved': 'Aprobado',
     'cancelled': 'Cancelado',
@@ -56,6 +57,8 @@ export const getOrderStatusIcon = (status: OrderStatus | string | null) => {
   if (!status) return '⏳';
   
   switch (status) {
+    case 'draft':
+      return '📝';
     case 'pending':
       return '⏳';
     case 'approved':
@@ -82,6 +85,7 @@ export const getPaymentMethodClass = (method: PaymentMethod | string | null): st
 
 export const getOrderStatusClass = (status: OrderStatus | string | null): string => {
   const statusClassMap: Record<string, string> = {
+    'draft': 'bg-slate-100 text-slate-800',
     'pending': 'bg-yellow-100 text-yellow-800',
     'approved': 'bg-green-100 text-green-800',
     'cancelled': 'bg-red-100 text-red-800',

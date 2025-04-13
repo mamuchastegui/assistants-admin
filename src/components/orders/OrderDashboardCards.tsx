@@ -21,18 +21,18 @@ const OrderDashboardCards = ({ orders, isLoading }: OrderDashboardCardsProps) =>
     if (!orders) return 0;
     
     return orders.filter(order => 
-      order.status === 'pending'
+      order.status === 'pending' || order.status === 'draft'
     ).length;
   };
 
   const calculateTotalRevenue = () => {
     if (!orders) return 0;
-    return orders.reduce((total, order) => total + (order.number_of_people * 12000), 0);
+    return orders.reduce((total, order) => total + (order.total_amount || 0), 0);
   };
 
   const calculateTotalPeople = () => {
     if (!orders) return 0;
-    return orders.reduce((total, order) => total + order.number_of_people, 0);
+    return orders.reduce((total, order) => total + (order.total_guests || order.number_of_people || 0), 0);
   };
 
   const countOrdersToday = () => {

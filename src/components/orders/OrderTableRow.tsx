@@ -47,15 +47,23 @@ const OrderTableRow = ({
     
     return true;
   }, [order.payment_method, order.payment_status]);
+  
+  // Get menu type from the first menu if available
+  const menuType = useMemo(() => {
+    if (order.menus && order.menus.length > 0) {
+      return order.menus[0].menu_name;
+    }
+    return "standard"; // Default menu type
+  }, [order.menus]);
 
   return (
     <TableRow key={order.id}>
       <TableCell className="font-medium">{order.id.substring(0, 5)}...</TableCell>
       <TableCell className="max-w-[120px] truncate">{order.client_name}</TableCell>
-      <TableCell className="hidden md:table-cell max-w-[150px] truncate" title={order.menu_type}>
-        {translateMenuType(order.menu_type)}
+      <TableCell className="hidden md:table-cell max-w-[150px] truncate" title={menuType}>
+        {menuType}
       </TableCell>
-      <TableCell className="text-center">{order.number_of_people}</TableCell>
+      <TableCell className="text-center">{order.total_guests || order.number_of_people || 0}</TableCell>
       <TableCell className="hidden sm:table-cell whitespace-nowrap">{formatDate(order.event_date)}</TableCell>
       <TableCell>
         <Select
@@ -69,6 +77,7 @@ const OrderTableRow = ({
             </div>
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="draft">Borrador</SelectItem>
             <SelectItem value="pending">Pendiente</SelectItem>
             <SelectItem value="approved">Aprobado</SelectItem>
             <SelectItem value="cancelled">Cancelado</SelectItem>

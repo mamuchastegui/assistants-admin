@@ -160,47 +160,47 @@ export type Database = {
       }
       catering_orders: {
         Row: {
+          business_id: string | null
           client_name: string
           created_at: string | null
           dinner_group_id: string | null
           event_date: string
           id: string
-          menu_type: Database["public"]["Enums"]["menu_type_enum"]
-          number_of_people: number
+          notes: string | null
+          order_status: string | null
           payment_details: Json | null
           payment_method: string | null
           payment_status: string | null
-          special_requirements: string | null
           status: string | null
           updated_at: string | null
         }
         Insert: {
+          business_id?: string | null
           client_name: string
           created_at?: string | null
           dinner_group_id?: string | null
           event_date: string
           id?: string
-          menu_type: Database["public"]["Enums"]["menu_type_enum"]
-          number_of_people: number
+          notes?: string | null
+          order_status?: string | null
           payment_details?: Json | null
           payment_method?: string | null
           payment_status?: string | null
-          special_requirements?: string | null
           status?: string | null
           updated_at?: string | null
         }
         Update: {
+          business_id?: string | null
           client_name?: string
           created_at?: string | null
           dinner_group_id?: string | null
           event_date?: string
           id?: string
-          menu_type?: Database["public"]["Enums"]["menu_type_enum"]
-          number_of_people?: number
+          notes?: string | null
+          order_status?: string | null
           payment_details?: Json | null
           payment_method?: string | null
           payment_status?: string | null
-          special_requirements?: string | null
           status?: string | null
           updated_at?: string | null
         }
@@ -380,55 +380,41 @@ export type Database = {
       human_notifications: {
         Row: {
           assistant_id: string
-          business_id: string | null
-          created_at: string | null
-          customer_email: string
-          customer_name: string
-          customer_phone: string
+          business_id: string
+          created_at: string
+          customer: Json
           id: string
-          issue_description: string
+          issue: string
           source: string | null
           status: string | null
           thread_id: string
-          updated_at: string | null
+          updated_at: string
         }
         Insert: {
           assistant_id: string
-          business_id?: string | null
-          created_at?: string | null
-          customer_email: string
-          customer_name: string
-          customer_phone: string
+          business_id: string
+          created_at?: string
+          customer: Json
           id?: string
-          issue_description: string
+          issue: string
           source?: string | null
           status?: string | null
           thread_id: string
-          updated_at?: string | null
+          updated_at?: string
         }
         Update: {
           assistant_id?: string
-          business_id?: string | null
-          created_at?: string | null
-          customer_email?: string
-          customer_name?: string
-          customer_phone?: string
+          business_id?: string
+          created_at?: string
+          customer?: Json
           id?: string
-          issue_description?: string
+          issue?: string
           source?: string | null
           status?: string | null
           thread_id?: string
-          updated_at?: string | null
+          updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "human_notifications_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "businesses"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       investments: {
         Row: {
@@ -471,50 +457,183 @@ export type Database = {
       }
       menu_items: {
         Row: {
-          business_id: string | null
           category: string | null
-          created_at: string | null
+          created_at: string
           currency: string | null
           description: string | null
           id: string
           is_active: boolean | null
-          menu_type: string
+          menu_id: string
           name: string
           price: number | null
-          updated_at: string | null
+          updated_at: string
         }
         Insert: {
-          business_id?: string | null
           category?: string | null
-          created_at?: string | null
+          created_at?: string
           currency?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
-          menu_type?: string
+          menu_id: string
           name: string
           price?: number | null
-          updated_at?: string | null
+          updated_at?: string
         }
         Update: {
-          business_id?: string | null
           category?: string | null
-          created_at?: string | null
+          created_at?: string
           currency?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
-          menu_type?: string
+          menu_id?: string
           name?: string
           price?: number | null
-          updated_at?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "menu_items_business_id_fkey"
-            columns: ["business_id"]
+            foreignKeyName: "menu_items_menu_id_fkey"
+            columns: ["menu_id"]
             isOneToOne: false
-            referencedRelation: "businesses"
+            referencedRelation: "menus"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      menu_variations: {
+        Row: {
+          created_at: string
+          currency: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          menu_item_id: string
+          name: string
+          price: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          menu_item_id: string
+          name: string
+          price?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          menu_item_id?: string
+          name?: string
+          price?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_variations_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      menus: {
+        Row: {
+          business_id: string
+          category: string | null
+          created_at: string
+          currency: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          menu_type: string | null
+          name: string
+          price: number | null
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          category?: string | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          menu_type?: string | null
+          name: string
+          price?: number | null
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          category?: string | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          menu_type?: string | null
+          name?: string
+          price?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      order_guests: {
+        Row: {
+          created_at: string
+          guest_name: string
+          id: string
+          meal_date: string
+          meal_time: string | null
+          menu_id: string | null
+          menu_item_id: string | null
+          menu_variation_id: string | null
+          order_id: string
+          special_requirements: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          guest_name: string
+          id?: string
+          meal_date: string
+          meal_time?: string | null
+          menu_id?: string | null
+          menu_item_id?: string | null
+          menu_variation_id?: string | null
+          order_id: string
+          special_requirements?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          guest_name?: string
+          id?: string
+          meal_date?: string
+          meal_time?: string | null
+          menu_id?: string | null
+          menu_item_id?: string | null
+          menu_variation_id?: string | null
+          order_id?: string
+          special_requirements?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_guests_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "catering_orders"
             referencedColumns: ["id"]
           },
         ]
@@ -831,6 +950,22 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      menu_category_enum:
+        | "appetizer"
+        | "main_course"
+        | "dessert"
+        | "beverage"
+        | "package"
+        | "other"
+      menu_dietary_enum:
+        | "regular"
+        | "vegetarian"
+        | "vegan"
+        | "kosher"
+        | "halal"
+        | "gluten_free"
+        | "dairy_free"
+        | "other"
       menu_type_enum:
         | "standard"
         | "vegetarian"
@@ -953,6 +1088,24 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      menu_category_enum: [
+        "appetizer",
+        "main_course",
+        "dessert",
+        "beverage",
+        "package",
+        "other",
+      ],
+      menu_dietary_enum: [
+        "regular",
+        "vegetarian",
+        "vegan",
+        "kosher",
+        "halal",
+        "gluten_free",
+        "dairy_free",
+        "other",
+      ],
       menu_type_enum: [
         "standard",
         "vegetarian",

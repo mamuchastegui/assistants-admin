@@ -78,7 +78,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({
 
   return (
     <Card className="h-full">
-      <CardHeader>
+      <CardHeader className="pb-2">
         <CardTitle className="text-lg flex items-center">
           <Avatar className="h-8 w-8 mr-2">
             <AvatarFallback>
@@ -88,9 +88,9 @@ const ConversationView: React.FC<ConversationViewProps> = ({
           {displayName}
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <ScrollArea className="h-[550px] pr-4">
-          <div className="space-y-4">
+      <CardContent className="h-[calc(100%-60px)] overflow-hidden">
+        <ScrollArea className="h-full pr-4">
+          <div className="space-y-4 pb-2">
             {conversation.conversation.map((message, index) => {
               const date = new Date(message.timestamp);
               const isUser = message.role === "user";

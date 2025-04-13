@@ -84,8 +84,15 @@ const ConversationView: React.FC<ConversationViewProps> = ({
         </CardTitle>
       </CardHeader>
       
-      {/* Message area - Scrollable middle section with chat background */}
-      <CardContent className="flex-grow overflow-hidden p-4 bg-[#1A1F2C] bg-opacity-95 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSJ0cmFuc3BhcmVudCIvPgo8cGF0aCBkPSJNNDAgNDAuNUw0MC41IDQwTDQwIDM5LjVMMzkuNSA0MEw0MCA0MC41Wk02MCA2MC41TDYwLjUgNjBMNjAgNTkuNUw1OS41IDYwTDYwIDYwLjVaTTgwIDgwLjVMODAuNSA4MEw4MCA3OS41TDc5LjUgODBMODAgODAuNVpNMTAwIDEwMC41TDEwMC41IDEwMEwxMDAgOTkuNUw5OS41IDEwMEwxMDAgMTAwLjVaTTEyMCAxMjAuNUwxMjAuNSAxMjBMMTIwIDExOS41TDExOS41IDEyMEwxMjAgMTIwLjVaTTE0MCAxNDAuNUwxNDAuNSAxNDBMMTQwIDEzOS41TDEzOS41IDE0MEwxNDAgMTQwLjVaTTE2MCAxNjAuNUwxNjAuNSAxNjBMMTYwIDE1OS41TDE1OS41IDE2MEwxNjAgMTYwLjVaIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjA1Ii8+Cjwvc3ZnPg==')] rounded-md">
+      {/* Message area - Scrollable middle section with WhatsApp-style background */}
+      <CardContent 
+        className="flex-grow overflow-hidden p-4 bg-[#0B141A] rounded-md"
+        style={{
+          backgroundImage: `url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAJRSURBVHgB7ZrNbtNAEMf/a7sNQnAicIK9gTgAJ/JWQeoNQxE3Tj1DpfaAvQG5AT1B2hsH2hwrLpUq9Qa8khEhVZGTZJP1fCRRG9vJxN6R9peMPbI12t/O7G7GAVYWgCNM4IZMHJIx5QCiEGJ9ipGouCUb3UQ3WSIeJk7oVGznz7bJjBAy1I5sE49nTs+4k8iEQjYn+httYCFHWTjQIkhkht5jLhsiQp0iX87UIE2FjEhSVU8jWQcOS4QYOVQBbSLhFBnBevI1QhmRSPZecgJRcSwHLYtUIqOey7e1MSJqFBnT2fvIAJEVI62SCd3/cYhsKI3IOBcRI5WCjqisM9a1LFKOrGPzzbtuVNftvX43/7xQdiT6/f46dmxcXnZp329vUKvdw6L4vlDu9fd3UNncAv3++PefmxW7OWc3bnZ20gcepc0bGsadfjdkjPZDiPYxZYjIoFRHGK5BxDD2Geu4XYeUoUmsBSQm0j3b8fxdShGZuEpCHcvQZHUhCfm+7W2Yi7OzX/7t3ldKEdnQIrE2kZBvZ4e6qqoJZYgo+FepfIw7LMvlfXVuN28GcEU3vF5vMm7HziLQPBJFIrmMujojXbW+AE22RinVuV+3wzt/SIgYhYOLJE4OWD8dU0KsTeQrUBeap8jSLyP2RXRLx9FFL0T1i98TY+7ouNK625hFvYwQ+fzuDvkrNQWfbJRoyB8nuL7e17yMENmAvkbvuxIixjZGxNgqYUUJK0pYUcI1nuu+aOw0I6KZGe7cZFhj5UOIFRERYxfnfwEmChD71zdxywAAAABJRU5ErkJggg==")`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '64px'
+        }}
+      >
         <ScrollArea className="h-full pr-4">
           <div className="space-y-4 pb-4">
             {conversation.conversation.map((message, index) => {
@@ -100,8 +107,8 @@ const ConversationView: React.FC<ConversationViewProps> = ({
                   <div
                     className={`max-w-[80%] rounded-lg p-3 shadow-md ${
                       isUser
-                        ? "bg-[#6E59A5] text-white" // Purple for user messages
-                        : "bg-[#333333] text-gray-100" // Dark gray for assistant messages
+                        ? "bg-[#005C4B] text-white" // Green for user messages (classic WhatsApp)
+                        : "bg-[#1F2C34] text-gray-100" // Dark gray for assistant messages
                     }`}
                   >
                     <div className="whitespace-pre-wrap break-words">{message.content}</div>
@@ -122,7 +129,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({
       </CardContent>
       
       {/* Footer area - Reserved for future chat input */}
-      <CardFooter className="border-t p-3 flex-shrink-0 min-h-[50px] bg-[#222222]">
+      <CardFooter className="border-t p-3 flex-shrink-0 min-h-[50px] bg-[#1F2C34]">
         {/* This area is reserved for future chat input functionality */}
       </CardFooter>
     </Card>

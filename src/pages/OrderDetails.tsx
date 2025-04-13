@@ -4,14 +4,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, User, FileText, CreditCard } from "lucide-react";
+import { ArrowLeft, Calendar, User, FileText, CreditCard, Users } from "lucide-react";
 import { format } from "date-fns";
-import { Accordion } from "@/components/ui/accordion";
 import { useOrders } from "@/hooks/useOrders";
 import OrderDetailCard from "@/components/orders/OrderDetailCard";
 import GuestList from "@/components/orders/GuestList";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const OrderDetails = () => {
   const { orderId } = useParams();
@@ -73,8 +73,10 @@ const OrderDetails = () => {
     );
   }
 
+  // Calculate total counts
   const totalMenus = order.menus?.length || 0;
   const totalGuests = order.total_guests || order.number_of_people || 0;
+  const hasGuestsDetail = order.menus?.some(menu => menu.guests && menu.guests.length > 0) || false;
 
   return (
     <DashboardLayout>

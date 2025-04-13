@@ -1,11 +1,14 @@
-import React from "react";
+
+import React, { useState, useEffect } from "react";
 import { Conversation } from "@/hooks/useChatThreads";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { Loader2, MessageSquare } from "lucide-react";
+import { Loader2, MessageSquare, Search } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 
 interface ConversationViewProps {
   conversation: Conversation | null;
@@ -19,13 +22,33 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   selectedThread 
 }) => {
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [filteredMessages, setFilteredMessages] = useState<any[]>([]);
 
   React.useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [conversation]);
+  }, [conversation, filteredMessages]);
   
+  useEffect(() => {
+    if (!conversation || !conversation.conversation) {
+      setFilteredMessages([]);
+      return;
+    }
+
+    if (!searchQuery.trim()) {
+      setFilteredMessages(conversation.conversation);
+      return;
+    }
+
+    const filtered = conversation.conversation.filter(message => 
+      message.content.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    
+    setFilteredMessages(filtered);
+  }, [searchQuery, conversation]);
+
   const getInitials = (name?: string | null) => {
     if (!name) return "WA";
     const nameParts = name.split(" ");
@@ -70,6 +93,26 @@ const ConversationView: React.FC<ConversationViewProps> = ({
 
   return (
     <Card className="h-full flex flex-col">
+      <div className="px-6 pt-4">
+        <h2 className="text-xl font-bold">Mensajes de WhatsApp</h2>
+        <p className="text-sm text-muted-foreground">Conversaciones recientes con tus clientes</p>
+      </div>
+      
+      <div className="p-4">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input 
+            type="search" 
+            placeholder="Buscar en la conversación..." 
+            className="pl-8 h-9 text-sm"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </div>
+      
+      <Separator className="mb-0" />
+      
       <CardHeader className="pb-2 border-b flex-shrink-0">
         <CardTitle className="text-lg flex items-center">
           <Avatar className="h-8 w-8 mr-2">
@@ -91,7 +134,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({
       >
         <ScrollArea className="h-full pr-4">
           <div className="space-y-4 pb-4">
-            {conversation.conversation.map((message, index) => {
+            {filteredMessages.map((message, index) => {
               const date = new Date(message.timestamp);
               const isUser = message.role === "user";
 

@@ -81,7 +81,7 @@ const OrderDetails = () => {
       <div className="space-y-6">
         <PageHeader
           title={`Pedido: ${order.client_name}`}
-          description={`ID: ${orderId?.substring(0, 8)}...`}
+          description={`ID: ${orderId}`}
           actions={
             <Button variant="outline" size="sm" onClick={() => navigate('/orders')}>
               <ArrowLeft className="mr-2 h-4 w-4" />

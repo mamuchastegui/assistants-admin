@@ -67,7 +67,7 @@ const OrderTableRow = ({
 
   return (
     <TableRow key={order.id}>
-      <TableCell className="font-medium">{order.id.substring(0, 5)}...</TableCell>
+      <TableCell className="font-medium" title={order.id}>{order.id.substring(0, 5)}...</TableCell>
       <TableCell className="max-w-[120px] truncate">{order.client_name}</TableCell>
       <TableCell className="hidden md:table-cell max-w-[150px] truncate" title={menuType}>
         {menuType}
@@ -114,7 +114,7 @@ const OrderTableRow = ({
         </Select>
       </TableCell>
       <TableCell>
-        <Button variant="ghost" size="icon" onClick={viewOrderDetails}>
+        <Button variant="ghost" size="icon" onClick={viewOrderDetails} title={`Ver detalles de pedido: ${order.id}`}>
           <Eye className="h-4 w-4" />
         </Button>
       </TableCell>

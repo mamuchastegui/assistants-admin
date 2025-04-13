@@ -2,7 +2,10 @@
 import React, { useMemo } from "react";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Eye } from "lucide-react";
 import { Order, PaymentMethod, OrderStatus } from "@/types/order";
+import { useNavigate } from "react-router-dom";
 import { 
   translateMenuType, 
   translatePaymentMethod,
@@ -24,6 +27,8 @@ const OrderTableRow = ({
   onPaymentMethodChange,
   onOrderStatusChange
 }: OrderTableRowProps) => {
+  const navigate = useNavigate();
+  
   const formatDate = (dateString: string) => {
     try {
       return new Date(dateString).toLocaleString('es', {
@@ -55,6 +60,10 @@ const OrderTableRow = ({
     }
     return "standard"; // Default menu type
   }, [order.menus]);
+
+  const viewOrderDetails = () => {
+    navigate(`/orders/${order.id}`);
+  };
 
   return (
     <TableRow key={order.id}>
@@ -103,6 +112,11 @@ const OrderTableRow = ({
             <SelectItem value="mercado_pago">MercadoPago</SelectItem>
           </SelectContent>
         </Select>
+      </TableCell>
+      <TableCell>
+        <Button variant="ghost" size="icon" onClick={viewOrderDetails}>
+          <Eye className="h-4 w-4" />
+        </Button>
       </TableCell>
     </TableRow>
   );

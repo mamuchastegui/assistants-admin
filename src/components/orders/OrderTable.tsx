@@ -50,6 +50,7 @@ const OrderTable = ({
                   <TableHead className="hidden sm:table-cell">Fecha</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>Método de Pago</TableHead>
+                  <TableHead className="w-[50px]">Detalle</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -64,7 +65,7 @@ const OrderTable = ({
                   ))
                 ) : (
                   <TableRow>
-                    <td colSpan={7} className="text-center py-4">
+                    <td colSpan={8} className="text-center py-4">
                       No hay pedidos disponibles
                     </td>
                   </TableRow>

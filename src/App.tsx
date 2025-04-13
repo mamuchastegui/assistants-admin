@@ -9,6 +9,7 @@ import Calendar from "./pages/Calendar";
 import Assistant from "./pages/Assistant";
 import Integrations from "./pages/Integrations";
 import Orders from "./pages/Orders";
+import OrderDetails from "./pages/OrderDetails";
 import Menu from "./pages/Menu";
 import RestaurantMenu from "./pages/RestaurantMenu";
 import NotFound from "./pages/NotFound";
@@ -46,6 +47,7 @@ function App() {
                 <Route path="/assistant" element={<Assistant />} />
                 <Route path="/integrations" element={<Integrations />} />
                 <Route path="/orders" element={<Orders />} />
+                <Route path="/orders/:orderId" element={<OrderDetails />} />
                 <Route path="/menu" element={<Menu />} />
                 <Route path="/restaurant-menu" element={<RestaurantMenu />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

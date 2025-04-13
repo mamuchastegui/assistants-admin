@@ -3,7 +3,7 @@ import React from "react";
 import { Conversation } from "@/hooks/useChatThreads";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Loader2, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -78,7 +78,8 @@ const ConversationView: React.FC<ConversationViewProps> = ({
 
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader className="pb-2 flex-shrink-0">
+      {/* Header - Fixed at top */}
+      <CardHeader className="pb-2 border-b flex-shrink-0">
         <CardTitle className="text-lg flex items-center">
           <Avatar className="h-8 w-8 mr-2">
             <AvatarFallback>
@@ -88,8 +89,10 @@ const ConversationView: React.FC<ConversationViewProps> = ({
           {displayName}
         </CardTitle>
       </CardHeader>
+      
+      {/* Message area - Scrollable middle section */}
       <CardContent className="flex-grow overflow-hidden p-4">
-        <ScrollArea className="h-full pr-4 pb-4">
+        <ScrollArea className="h-full">
           <div className="space-y-4 pb-4">
             {conversation.conversation.map((message, index) => {
               const date = new Date(message.timestamp);
@@ -123,6 +126,11 @@ const ConversationView: React.FC<ConversationViewProps> = ({
           </div>
         </ScrollArea>
       </CardContent>
+      
+      {/* Footer area - Reserved for future chat input */}
+      <CardFooter className="border-t p-3 flex-shrink-0 min-h-[50px]">
+        {/* This area is reserved for future chat input functionality */}
+      </CardFooter>
     </Card>
   );
 };

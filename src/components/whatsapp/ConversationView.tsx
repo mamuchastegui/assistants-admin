@@ -134,19 +134,19 @@ const ConversationView: React.FC<ConversationViewProps> = ({
               return (
                 <div
                   key={index}
-                  className={`flex ${isUser ? "justify-end" : "justify-start"}`}
+                  className={`flex ${isUser ? "justify-start" : "justify-end"}`}
                 >
                   <div
                     className={`max-w-[80%] rounded-lg p-3 shadow-md ${
                       isUser
-                        ? "bg-[#005C4B] text-white" // Green for user messages (classic WhatsApp)
-                        : "bg-[#1F2C34] text-gray-100" // Dark gray for assistant messages
+                        ? "bg-[#1F2C34] text-gray-100" // Dark gray for user messages
+                        : "bg-[#005C4B] text-white"    // Green for assistant messages
                     }`}
                   >
                     <div className="whitespace-pre-wrap break-words">{message.content}</div>
                     <div
                       className={`text-xs mt-1 ${
-                        isUser ? "text-gray-200" : "text-gray-400"
+                        isUser ? "text-gray-400" : "text-gray-200"
                       }`}
                     >
                       {format(date, "HH:mm - d MMM", { locale: es })}

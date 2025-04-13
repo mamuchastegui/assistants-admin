@@ -23,22 +23,20 @@ const AssistantConfig: React.FC = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="w-full h-[calc(100vh-180px)] min-h-[800px]" // Maintained height for better view
+      className="w-full h-[calc(100vh-200px)]" // Adjusted height to prevent overflow
     >
-      <Card className="h-full shadow-md flex flex-col">
-        <div className="h-full flex-grow flex flex-col overflow-hidden">
-          <ChatInterface 
-            threads={threads}
-            loadingThreads={loadingThreads}
-            error={error}
-            fetchThreads={fetchThreads}
-            selectedThread={selectedThread}
-            selectThread={selectThread}
-            conversation={conversation}
-            loadingConversation={loadingConversation}
-            deleteThread={deleteThread}
-          />
-        </div>
+      <Card className="h-full shadow-md overflow-hidden">
+        <ChatInterface 
+          threads={threads}
+          loadingThreads={loadingThreads}
+          error={error}
+          fetchThreads={fetchThreads}
+          selectedThread={selectedThread}
+          selectThread={selectThread}
+          conversation={conversation}
+          loadingConversation={loadingConversation}
+          deleteThread={deleteThread}
+        />
       </Card>
     </motion.div>
   );

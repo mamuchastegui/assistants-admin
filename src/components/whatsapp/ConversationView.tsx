@@ -37,39 +37,33 @@ const ConversationView: React.FC<ConversationViewProps> = ({
 
   if (!selectedThread) {
     return (
-      <Card className="h-full">
-        <CardContent className="flex items-center justify-center h-[600px]">
-          <div className="text-center">
-            <MessageSquare className="w-10 h-10 mx-auto text-muted-foreground" />
-            <p className="mt-4 text-muted-foreground">Selecciona una conversación para ver los mensajes</p>
-          </div>
-        </CardContent>
+      <Card className="h-full flex items-center justify-center">
+        <div className="text-center p-6">
+          <MessageSquare className="w-10 h-10 mx-auto text-muted-foreground" />
+          <p className="mt-4 text-muted-foreground">Selecciona una conversación para ver los mensajes</p>
+        </div>
       </Card>
     );
   }
 
   if (loading) {
     return (
-      <Card className="h-full">
-        <CardContent className="flex items-center justify-center h-[600px]">
-          <div className="text-center">
-            <Loader2 className="w-10 h-10 mx-auto animate-spin text-primary" />
-            <p className="mt-4 text-muted-foreground">Cargando conversación...</p>
-          </div>
-        </CardContent>
+      <Card className="h-full flex items-center justify-center">
+        <div className="text-center p-6">
+          <Loader2 className="w-10 h-10 mx-auto animate-spin text-primary" />
+          <p className="mt-4 text-muted-foreground">Cargando conversación...</p>
+        </div>
       </Card>
     );
   }
 
   if (!conversation || !conversation.conversation || conversation.conversation.length === 0) {
     return (
-      <Card className="h-full">
-        <CardContent className="flex items-center justify-center h-[600px]">
-          <div className="text-center">
-            <MessageSquare className="w-10 h-10 mx-auto text-muted-foreground" />
-            <p className="mt-4 text-muted-foreground">No hay mensajes en esta conversación</p>
-          </div>
-        </CardContent>
+      <Card className="h-full flex items-center justify-center">
+        <div className="text-center p-6">
+          <MessageSquare className="w-10 h-10 mx-auto text-muted-foreground" />
+          <p className="mt-4 text-muted-foreground">No hay mensajes en esta conversación</p>
+        </div>
       </Card>
     );
   }
@@ -92,7 +86,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({
       
       {/* Message area - Scrollable middle section */}
       <CardContent className="flex-grow overflow-hidden p-4">
-        <ScrollArea className="h-full">
+        <ScrollArea className="h-full pr-4">
           <div className="space-y-4 pb-4">
             {conversation.conversation.map((message, index) => {
               const date = new Date(message.timestamp);
@@ -110,7 +104,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({
                         : "bg-muted"
                     }`}
                   >
-                    <div className="whitespace-pre-wrap">{message.content}</div>
+                    <div className="whitespace-pre-wrap break-words">{message.content}</div>
                     <div
                       className={`text-xs mt-1 ${
                         isUser ? "text-primary-foreground/80" : "text-muted-foreground"

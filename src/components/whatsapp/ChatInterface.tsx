@@ -28,9 +28,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   deleteThread
 }) => {
   return (
-    <div className="grid md:grid-cols-[350px_1fr] lg:grid-cols-[350px_1fr] w-full h-full gap-2">
+    <div className="grid md:grid-cols-[350px_1fr] lg:grid-cols-[350px_1fr] w-full h-full gap-4">
       {/* Conversation threads list on the left */}
-      <div className="border-r dark:border-gray-700">
+      <div className="border-r dark:border-gray-700 h-full overflow-hidden">
         <ChatThreadList
           threads={threads}
           loadingThreads={loadingThreads}
@@ -43,7 +43,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       </div>
       
       {/* Chat view on the right */}
-      <div className="flex-grow overflow-hidden">
+      <div className="flex-grow h-full overflow-hidden">
         <ConversationView
           conversation={conversation}
           loading={loadingConversation}

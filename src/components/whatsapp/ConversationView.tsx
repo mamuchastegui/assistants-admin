@@ -84,8 +84,8 @@ const ConversationView: React.FC<ConversationViewProps> = ({
         </CardTitle>
       </CardHeader>
       
-      {/* Message area - Scrollable middle section */}
-      <CardContent className="flex-grow overflow-hidden p-4">
+      {/* Message area - Scrollable middle section with chat background */}
+      <CardContent className="flex-grow overflow-hidden p-4 bg-[#1A1F2C] bg-opacity-95 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSJ0cmFuc3BhcmVudCIvPgo8cGF0aCBkPSJNNDAgNDAuNUw0MC41IDQwTDQwIDM5LjVMMzkuNSA0MEw0MCA0MC41Wk02MCA2MC41TDYwLjUgNjBMNjAgNTkuNUw1OS41IDYwTDYwIDYwLjVaTTgwIDgwLjVMODAuNSA4MEw4MCA3OS41TDc5LjUgODBMODAgODAuNVpNMTAwIDEwMC41TDEwMC41IDEwMEwxMDAgOTkuNUw5OS41IDEwMEwxMDAgMTAwLjVaTTEyMCAxMjAuNUwxMjAuNSAxMjBMMTIwIDExOS41TDExOS41IDEyMEwxMjAgMTIwLjVaTTE0MCAxNDAuNUwxNDAuNSAxNDBMMTQwIDEzOS41TDEzOS41IDE0MEwxNDAgMTQwLjVaTTE2MCAxNjAuNUwxNjAuNSAxNjBMMTYwIDE1OS41TDE1OS41IDE2MEwxNjAgMTYwLjVaIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjA1Ii8+Cjwvc3ZnPg==')] rounded-md">
         <ScrollArea className="h-full pr-4">
           <div className="space-y-4 pb-4">
             {conversation.conversation.map((message, index) => {
@@ -98,16 +98,16 @@ const ConversationView: React.FC<ConversationViewProps> = ({
                   className={`flex ${isUser ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-lg p-3 ${
+                    className={`max-w-[80%] rounded-lg p-3 shadow-md ${
                       isUser
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
+                        ? "bg-[#6E59A5] text-white" // Purple for user messages
+                        : "bg-[#333333] text-gray-100" // Dark gray for assistant messages
                     }`}
                   >
                     <div className="whitespace-pre-wrap break-words">{message.content}</div>
                     <div
                       className={`text-xs mt-1 ${
-                        isUser ? "text-primary-foreground/80" : "text-muted-foreground"
+                        isUser ? "text-gray-200" : "text-gray-400"
                       }`}
                     >
                       {format(date, "HH:mm - d MMM", { locale: es })}
@@ -122,7 +122,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({
       </CardContent>
       
       {/* Footer area - Reserved for future chat input */}
-      <CardFooter className="border-t p-3 flex-shrink-0 min-h-[50px]">
+      <CardFooter className="border-t p-3 flex-shrink-0 min-h-[50px] bg-[#222222]">
         {/* This area is reserved for future chat input functionality */}
       </CardFooter>
     </Card>

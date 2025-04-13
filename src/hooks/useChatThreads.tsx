@@ -97,6 +97,34 @@ export function useChatThreads() {
     fetchConversation(threadId);
   }, [fetchConversation]);
 
+  const deleteThread = useCallback(async (threadId: string) => {
+    try {
+      const response = await fetch(`https://api.condamind.com/chat/threads/${threadId}`, {
+        method: "DELETE",
+        headers: {
+          "assistant-id": ASSISTANT_ID
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${await response.text()}`);
+      }
+
+      // Update the local state to remove the deleted thread
+      setThreads(prevThreads => prevThreads.filter(thread => thread.thread_id !== threadId));
+      
+      // If the deleted thread was selected, clear the selection
+      if (selectedThread === threadId) {
+        setSelectedThread(null);
+        setConversation(null);
+      }
+      
+    } catch (err) {
+      console.error("Error deleting thread:", err);
+      throw err;
+    }
+  }, [selectedThread]);
+
   useEffect(() => {
     fetchThreads();
   }, [fetchThreads]);
@@ -110,5 +138,6 @@ export function useChatThreads() {
     selectThread,
     conversation,
     loadingConversation,
+    deleteThread
   };
 }

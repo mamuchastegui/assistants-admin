@@ -1,123 +1,50 @@
 
 import React from "react";
-import ChatThreadList from "@/components/whatsapp/ChatThreadList";
-import WhatsAppMessages from "@/components/whatsapp/WhatsAppMessages";
-import { useChatThreads } from "@/hooks/useChatThreads";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
-import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import ChatThreadList from "./ChatThreadList";
+import ConversationView from "./ConversationView";
+import { ChatThread, Conversation } from "@/hooks/useChatThreads";
 
-const ChatInterface: React.FC = () => {
-  const { 
-    threads, 
-    loadingThreads, 
-    error, 
-    fetchThreads, 
-    selectedThread, 
-    selectThread,
-    conversation,
-    loadingConversation 
-  } = useChatThreads();
-  
-  const isMobile = useIsMobile();
-  const [showThreadList, setShowThreadList] = React.useState(!isMobile || !selectedThread);
-  const threadListRef = React.useRef<HTMLDivElement>(null);
+interface ChatInterfaceProps {
+  threads: ChatThread[];
+  loadingThreads: boolean;
+  error: string | null;
+  fetchThreads: () => void;
+  selectedThread: string | null;
+  selectThread: (threadId: string) => void;
+  conversation: Conversation | null;
+  loadingConversation: boolean;
+  deleteThread?: (threadId: string) => Promise<void>;
+}
 
-  // Effect to handle visibility of thread list based on screen width
-  React.useEffect(() => {
-    if (isMobile && selectedThread) {
-      setShowThreadList(false);
-    } else if (!isMobile) {
-      setShowThreadList(true);
-    }
-  }, [selectedThread, isMobile]);
-
-  // Handler for thread selection - on mobile, this will hide thread list
-  const handleSelectThread = (threadId: string) => {
-    selectThread(threadId);
-    if (isMobile) {
-      setShowThreadList(false);
-    }
-  };
-
-  // Handler for back button in mobile view
-  const handleBackButton = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setShowThreadList(true);
-  };
-
-  // Click outside handler for mobile
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (isMobile && threadListRef.current && !threadListRef.current.contains(event.target as Node)) {
-        // Don't close if we're clicking on the menu button
-        const target = event.target as HTMLElement;
-        if (target.closest('button') && target.closest('button')?.dataset?.action === 'menu') {
-          return;
-        }
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isMobile, threadListRef]);
-
+const ChatInterface: React.FC<ChatInterfaceProps> = ({
+  threads,
+  loadingThreads,
+  error,
+  fetchThreads,
+  selectedThread,
+  selectThread,
+  conversation,
+  loadingConversation,
+  deleteThread
+}) => {
   return (
-    <div className="flex flex-col md:flex-row relative w-full h-full">
-      {/* Thread list container */}
-      <div 
-        className={cn(
-          isMobile 
-            ? showThreadList 
-              ? "absolute inset-0 z-30 w-full h-full" 
-              : "hidden"
-            : "w-1/3 h-full", // Changed from h-1/2 to h-full and w-1/3 for side-by-side layout
-          "bg-card overflow-hidden"
-        )} 
-        ref={threadListRef}
-      >
-        <ChatThreadList 
+    <div className="grid md:grid-cols-[300px_1fr] lg:grid-cols-[350px_1fr] w-full h-full">
+      <div className="border-r dark:border-gray-700">
+        <ChatThreadList
           threads={threads}
           loadingThreads={loadingThreads}
           error={error}
           fetchThreads={fetchThreads}
           selectedThread={selectedThread}
-          selectThread={handleSelectThread}
+          selectThread={selectThread}
+          deleteThread={deleteThread}
         />
       </div>
-
-      {/* Messages container */}
-      <div 
-        className={cn(
-          isMobile
-            ? !showThreadList ? "h-full" : "hidden"
-            : "h-full w-2/3", // Changed from h-1/2 to h-full and w-2/3 for side-by-side layout
-          "overflow-hidden"
-        )}
-      >
-        {/* Menu button for mobile */}
-        {isMobile && !showThreadList && selectedThread && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleBackButton}
-            data-action="menu"
-            className="absolute top-3 left-3 z-40 bg-background/70 backdrop-blur-sm rounded-full h-8 w-8 p-0"
-          >
-            <Menu className="h-4 w-4" />
-          </Button>
-        )}
-
-        <WhatsAppMessages 
+      <div className="flex-grow overflow-hidden">
+        <ConversationView
           conversation={conversation}
-          loadingConversation={loadingConversation}
+          loading={loadingConversation}
           selectedThread={selectedThread}
-          onBack={handleBackButton}
-          isMobileView={isMobile && !showThreadList}
         />
       </div>
     </div>

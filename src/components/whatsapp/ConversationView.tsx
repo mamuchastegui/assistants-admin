@@ -1,6 +1,6 @@
 
 import React from "react";
-import { useChatThreads } from "@/hooks/useChatThreads";
+import { Conversation } from "@/hooks/useChatThreads";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -8,8 +8,17 @@ import { Loader2, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
-const ConversationView: React.FC = () => {
-  const { conversation, loadingConversation, selectedThread } = useChatThreads();
+interface ConversationViewProps {
+  conversation: Conversation | null;
+  loading: boolean;
+  selectedThread: string | null;
+}
+
+const ConversationView: React.FC<ConversationViewProps> = ({ 
+  conversation, 
+  loading, 
+  selectedThread 
+}) => {
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -39,7 +48,7 @@ const ConversationView: React.FC = () => {
     );
   }
 
-  if (loadingConversation) {
+  if (loading) {
     return (
       <Card className="h-full">
         <CardContent className="flex items-center justify-center h-[600px]">

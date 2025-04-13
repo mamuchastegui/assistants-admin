@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Conversation } from "@/hooks/useChatThreads";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -27,7 +26,6 @@ const ConversationView: React.FC<ConversationViewProps> = ({
     }
   }, [conversation]);
   
-  // Helper function to safely get initials from a name
   const getInitials = (name?: string | null) => {
     if (!name) return "WA";
     const nameParts = name.split(" ");
@@ -72,7 +70,6 @@ const ConversationView: React.FC<ConversationViewProps> = ({
 
   return (
     <Card className="h-full flex flex-col">
-      {/* Header - Fixed at top */}
       <CardHeader className="pb-2 border-b flex-shrink-0">
         <CardTitle className="text-lg flex items-center">
           <Avatar className="h-8 w-8 mr-2">
@@ -84,11 +81,10 @@ const ConversationView: React.FC<ConversationViewProps> = ({
         </CardTitle>
       </CardHeader>
       
-      {/* Message area - Scrollable middle section with WhatsApp-style background */}
       <CardContent 
         className="flex-grow overflow-hidden p-4 bg-[#0B141A] rounded-md"
         style={{
-          backgroundImage: `url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAJRSURBVHgB7ZrNbtNAEMf/a7sNQnAicIK9gTgAJ/JWQeoNQxE3Tj1DpfaAvQG5AT1B2hsH2hwrLpUq9Qa8khEhVZGTZJP1fCRRG9vJxN6R9peMPbI12t/O7G7GAVYWgCNM4IZMHJIx5QCiEGJ9ipGouCUb3UQ3WSIeJk7oVGznz7bJjBAy1I5sE49nTs+4k8iEQjYn+httYCFHWTjQIkhkht5jLhsiQp0iX87UIE2FjEhSVU8jWQcOS4QYOVQBbSLhFBnBevI1QhmRSPZecgJRcSwHLYtUIqOey7e1MSJqFBnT2fvIAJEVI62SCd3/cYhsKI3IOBcRI5WCjqisM9a1LFKOrGPzzbtuVNftvX43/7xQdiT6/f46dmxcXnZp329vUKvdw6L4vlDu9fd3UNncAv3++PefmxW7OWc3bnZ20gcepc0bGsadfjdkjPZDiPYxZYjIoFRHGK5BxDD2Geu4XYeUoUmsBSQm0j3b8fxdShGZuEpCHcvQZHUhCfm+7W2Yi7OzX/7t3ldKEdnQIrE2kZBvZ4e6qqoJZYgo+FepfIw7LMvlfXVuN28GcEU3vF5vMm7HziLQPBJFIrmMujojXbW+AE22RinVuV+3wzt/SIgYhYOLJE4OWD8dU0KsTeQrUBeap8jSLyP2RXRLx9FFL0T1i98TY+7ouNK625hFvYwQ+fzuDvkrNQWfbJRoyB8nuL7e17yMENmAvkbvuxIixjZGxNgqYUUJK0pYUcI1nuu+aOw0I6KZGe7cZFhj5UOIFRERYxfnfwEmChD71zdxywAAAABJRU5ErkJggg==")`,
+          backgroundImage: `url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAKsSURBVHgB7ZrLjtNAFIbPdTtpZyBEkSCWLHgEHoHHgQXLrJAYtoRHgAchXsCCBQsWdGSBhRASQgjpnekZT9VxvNPYyZ2kp9WyXPvUqVPn5GRZFv4dZ+EymcwTcRwP6vX6y0ajYZxfUOu6fvLw8PAuvb6u60vm9QGwLAMoGBM3TXMALqHsNdAxgFqtVj2bz2+32x3luq5g1Gq1i9lsFjRNUyBJEgHDMORarfYMN4zD4XA4f3h4uDkcDn/gplKpvMXN6enpTaVSeYObVqt1jZtOp/Ma/ya5ueu6N8PhMHie9xI3p6en17hpt9vXuOl2u9e46ff7uD8+Pj75/Pn0BzfD4fAaN71e7xo3/X7/GjdxHH/izlp1lmVfRqPRN9wMh0Pcx3H8BTc/7kPcOxaLxRvchGH4KxqN/sRN2ALHcV5xE4Zhfyiv32g0XuKm2WxCzPurGeDvF6PR6AJH7vb29l5xk6bpF9z0+/3nuEl+7vb29jNuHo1G+KvPwPM8vGFZVjMajSJd193CzYRhmPh3EAbq8/n8NW5CoRDudLvdj7jBX/CcOiTWIWsNmDWJ/z0ajb7hJhQK4Y7tIOqvuPEcx/kWj8cfcRMIBHCn2+1+xs3Lly/x/5evX3Fz7+3t3bvdbjIajSLTNN3CTaVSgbu3t7dv3Nzf38PtdrsbNy9fvsT/L1++5Om+b7cNw2hxI4/jOHYcZ5Df6/r6+gu3LMsqZCdrDCxr7blOp/MVN6FQCHdarRZasVeBN+SvRlB/LhQK33BTKBRwp9vt4p733G63i3q9/hI3uVwOd7rdLt4fxfFrvMFisVi0Wi2n1WrFuPEcB3csy4Lb0Wi0lMvlvuJOQgjhD7/JhmHA3+PxeNi27clisViuVCrXiPNH6D8bQsi4lsMwXEomk690Ov2BTCaz1Ol0rNA///6G0P9R+L/gHzPSumT8q7NyAAAAAElFTkSuQmCC")`,
           backgroundRepeat: 'repeat',
           backgroundSize: '64px'
         }}
@@ -128,7 +124,6 @@ const ConversationView: React.FC<ConversationViewProps> = ({
         </ScrollArea>
       </CardContent>
       
-      {/* Footer area - Reserved for future chat input */}
       <CardFooter className="border-t p-3 flex-shrink-0 min-h-[50px] bg-[#1F2C34]">
         {/* This area is reserved for future chat input functionality */}
       </CardFooter>

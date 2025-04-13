@@ -93,35 +93,28 @@ const ConversationView: React.FC<ConversationViewProps> = ({
 
   return (
     <Card className="h-full flex flex-col">
-      <div className="px-6 pt-4">
-        <h2 className="text-xl font-bold">Mensajes de WhatsApp</h2>
-        <p className="text-sm text-muted-foreground">Conversaciones recientes con tus clientes</p>
-      </div>
-      
-      <div className="p-4">
-        <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input 
-            type="search" 
-            placeholder="Buscar en la conversación..." 
-            className="pl-8 h-9 text-sm"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-      </div>
-      
-      <Separator className="mb-0" />
-      
       <CardHeader className="pb-2 border-b flex-shrink-0">
-        <CardTitle className="text-lg flex items-center">
-          <Avatar className="h-8 w-8 mr-2">
-            <AvatarFallback>
-              {getInitials(conversation.profile_name)}
-            </AvatarFallback>
-          </Avatar>
-          {displayName}
-        </CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-lg flex items-center">
+            <Avatar className="h-8 w-8 mr-2">
+              <AvatarFallback>
+                {getInitials(conversation.profile_name)}
+              </AvatarFallback>
+            </Avatar>
+            {displayName}
+          </CardTitle>
+          
+          <div className="relative w-48">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input 
+              type="search" 
+              placeholder="Buscar..." 
+              className="pl-8 h-8 text-xs"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
       </CardHeader>
       
       <CardContent 

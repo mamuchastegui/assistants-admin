@@ -118,11 +118,11 @@ const ConversationView: React.FC<ConversationViewProps> = ({
       </CardHeader>
       
       <CardContent 
-        className="flex-grow overflow-hidden p-4 bg-[#0B141A] rounded-md"
+        className="flex-grow overflow-hidden p-4"
         style={{
-          backgroundImage: `url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAKsSURBVHgB7ZrLjtNAFIbPdTtpZyBEkSCWLHgEHoHHgQXLrJAYtoRHgAchXsCCBQsWdGSBhRASQgjpnekZT9VxvNPYyZ2kp9WyXPvUqVPn5GRZFv4dZ+EymcwTcRwP6vX6y0ajYZxfUOu6fvLw8PAuvb6u60vm9QGwLAMoGBM3TXMALqHsNdAxgFqtVj2bz2+32x3luq5g1Gq1i9lsFjRNUyBJEgHDMORarfYMN4zD4XA4f3h4uDkcDn/gplKpvMXN6enpTaVSeYObVqt1jZtOp/Ma/ya5ueu6N8PhMHie9xI3p6en17hpt9vXuOl2u9e46ff7uD8+Pj75/Pn0BzfD4fAaN71e7xo3/X7/GjdxHH/izlp1lmVfRqPRN9wMh0Pcx3H8BTc/7kPcOxaLxRvchGH4KxqN/sRN2ALHcV5xE4Zhfyiv32g0XuKm2WxCzPurGeDvF6PR6AJH7vb29l5xk6bpF9z0+/3nuEl+7vb29jNuHo1G+KvPwPM8vGFZVjMajSJd193CzYRhmPh3EAbq8/n8NW5CoRDudLvdj7jBX/CcOiTWIWsNmDWJ/z0ajb7hJhQK4Y7tIOqvuPEcx/kWj8cfcRMIBHCn2+1+xs3Lly/x/5evX3Fz7+3t3bvdbjIajSLTNN3CTaVSgbu3t7dv3Nzf38PtdrsbNy9fvsT/L1++5Om+b7cNw2hxI4/jOHYcZ5Df6/r6+gu3LMsqZCdrDCxr7blOp/MVN6FQCHdarRZasVeBN+SvRlB/LhQK33BTKBRwp9vt4p733G63i3q9/hI3uVwOd7rdLt4fxfFrvMFisVi0Wi2n1WrFuPEcB3csy4Lb0Wi0lMvlvuJOQgjhD7/JhmHA3+PxeNi27clisViuVCrXiPNH6D8bQsi4lsMwXEomk690Ov2BTCaz1Ol0rNA///6G0P9R+L/gHzPSumT8q7NyAAAAAElFTkSuQmCC")`,
+          backgroundImage: `url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAARzQklUCAgICHwIZIgAAAEZSURBVEiJ7ZW9DcIwEIXfOSRFhkBiAEZgFEZhBEZgHDZJF1KnD0XiepvYikQREvS+4nzv+ec7C/xZAtVMseGoTtprZIS9wFblEVTLXq+dAA8XocLxLGaWdYA6RPg8JZujrFbZwVXtLqDI5Zz/8n0F1D3pHqf8rYCUt/RVcWdAUdlMg6P0XUaS1jLIkzJngJ2Qm9a/AXwpGs+T9HSAN+Xsht/KVTlLr9gHAK8DLLLb3/Ib5VEUGmVWxRpHBbTovU+AXWcVxLncharKCLgBrEwdT4BjUp4B3XQUOgIK4GbyD8CaMueVOXdmFQsh9hx4FwBAwE2buXg6KNe5A1NA9fkHlU0AU6+2ack2Z4BDcpP1wBKNlmyl/FT6FNr/JC9AqrAUKy5fagAAAABJRU5ErkJggg==")`,
+          backgroundColor: '#0B141A',
           backgroundRepeat: 'repeat',
-          backgroundSize: '64px'
         }}
       >
         <ScrollArea className="h-full pr-4">

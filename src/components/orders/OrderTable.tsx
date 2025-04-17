@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Table, TableHeader, TableBody, TableRow, TableHead } from "@/components/ui/table";
 import { Loader2, ArrowUpDown } from "lucide-react";
@@ -6,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import OrderTableRow from "./OrderTableRow";
 import { Order, PaymentMethod, OrderStatus } from "@/types/order";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface OrderTableProps {
   orders?: Order[];
@@ -79,47 +79,48 @@ const OrderTable = ({
             Error al cargar los pedidos. Por favor intente nuevamente.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[80px]">ID</TableHead>
-                  <TableHead>{renderSortButton("client_name", "Cliente")}</TableHead>
-                  <TableHead className="hidden md:table-cell">Menú</TableHead>
-                  <TableHead className="w-[80px] text-center">
-                    {renderSortButton("total_guests", "Personas")}
-                  </TableHead>
-                  <TableHead className="hidden sm:table-cell">
-                    {renderSortButton("event_date", "Fecha Evento")}
-                  </TableHead>
-                  <TableHead className="hidden sm:table-cell">
-                    {renderSortButton("created_at", "Creado")}
-                  </TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Método de Pago</TableHead>
-                  <TableHead className="w-[50px]">Detalle</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {orders && orders.length > 0 ? (
-                  orders.map((order) => (
-                    <OrderTableRow 
-                      key={order.id} 
-                      order={order}
-                      onPaymentMethodChange={onPaymentMethodChange}
-                      onOrderStatusChange={onOrderStatusChange}
-                    />
-                  ))
-                ) : (
+          <ScrollArea className="w-full">
+            <div className="min-w-[800px]">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <td colSpan={9} className="text-center py-4">
-                      No hay pedidos disponibles
-                    </td>
+                    <TableHead className="w-[80px]">ID</TableHead>
+                    <TableHead>{renderSortButton("client_name", "Cliente")}</TableHead>
+                    <TableHead className="w-[80px] text-center">
+                      {renderSortButton("total_guests", "Personas")}
+                    </TableHead>
+                    <TableHead>
+                      {renderSortButton("event_date", "Fecha Evento")}
+                    </TableHead>
+                    <TableHead>
+                      {renderSortButton("created_at", "Creado")}
+                    </TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead>Método de Pago</TableHead>
+                    <TableHead className="w-[50px]">Detalle</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {orders && orders.length > 0 ? (
+                    orders.map((order) => (
+                      <OrderTableRow 
+                        key={order.id} 
+                        order={order}
+                        onPaymentMethodChange={onPaymentMethodChange}
+                        onOrderStatusChange={onOrderStatusChange}
+                      />
+                    ))
+                  ) : (
+                    <TableRow>
+                      <td colSpan={8} className="text-center py-4">
+                        No hay pedidos disponibles
+                      </td>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </ScrollArea>
         )}
       </CardContent>
     </Card>

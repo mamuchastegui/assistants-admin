@@ -1,4 +1,3 @@
-
 import React, { useMemo } from "react";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -7,7 +6,6 @@ import { Eye } from "lucide-react";
 import { Order, PaymentMethod, OrderStatus } from "@/types/order";
 import { useNavigate } from "react-router-dom";
 import { 
-  translateMenuType, 
   translatePaymentMethod,
   getPaymentMethodIcon,
   getPaymentMethodClass,
@@ -43,9 +41,7 @@ const OrderTableRow = ({
     }
   };
 
-  // Determine if the payment method can be modified
   const canChangePaymentMethod = useMemo(() => {
-    // If it's MercadoPago and already confirmed payment, don't allow changes
     if (order.payment_method === 'mercado_pago' && order.payment_status === 'paid') {
       return false;
     }
@@ -53,12 +49,11 @@ const OrderTableRow = ({
     return true;
   }, [order.payment_method, order.payment_status]);
   
-  // Get menu type from the first menu if available
   const menuType = useMemo(() => {
     if (order.menus && order.menus.length > 0) {
       return order.menus[0].menu_name;
     }
-    return "standard"; // Default menu type
+    return "standard";
   }, [order.menus]);
 
   const viewOrderDetails = () => {
@@ -69,12 +64,9 @@ const OrderTableRow = ({
     <TableRow key={order.id}>
       <TableCell className="font-medium" title={order.id}>{order.id.substring(0, 5)}...</TableCell>
       <TableCell className="max-w-[120px] truncate">{order.client_name}</TableCell>
-      <TableCell className="hidden md:table-cell max-w-[150px] truncate" title={menuType}>
-        {menuType}
-      </TableCell>
       <TableCell className="text-center">{order.total_guests || order.number_of_people || 0}</TableCell>
-      <TableCell className="hidden sm:table-cell whitespace-nowrap">{formatDate(order.event_date)}</TableCell>
-      <TableCell className="hidden sm:table-cell whitespace-nowrap">{formatDate(order.created_at)}</TableCell>
+      <TableCell className="whitespace-nowrap">{formatDate(order.event_date)}</TableCell>
+      <TableCell className="whitespace-nowrap">{formatDate(order.created_at)}</TableCell>
       <TableCell>
         <Select
           defaultValue={order.status || 'pending'}

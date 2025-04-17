@@ -74,6 +74,7 @@ const OrderTableRow = ({
       </TableCell>
       <TableCell className="text-center">{order.total_guests || order.number_of_people || 0}</TableCell>
       <TableCell className="hidden sm:table-cell whitespace-nowrap">{formatDate(order.event_date)}</TableCell>
+      <TableCell className="hidden sm:table-cell whitespace-nowrap">{formatDate(order.created_at)}</TableCell>
       <TableCell>
         <Select
           defaultValue={order.status || 'pending'}

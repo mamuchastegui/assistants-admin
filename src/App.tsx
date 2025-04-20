@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +14,9 @@ import RestaurantMenu from "./pages/RestaurantMenu";
 import NotFound from "./pages/NotFound";
 import { ThemeProvider } from "./hooks/use-theme";
 import React from "react";
+import Success from "./pages/payments/mercadopago/Success";
+import Failure from "./pages/payments/mercadopago/Failure";
+import Pending from "./pages/payments/mercadopago/Pending";
 
 // Immediately apply theme before React hydration
 if (typeof window !== 'undefined') {
@@ -50,6 +52,12 @@ function App() {
                 <Route path="/orders/:orderId" element={<OrderDetails />} />
                 <Route path="/menu" element={<Menu />} />
                 <Route path="/restaurant-menu" element={<RestaurantMenu />} />
+                
+                {/* MercadoPago payment response routes */}
+                <Route path="/payments/mercadopago/success" element={<Success />} />
+                <Route path="/payments/mercadopago/failure" element={<Failure />} />
+                <Route path="/payments/mercadopago/pending" element={<Pending />} />
+                
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

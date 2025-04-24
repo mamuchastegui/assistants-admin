@@ -16,11 +16,46 @@ const setInitialTheme = `
   })();
 `;
 
-// Add the script tag to the document head
+// Script to remove Lovable badge
+const removeLovableBadgeScript = `
+  (function() {
+    function removeBadge() {
+      const badge = document.getElementById('lovable-badge');
+      if (badge) {
+        badge.remove();
+        return true;
+      }
+      return false;
+    }
+
+    // First attempt to remove the badge
+    if (!removeBadge()) {
+      // If badge is not found, wait for it using MutationObserver
+      const observer = new MutationObserver((mutations, obs) => {
+        if (removeBadge()) {
+          obs.disconnect(); // Stop observing once badge is removed
+        }
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    }
+  })();
+`;
+
+// Add the scripts to the document head
 if (typeof document !== 'undefined') {
-  const script = document.createElement('script');
-  script.textContent = setInitialTheme;
-  document.head.appendChild(script);
+  // Add theme script
+  const themeScript = document.createElement('script');
+  themeScript.textContent = setInitialTheme;
+  document.head.appendChild(themeScript);
+
+  // Add badge removal script
+  const badgeScript = document.createElement('script');
+  badgeScript.textContent = removeLovableBadgeScript;
+  document.head.appendChild(badgeScript);
 }
 
 import { createRoot } from 'react-dom/client'

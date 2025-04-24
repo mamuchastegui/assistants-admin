@@ -25,7 +25,7 @@ const initScript = `
     
     const logo = document.createElement('img');
     logo.src = 'https://chat.condamind.com/static/media/condamind-logo.4d154e0e61b38e2b84fb.png';
-    logo.style.cssText = 'width: 120px; height: 120px; transition: transform 1s ease-out;';
+    logo.style.cssText = 'max-width: 80%; max-height: 80%; object-fit: contain; transition: transform 1s ease-out;';
     
     loadingScreen.appendChild(logo);
     document.body.appendChild(loadingScreen);

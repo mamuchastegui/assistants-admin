@@ -4,7 +4,7 @@ const removeBadgeScript = `
   (function() {
     // Immediately hide any potential badge via CSS injection
     const style = document.createElement('style');
-    style.textContent = '#lovable-badge { display: none !important; opacity: 0 !important; visibility: hidden !important; }';
+    style.textContent = '#lovable-badge, [id*="lovable"], [class*="lovable"] { display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }';
     document.head.appendChild(style);
     
     // Function to remove the badge
@@ -14,32 +14,60 @@ const removeBadgeScript = `
         badge.remove();
         return true;
       }
+      
+      // Look for anything with lovable in the id or class
+      document.querySelectorAll('[id*="lovable"], [class*="lovable"]').forEach(el => {
+        el.remove();
+      });
+      
       return false;
     }
 
     // Try to remove immediately
-    if (!removeBadge()) {
-      // If not found, watch for DOM changes
-      const observer = new MutationObserver((mutations, obs) => {
-        if (removeBadge()) {
-          obs.disconnect();
-        }
-      });
-      
-      observer.observe(document, {
-        childList: true,
-        subtree: true
-      });
-    }
+    removeBadge();
+    
+    // Also watch for DOM changes to catch any badges that appear later
+    const observer = new MutationObserver(() => {
+      removeBadge();
+    });
+    
+    // Start observing before DOM is even fully loaded
+    observer.observe(document, {
+      childList: true,
+      subtree: true
+    });
+    
+    // Make sure we execute this as early as possible
+    document.addEventListener('DOMContentLoaded', removeBadge, { once: true });
+    window.addEventListener('load', removeBadge, { once: true });
   })();
 `;
 
-// Add the script to the document head
+// Add the script to the document head as the very first thing
 if (typeof document !== 'undefined') {
-  // Add badge removal script
-  const badgeScript = document.createElement('script');
-  badgeScript.textContent = removeBadgeScript;
-  document.head.appendChild(badgeScript);
+  try {
+    // Create and execute script in the most immediate way possible
+    const badgeScript = document.createElement('script');
+    badgeScript.textContent = removeBadgeScript;
+    
+    // If document.head exists, insert at the very top
+    if (document.head) {
+      if (document.head.firstChild) {
+        document.head.insertBefore(badgeScript, document.head.firstChild);
+      } else {
+        document.head.appendChild(badgeScript);
+      }
+    } 
+    // If head doesn't exist yet, create an inline script tag in the document
+    else {
+      document.write('<script>' + removeBadgeScript + '</script>');
+    }
+    
+    // Also execute directly for immediate effect
+    eval(removeBadgeScript);
+  } catch (e) {
+    console.error('Error removing badge:', e);
+  }
 }
 
 // Inlined theme script

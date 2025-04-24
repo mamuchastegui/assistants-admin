@@ -160,6 +160,7 @@ export type Database = {
       }
       catering_orders: {
         Row: {
+          amount_paid: number | null
           business_id: string | null
           client_name: string
           created_at: string | null
@@ -175,6 +176,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          amount_paid?: number | null
           business_id?: string | null
           client_name: string
           created_at?: string | null
@@ -190,6 +192,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          amount_paid?: number | null
           business_id?: string | null
           client_name?: string
           created_at?: string | null
@@ -599,6 +602,7 @@ export type Database = {
           menu_item_id: string | null
           menu_variation_id: string | null
           order_id: string
+          quantity: number | null
           special_requirements: string | null
           updated_at: string
         }
@@ -612,6 +616,7 @@ export type Database = {
           menu_item_id?: string | null
           menu_variation_id?: string | null
           order_id: string
+          quantity?: number | null
           special_requirements?: string | null
           updated_at?: string
         }
@@ -625,6 +630,7 @@ export type Database = {
           menu_item_id?: string | null
           menu_variation_id?: string | null
           order_id?: string
+          quantity?: number | null
           special_requirements?: string | null
           updated_at?: string
         }
@@ -671,34 +677,46 @@ export type Database = {
       payments: {
         Row: {
           amount: number
+          collector_id: number | null
           created_at: string | null
+          currency_id: string | null
           id: string
           order_id: string | null
           payment_details: Json | null
+          payment_link: string | null
           payment_method: string
           payment_status: string
+          reference_id: string | null
           reference_number: string | null
           updated_at: string | null
         }
         Insert: {
           amount: number
+          collector_id?: number | null
           created_at?: string | null
+          currency_id?: string | null
           id?: string
           order_id?: string | null
           payment_details?: Json | null
+          payment_link?: string | null
           payment_method: string
           payment_status?: string
+          reference_id?: string | null
           reference_number?: string | null
           updated_at?: string | null
         }
         Update: {
           amount?: number
+          collector_id?: number | null
           created_at?: string | null
+          currency_id?: string | null
           id?: string
           order_id?: string | null
           payment_details?: Json | null
+          payment_link?: string | null
           payment_method?: string
           payment_status?: string
+          reference_id?: string | null
           reference_number?: string | null
           updated_at?: string | null
         }

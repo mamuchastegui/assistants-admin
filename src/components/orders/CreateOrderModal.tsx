@@ -31,7 +31,6 @@ interface DinnerGroup {
   notes?: string;
 }
 
-// Define the menu type enum for zod schema
 const menuTypeEnum = z.enum([
   "standard", 
   "vegetarian", 
@@ -41,7 +40,6 @@ const menuTypeEnum = z.enum([
   "custom"
 ]);
 
-// Define the order schema with support for dinner groups
 const orderSchema = z.object({
   client_name: z.string().min(1, "El nombre del cliente es requerido"),
   event_date: z.string().min(1, "La fecha del evento es requerida"),
@@ -211,7 +209,7 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
       }
       
       const { error: paymentError } = await supabase
-        .from("order_payments")
+        .from("payments")
         .insert({
           order_id: newOrder.id,
           amount: paymentAmount,

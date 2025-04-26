@@ -1,14 +1,15 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Conversation } from "@/hooks/useChatThreads";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { Loader2, MessageSquare, Search } from "lucide-react";
+import { Loader2, MessageSquare, Search, Paperclip, Send, Image, Mic, Smile } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
 
 interface ConversationViewProps {
   conversation: Conversation | null;
@@ -21,11 +22,14 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   loading, 
   selectedThread 
 }) => {
-  const messagesEndRef = React.useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [filteredMessages, setFilteredMessages] = useState<any[]>([]);
+  const [message, setMessage] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
@@ -48,6 +52,46 @@ const ConversationView: React.FC<ConversationViewProps> = ({
     
     setFilteredMessages(filtered);
   }, [searchQuery, conversation]);
+
+  const handleSendMessage = () => {
+    if (!message.trim() && !isRecording) return;
+    
+    // This would be replaced with actual API call in production
+    toast.success("Mensaje enviado");
+    setMessage("");
+    
+    // In a real implementation, we would update the conversation state
+    // after API confirms the message was sent
+    console.log("Message sent:", message);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const handleFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      // This would be replaced with actual file upload in production
+      toast.success(`Archivo seleccionado: ${files[0].name}`);
+    }
+  };
+
+  const toggleRecording = () => {
+    setIsRecording(!isRecording);
+    if (!isRecording) {
+      toast.info("Grabando audio...");
+    } else {
+      toast.success("Audio grabado");
+    }
+  };
 
   const getInitials = (name?: string | null) => {
     if (!name) return "WA";
@@ -160,8 +204,59 @@ const ConversationView: React.FC<ConversationViewProps> = ({
         </ScrollArea>
       </CardContent>
       
-      <CardFooter className="border-t p-3 flex-shrink-0 min-h-[50px] bg-[#1F2C34]">
-        {/* This area is reserved for future chat input functionality */}
+      <CardFooter className="border-t p-0 flex-shrink-0 min-h-[60px] bg-[#1F2C34]">
+        <div className="flex items-center w-full px-2 py-1">
+          <div className="flex items-center space-x-3 text-gray-400 px-2">
+            <Smile 
+              className="h-6 w-6 cursor-pointer hover:text-gray-200 transition-colors" 
+              onClick={() => toast.info("Emoji selector")}
+            />
+            <div className="relative">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+                accept="image/*,video/*,audio/*,application/*"
+              />
+              <Paperclip 
+                className="h-6 w-6 cursor-pointer hover:text-gray-200 transition-colors" 
+                onClick={handleFileSelect}
+              />
+            </div>
+            <Image 
+              className="h-6 w-6 cursor-pointer hover:text-gray-200 transition-colors" 
+              onClick={() => {
+                fileInputRef.current?.click();
+                fileInputRef.current?.setAttribute('accept', 'image/*');
+              }}
+            />
+          </div>
+
+          <div className="flex-grow mx-2">
+            <Input
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Escribe un mensaje"
+              className="bg-[#2A3942] border-0 text-gray-100 placeholder-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+            />
+          </div>
+
+          <div className="text-gray-400 pl-2">
+            {message.trim() ? (
+              <Send 
+                className="h-6 w-6 cursor-pointer text-[#00A884] hover:text-[#02c499] transition-colors" 
+                onClick={handleSendMessage}
+              />
+            ) : (
+              <Mic 
+                className={`h-6 w-6 cursor-pointer ${isRecording ? 'text-red-500' : 'hover:text-gray-200'} transition-colors`}
+                onClick={toggleRecording}
+              />
+            )}
+          </div>
+        </div>
       </CardFooter>
     </Card>
   );

@@ -92,6 +92,40 @@ export function useChatThreads() {
     }
   }, []);
 
+  const sendMessage = useCallback(async (content: string) => {
+    if (!selectedThread || !content.trim()) return;
+    
+    try {
+      // This would be replaced with an actual API call
+      // For now, just simulate adding the message to the conversation
+      if (conversation) {
+        const newMessage: ChatMessage = {
+          role: "assistant",
+          content,
+          timestamp: new Date().toISOString()
+        };
+        
+        setConversation(prev => {
+          if (!prev) return null;
+          
+          return {
+            ...prev,
+            conversation: [...prev.conversation, newMessage],
+            updated_at: new Date().toISOString()
+          };
+        });
+        
+        // In a real implementation, you would update the backend here
+        console.log(`Message sent to thread ${selectedThread}:`, content);
+        return true;
+      }
+    } catch (err) {
+      console.error("Error sending message:", err);
+      toast.error("No se pudo enviar el mensaje");
+      return false;
+    }
+  }, [selectedThread, conversation]);
+
   const selectThread = useCallback((threadId: string) => {
     setSelectedThread(threadId);
     fetchConversation(threadId);
@@ -138,6 +172,8 @@ export function useChatThreads() {
     selectThread,
     conversation,
     loadingConversation,
-    deleteThread
+    deleteThread,
+    sendMessage,
+    ASSISTANT_ID
   };
 }

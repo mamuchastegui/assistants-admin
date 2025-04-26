@@ -4,6 +4,7 @@ import { Plus, Loader2, CalendarPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AppointmentItem from "./AppointmentItem";
 import { motion, AnimatePresence } from "framer-motion";
+import { format } from "date-fns";
 
 interface Appointment {
   id: string;
@@ -31,6 +32,13 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
   onDelete,
   onAddNew
 }) => {
+  // Sort appointments by date and time
+  const sortedAppointments = [...appointments].sort((a, b) => {
+    const dateCompare = a.date.localeCompare(b.date);
+    if (dateCompare !== 0) return dateCompare;
+    return a.time.localeCompare(b.time);
+  });
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-40 bg-muted/5 rounded-lg border border-border/40">
@@ -59,27 +67,53 @@ const AppointmentList: React.FC<AppointmentListProps> = ({
     );
   }
 
+  // Group appointments by date
+  const appointmentsByDate = sortedAppointments.reduce((acc, appointment) => {
+    const date = appointment.date;
+    if (!acc[date]) {
+      acc[date] = [];
+    }
+    acc[date].push(appointment);
+    return acc;
+  }, {} as Record<string, Appointment[]>);
+
   return (
     <AnimatePresence>
-      <div className="space-y-3 p-1">
-        {appointments.map((appointment, index) => (
+      <div className="space-y-6 p-1">
+        {Object.entries(appointmentsByDate).map(([date, dateAppointments]) => (
           <motion.div
-            key={appointment.id}
+            key={date}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2, delay: index * 0.05 }}
-            className="rounded-lg shadow-sm hover:shadow-md transition-shadow"
+            className="space-y-3"
           >
-            <AppointmentItem
-              id={appointment.id}
-              time={appointment.time}
-              client={appointment.client}
-              service={appointment.service}
-              duration={appointment.duration}
-              onEdit={onEdit}
-              onDelete={onDelete}
-            />
+            <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm p-2 rounded-lg border border-border/40 shadow-sm">
+              <h3 className="text-sm font-medium text-muted-foreground">
+                {format(new Date(date), "EEEE, d 'de' MMMM")}
+              </h3>
+            </div>
+            
+            {dateAppointments.map((appointment, index) => (
+              <motion.div
+                key={appointment.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2, delay: index * 0.05 }}
+                className="rounded-lg shadow-sm hover:shadow-md transition-shadow"
+              >
+                <AppointmentItem
+                  id={appointment.id}
+                  time={appointment.time}
+                  client={appointment.client}
+                  service={appointment.service}
+                  duration={appointment.duration}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                />
+              </motion.div>
+            ))}
           </motion.div>
         ))}
       </div>

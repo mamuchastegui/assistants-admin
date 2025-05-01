@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,6 +16,7 @@ import RestaurantMenu from "./pages/RestaurantMenu";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Callback from "./pages/Callback";
+import AuthError from "./pages/AuthError";
 import { ThemeProvider } from "./hooks/use-theme";
 import React from "react";
 import Success from "./pages/payments/mercadopago/Success";
@@ -53,6 +53,7 @@ function App() {
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/callback" element={<Callback />} />
+                  <Route path="/auth-error" element={<AuthError />} />
                   <Route path="/calendar" element={
                     <PrivateRoute>
                       <Calendar />

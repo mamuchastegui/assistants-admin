@@ -4,15 +4,20 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router-dom';
 
 const Callback = () => {
-  const { isAuthenticated, isLoading } = useAuth0();
+  const { isAuthenticated, isLoading, error } = useAuth0();
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Handle authentication errors
+    if (error) {
+      console.error("Auth0 error:", error);
+      navigate(`/auth-error?message=${encodeURIComponent(error.message)}`);
+    } 
     // If authentication is complete and user is authenticated, redirect to home
-    if (!isLoading && isAuthenticated) {
+    else if (!isLoading && isAuthenticated) {
       navigate('/');
     }
-  }, [isLoading, isAuthenticated, navigate]);
+  }, [isLoading, isAuthenticated, navigate, error]);
 
   // If user is already authenticated, this will not show as they will be redirected
   return (

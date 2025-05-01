@@ -1,3 +1,4 @@
+
 import React, { useMemo } from "react";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -48,13 +49,6 @@ const OrderTableRow = ({
     
     return true;
   }, [order.payment_method, order.payment_status]);
-  
-  const menuType = useMemo(() => {
-    if (order.menus && order.menus.length > 0) {
-      return order.menus[0].menu_name;
-    }
-    return "standard";
-  }, [order.menus]);
 
   const viewOrderDetails = () => {
     navigate(`/orders/${order.id}`);

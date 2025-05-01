@@ -49,8 +49,8 @@ export interface Order {
   payment_method?: PaymentMethod;
   payment_id?: string | null;
   payment_details?: Record<string, any>;
-  total_guests: number;
-  total_amount: number;
+  total_guests?: number;
+  total_amount?: number;
   menus?: MenuItem[];
   notes?: string;
   created_at: string;
@@ -59,4 +59,7 @@ export interface Order {
   dinner_group_id?: string;
   payments?: Payment[];
   number_of_people?: number; // For backward compatibility
+  amount_paid?: number | null;
+  business_id?: string;
+  order_status?: string;
 }

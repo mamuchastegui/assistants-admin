@@ -2,9 +2,8 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Order, MenuType, PaymentMethod, OrderStatus } from "@/types/order";
-import { supabase } from "@/lib/supabase";
-import { translatePaymentMethod, translateOrderStatus } from "@/components/orders/utils/orderUtils";
+import { Order, PaymentMethod, OrderStatus } from "@/types/order";
+import { useAuthApi } from "@/hooks/useAuthApi";
 
 interface OrdersResponse {
   response: Order[];
@@ -13,50 +12,28 @@ interface OrdersResponse {
 const fetchOrders = async (): Promise<Order[]> => {
   try {
     console.log('Fetching orders...');
-    // First, try to fetch from Supabase if it's available
-    if (supabase) {
-      const { data, error } = await supabase
-        .from('catering_orders')
-        .select(`
-          *,
-          dinner_group:dinner_group_id(*),
-          payments:order_payments(*)
-        `)
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        throw error;
+    
+    // Fetch from the API endpoint
+    const response = await fetch('https://api.condamind.com/v1/catering/orders', {
+      headers: {
+        'Content-Type': 'application/json',
+        'assistant-id': 'asst_OS4bPZIMBpvpYo2GMkG0ast5'
       }
-      
-      // Ensure all orders have a status even if not set in database
-      return data.map(order => ({
-        ...order,
-        status: order.status || 'pending',
-        number_of_people: order.total_guests || 0
-      })) as Order[];
-    } else {
-      // Fallback to the mock API with the new endpoint
-      const response = await fetch('https://api.condamind.com/v1/catering/orders/summary', {
-        headers: {
-          'Content-Type': 'application/json',
-          'assistant-id': 'asst_OS4bPZIMBpvpYo2GMkG0ast5'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Error al cargar los pedidos: ${response.status}`);
-      }
-      
-      const data: OrdersResponse = await response.json();
-      console.log('Orders fetched successfully:', data.response);
-      
-      // Map the new format to include backward compatibility fields
-      return data.response.map(order => ({
-        ...order,
-        number_of_people: order.total_guests || 0,
-        status: order.status as OrderStatus || 'pending'
-      }));
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Error al cargar los pedidos: ${response.status}`);
     }
+    
+    const data: OrdersResponse = await response.json();
+    console.log('Orders fetched successfully:', data.response);
+    
+    // Map the response to include backward compatibility fields
+    return data.response.map(order => ({
+      ...order,
+      number_of_people: order.total_guests || 0,
+      status: order.status as OrderStatus || 'pending'
+    }));
   } catch (error) {
     console.error("Error fetching orders:", error);
     toast.error("No se pudieron cargar los pedidos");
@@ -66,6 +43,7 @@ const fetchOrders = async (): Promise<Order[]> => {
 
 export const useOrders = () => {
   const queryClient = useQueryClient();
+  const { authFetch } = useAuthApi();
   const { data: orders, isLoading, error, isError } = useQuery({
     queryKey: ['orders'],
     queryFn: fetchOrders,
@@ -95,35 +73,31 @@ export const useOrders = () => {
     );
     setOrders(updatedOrders);
     
-    // If Supabase is available, update the database
-    if (supabase) {
-      supabase
-        .from('catering_orders')
-        .update({ payment_method: newMethod })
-        .eq('id', orderId)
-        .then(({ error }) => {
-          if (error) {
-            console.error("Error updating payment method:", error);
-            toast.error(`Error al actualizar el método de pago: ${error.message}`);
-            // Revert to original state on error
-            setOrders(orders);
-          } else {
-            toast.success(`Método de pago actualizado a: ${translatePaymentMethod(newMethod)}`);
-            
-            // Update any payments associated with this order
-            supabase
-              .from('order_payments')
-              .update({ payment_method: newMethod })
-              .eq('order_id', orderId);
-            
-            // Refresh orders data
-            queryClient.invalidateQueries({ queryKey: ['orders'] });
-          }
-        });
-    } else {
-      // Mock success for demo
-      toast.success(`Método de pago ${orderId.substring(0, 5)}... actualizado a: ${translatePaymentMethod(newMethod)}`);
-    }
+    // Update via API
+    fetch(`https://api.condamind.com/v1/catering/orders/${orderId}/payment-method`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'assistant-id': 'asst_OS4bPZIMBpvpYo2GMkG0ast5'
+      },
+      body: JSON.stringify({ payment_method: newMethod })
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(() => {
+        toast.success(`Método de pago actualizado correctamente`);
+        queryClient.invalidateQueries({ queryKey: ['orders'] });
+      })
+      .catch(error => {
+        console.error("Error updating payment method:", error);
+        toast.error(`Error al actualizar el método de pago`);
+        // Revert to original state on error
+        setOrders(orders);
+      });
   };
 
   const updateOrderStatus = (orderId: string, newStatus: OrderStatus) => {
@@ -133,29 +107,31 @@ export const useOrders = () => {
     );
     setOrders(updatedOrders);
     
-    // If Supabase is available, update the database
-    if (supabase) {
-      supabase
-        .from('catering_orders')
-        .update({ status: newStatus })
-        .eq('id', orderId)
-        .then(({ error }) => {
-          if (error) {
-            console.error("Error updating order status:", error);
-            toast.error(`Error al actualizar el estado del pedido: ${error.message}`);
-            // Revert to original state on error
-            setOrders(orders);
-          } else {
-            toast.success(`Estado del pedido actualizado a: ${translateOrderStatus(newStatus)}`);
-            
-            // Refresh orders data
-            queryClient.invalidateQueries({ queryKey: ['orders'] });
-          }
-        });
-    } else {
-      // Mock success for demo
-      toast.success(`Estado de pedido ${orderId.substring(0, 5)}... actualizado a: ${translateOrderStatus(newStatus)}`);
-    }
+    // Update via API
+    fetch(`https://api.condamind.com/v1/catering/orders/${orderId}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'assistant-id': 'asst_OS4bPZIMBpvpYo2GMkG0ast5'
+      },
+      body: JSON.stringify({ status: newStatus })
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(() => {
+        toast.success(`Estado del pedido actualizado correctamente`);
+        queryClient.invalidateQueries({ queryKey: ['orders'] });
+      })
+      .catch(error => {
+        console.error("Error updating order status:", error);
+        toast.error(`Error al actualizar el estado del pedido`);
+        // Revert to original state on error
+        setOrders(orders);
+      });
   };
 
   return {

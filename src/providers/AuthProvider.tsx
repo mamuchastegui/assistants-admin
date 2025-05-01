@@ -14,6 +14,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const domain = import.meta.env.VITE_AUTH0_DOMAIN || '';
   const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID || '';
   const audience = import.meta.env.VITE_AUTH0_AUDIENCE || '';
+  const orgId = import.meta.env.VITE_AUTH0_ORG_ID || '';
 
   const onRedirectCallback = (appState: any) => {
     navigate(appState?.returnTo || window.location.pathname);
@@ -31,7 +32,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       authorizationParams={{
         redirect_uri: window.location.origin,
         audience: audience,
-        organization: 'org_ORM7JMUqLxcGbAqI', // Static organization ID as required
+        organization: orgId,
       }}
       onRedirectCallback={onRedirectCallback}
     >

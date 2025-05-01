@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 
 export const LoginButton: React.FC = () => {
   const { loginWithRedirect } = useAuth0();
+  const orgId = import.meta.env.VITE_AUTH0_ORG_ID;
 
   const handleLogin = () => {
     loginWithRedirect({
       authorizationParams: {
-        organization: 'org_ORM7JMUqLxcGbAqI', // Static organization ID as required
+        organization: orgId,
       }
     });
   };

@@ -16,6 +16,7 @@ import Menu from "./pages/Menu";
 import RestaurantMenu from "./pages/RestaurantMenu";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import Callback from "./pages/Callback";
 import { ThemeProvider } from "./hooks/use-theme";
 import React from "react";
 import Success from "./pages/payments/mercadopago/Success";
@@ -51,6 +52,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/callback" element={<Callback />} />
                   <Route path="/calendar" element={
                     <PrivateRoute>
                       <Calendar />

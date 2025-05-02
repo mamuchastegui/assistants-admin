@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { ChatMessage } from './useChatThreads';
-import { apiClient } from '@/api/client';
+import { useAuthApi } from '@/api/client';
 
 interface UseConversationActionsProps {
   threadId: string | null;
@@ -10,6 +10,7 @@ interface UseConversationActionsProps {
 }
 
 export function useConversationActions({ threadId, assistantId }: UseConversationActionsProps) {
+  const authApiClient = useAuthApi();
   const [isSending, setIsSending] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -21,7 +22,7 @@ export function useConversationActions({ threadId, assistantId }: UseConversatio
       setIsSending(true);
       
       // When ready to implement with real API:
-      // const { data } = await apiClient.post(`/chat/threads/${threadId}/messages`, 
+      // const { data } = await authApiClient.post(`/chat/threads/${threadId}/messages`, 
       //   { content, role: 'assistant' },
       //   { headers: { 'assistant-id': assistantId } }
       // );
@@ -58,7 +59,7 @@ export function useConversationActions({ threadId, assistantId }: UseConversatio
       // When ready to implement with real API:
       // const formData = new FormData();
       // formData.append('file', file);
-      // const { data } = await apiClient.post(`/chat/threads/${threadId}/attachments`, 
+      // const { data } = await authApiClient.post(`/chat/threads/${threadId}/attachments`, 
       //   formData,
       //   { 
       //     headers: { 
@@ -97,7 +98,7 @@ export function useConversationActions({ threadId, assistantId }: UseConversatio
       // When ready to implement with real API:
       // const formData = new FormData();
       // formData.append('audio', audioBlob);
-      // const { data } = await apiClient.post(`/chat/threads/${threadId}/audio`, 
+      // const { data } = await authApiClient.post(`/chat/threads/${threadId}/audio`, 
       //   formData,
       //   { 
       //     headers: { 

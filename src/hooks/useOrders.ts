@@ -3,36 +3,38 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Order, PaymentMethod, OrderStatus } from "@/types/order";
-import { apiClient } from "@/api/client";
+import { useAuthApi } from "@/api/client";
 
 interface OrdersResponse {
   response: Order[];
 }
 
-const fetchOrders = async (): Promise<Order[]> => {
-  try {
-    console.log('Fetching orders...');
-    
-    // Using the API client
-    const { data } = await apiClient.get<OrdersResponse>('/v1/catering/orders');
-    
-    console.log('Orders fetched successfully:', data.response);
-    
-    // Map the response to include backward compatibility fields
-    return data.response.map(order => ({
-      ...order,
-      number_of_people: order.total_guests || 0,
-      status: order.status as OrderStatus || 'pending'
-    }));
-  } catch (error) {
-    console.error("Error fetching orders:", error);
-    toast.error("No se pudieron cargar los pedidos");
-    throw error;
-  }
-};
-
 export const useOrders = () => {
+  const authApiClient = useAuthApi();
   const queryClient = useQueryClient();
+  
+  const fetchOrders = async (): Promise<Order[]> => {
+    try {
+      console.log('Fetching orders...');
+      
+      // Using the auth API client
+      const { data } = await authApiClient.get<OrdersResponse>('/v1/catering/orders');
+      
+      console.log('Orders fetched successfully:', data.response);
+      
+      // Map the response to include backward compatibility fields
+      return data.response.map(order => ({
+        ...order,
+        number_of_people: order.total_guests || 0,
+        status: order.status as OrderStatus || 'pending'
+      }));
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      toast.error("No se pudieron cargar los pedidos");
+      throw error;
+    }
+  };
+
   const { data: orders, isLoading, error, isError } = useQuery({
     queryKey: ['orders'],
     queryFn: fetchOrders,
@@ -62,8 +64,8 @@ export const useOrders = () => {
     );
     setOrders(updatedOrders);
     
-    // Update via API using our client
-    apiClient.put(`/v1/catering/orders/${orderId}/payment-method`, { payment_method: newMethod })
+    // Update via API using our authenticated client
+    authApiClient.put(`/v1/catering/orders/${orderId}/payment-method`, { payment_method: newMethod })
       .then(() => {
         toast.success(`Método de pago actualizado correctamente`);
         queryClient.invalidateQueries({ queryKey: ['orders'] });
@@ -83,8 +85,8 @@ export const useOrders = () => {
     );
     setOrders(updatedOrders);
     
-    // Update via API using our client
-    apiClient.put(`/v1/catering/orders/${orderId}/status`, { status: newStatus })
+    // Update via API using our authenticated client
+    authApiClient.put(`/v1/catering/orders/${orderId}/status`, { status: newStatus })
       .then(() => {
         toast.success(`Estado del pedido actualizado correctamente`);
         queryClient.invalidateQueries({ queryKey: ['orders'] });

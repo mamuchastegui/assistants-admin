@@ -10,7 +10,6 @@ const createApiClient = () => {
     baseURL,
     headers: {
       "Content-Type": "application/json",
-      "assistant-id": "asst_OS4bPZIMBpvpYo2GMkG0ast5"
     }
   });
   

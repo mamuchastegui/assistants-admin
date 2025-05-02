@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { apiClient } from "@/api/client";
+import { useAuthApi } from "@/api/client";
 
 export interface ChatThread {
   _id: string;
@@ -32,6 +32,7 @@ export interface Conversation {
 const ASSISTANT_ID = "asst_OS4bPZIMBpvpYo2GMkG0ast5";
 
 export function useChatThreads() {
+  const authApiClient = useAuthApi();
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [selectedThread, setSelectedThread] = useState<string | null>(null);
   const [conversation, setConversation] = useState<Conversation | null>(null);
@@ -44,7 +45,7 @@ export function useChatThreads() {
       setLoadingThreads(true);
       setError(null);
 
-      const { data } = await apiClient.get("/chat/threads", {
+      const { data } = await authApiClient.get("/chat/threads", {
         headers: {
           "assistant-id": ASSISTANT_ID
         }
@@ -58,7 +59,7 @@ export function useChatThreads() {
       setLoadingThreads(false);
       toast.error("No se pudieron cargar las conversaciones");
     }
-  }, []);
+  }, [authApiClient]);
 
   const fetchConversation = useCallback(async (threadId: string) => {
     if (!threadId) return;
@@ -67,7 +68,7 @@ export function useChatThreads() {
       setLoadingConversation(true);
       setError(null);
 
-      const { data } = await apiClient.get(`/chat/threads/${threadId}`, {
+      const { data } = await authApiClient.get(`/chat/threads/${threadId}`, {
         headers: {
           "assistant-id": ASSISTANT_ID
         }
@@ -81,7 +82,7 @@ export function useChatThreads() {
       setLoadingConversation(false);
       toast.error("No se pudo cargar la conversación");
     }
-  }, []);
+  }, [authApiClient]);
 
   const sendMessage = useCallback(async (content: string) => {
     if (!selectedThread || !content.trim()) return;
@@ -124,7 +125,7 @@ export function useChatThreads() {
 
   const deleteThread = useCallback(async (threadId: string) => {
     try {
-      await apiClient.delete(`/chat/threads/${threadId}`, {
+      await authApiClient.delete(`/chat/threads/${threadId}`, {
         headers: {
           "assistant-id": ASSISTANT_ID
         }
@@ -143,7 +144,7 @@ export function useChatThreads() {
       console.error("Error deleting thread:", err);
       throw err;
     }
-  }, [selectedThread]);
+  }, [authApiClient, selectedThread]);
 
   useEffect(() => {
     fetchThreads();

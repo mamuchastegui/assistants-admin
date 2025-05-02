@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Order, PaymentMethod, OrderStatus } from "@/types/order";
-import { useAuthApi } from "@/hooks/useAuthApi";
+import { apiClient } from "@/api/client";
 
 interface OrdersResponse {
   response: Order[];
@@ -13,19 +13,9 @@ const fetchOrders = async (): Promise<Order[]> => {
   try {
     console.log('Fetching orders...');
     
-    // Fetch from the API endpoint
-    const response = await fetch('https://api.condamind.com/v1/catering/orders', {
-      headers: {
-        'Content-Type': 'application/json',
-        'assistant-id': 'asst_OS4bPZIMBpvpYo2GMkG0ast5'
-      }
-    });
+    // Using the API client
+    const { data } = await apiClient.get<OrdersResponse>('/v1/catering/orders');
     
-    if (!response.ok) {
-      throw new Error(`Error al cargar los pedidos: ${response.status}`);
-    }
-    
-    const data: OrdersResponse = await response.json();
     console.log('Orders fetched successfully:', data.response);
     
     // Map the response to include backward compatibility fields
@@ -43,7 +33,6 @@ const fetchOrders = async (): Promise<Order[]> => {
 
 export const useOrders = () => {
   const queryClient = useQueryClient();
-  const { authFetch } = useAuthApi();
   const { data: orders, isLoading, error, isError } = useQuery({
     queryKey: ['orders'],
     queryFn: fetchOrders,
@@ -73,21 +62,8 @@ export const useOrders = () => {
     );
     setOrders(updatedOrders);
     
-    // Update via API
-    fetch(`https://api.condamind.com/v1/catering/orders/${orderId}/payment-method`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'assistant-id': 'asst_OS4bPZIMBpvpYo2GMkG0ast5'
-      },
-      body: JSON.stringify({ payment_method: newMethod })
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status}`);
-        }
-        return response.json();
-      })
+    // Update via API using our client
+    apiClient.put(`/v1/catering/orders/${orderId}/payment-method`, { payment_method: newMethod })
       .then(() => {
         toast.success(`Método de pago actualizado correctamente`);
         queryClient.invalidateQueries({ queryKey: ['orders'] });
@@ -107,21 +83,8 @@ export const useOrders = () => {
     );
     setOrders(updatedOrders);
     
-    // Update via API
-    fetch(`https://api.condamind.com/v1/catering/orders/${orderId}/status`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'assistant-id': 'asst_OS4bPZIMBpvpYo2GMkG0ast5'
-      },
-      body: JSON.stringify({ status: newStatus })
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status}`);
-        }
-        return response.json();
-      })
+    // Update via API using our client
+    apiClient.put(`/v1/catering/orders/${orderId}/status`, { status: newStatus })
       .then(() => {
         toast.success(`Estado del pedido actualizado correctamente`);
         queryClient.invalidateQueries({ queryKey: ['orders'] });

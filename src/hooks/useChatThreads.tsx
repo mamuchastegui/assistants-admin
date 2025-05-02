@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
+import { apiClient } from "@/api/client";
 
 export interface ChatThread {
   _id: string;
@@ -43,17 +44,12 @@ export function useChatThreads() {
       setLoadingThreads(true);
       setError(null);
 
-      const response = await fetch("https://api.condamind.com/chat/threads", {
+      const { data } = await apiClient.get("/chat/threads", {
         headers: {
           "assistant-id": ASSISTANT_ID
         }
       });
 
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${await response.text()}`);
-      }
-
-      const data = await response.json();
       setThreads(data);
       setLoadingThreads(false);
     } catch (err) {
@@ -71,17 +67,12 @@ export function useChatThreads() {
       setLoadingConversation(true);
       setError(null);
 
-      const response = await fetch(`https://api.condamind.com/chat/threads/${threadId}`, {
+      const { data } = await apiClient.get(`/chat/threads/${threadId}`, {
         headers: {
           "assistant-id": ASSISTANT_ID
         }
       });
 
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${await response.text()}`);
-      }
-
-      const data = await response.json();
       setConversation(data);
       setLoadingConversation(false);
     } catch (err) {
@@ -133,16 +124,11 @@ export function useChatThreads() {
 
   const deleteThread = useCallback(async (threadId: string) => {
     try {
-      const response = await fetch(`https://api.condamind.com/chat/threads/${threadId}`, {
-        method: "DELETE",
+      await apiClient.delete(`/chat/threads/${threadId}`, {
         headers: {
           "assistant-id": ASSISTANT_ID
         }
       });
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${await response.text()}`);
-      }
 
       // Update the local state to remove the deleted thread
       setThreads(prevThreads => prevThreads.filter(thread => thread.thread_id !== threadId));

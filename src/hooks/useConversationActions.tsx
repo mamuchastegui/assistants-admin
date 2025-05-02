@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { ChatMessage } from './useChatThreads';
+import { apiClient } from '@/api/client';
 
 interface UseConversationActionsProps {
   threadId: string | null;
@@ -19,16 +20,11 @@ export function useConversationActions({ threadId, assistantId }: UseConversatio
     try {
       setIsSending(true);
       
-      // This would be replaced with an actual API call in production
-      // Example:
-      // const response = await fetch(`https://api.condamind.com/chat/threads/${threadId}/messages`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'assistant-id': assistantId
-      //   },
-      //   body: JSON.stringify({ content, role: 'assistant' })
-      // });
+      // When ready to implement with real API:
+      // const { data } = await apiClient.post(`/chat/threads/${threadId}/messages`, 
+      //   { content, role: 'assistant' },
+      //   { headers: { 'assistant-id': assistantId } }
+      // );
       
       // For now, we'll simulate a successful message send
       console.log(`Sending message to thread ${threadId}:`, content);
@@ -59,7 +55,19 @@ export function useConversationActions({ threadId, assistantId }: UseConversatio
     try {
       setIsUploading(true);
       
-      // This would be replaced with an actual file upload API call
+      // When ready to implement with real API:
+      // const formData = new FormData();
+      // formData.append('file', file);
+      // const { data } = await apiClient.post(`/chat/threads/${threadId}/attachments`, 
+      //   formData,
+      //   { 
+      //     headers: { 
+      //       'assistant-id': assistantId,
+      //       'Content-Type': 'multipart/form-data' 
+      //     } 
+      //   }
+      // );
+      
       console.log(`Uploading file to thread ${threadId}:`, file.name);
       
       // Simulate API delay
@@ -86,7 +94,19 @@ export function useConversationActions({ threadId, assistantId }: UseConversatio
     try {
       setIsUploading(true);
       
-      // This would be replaced with an actual audio upload API call
+      // When ready to implement with real API:
+      // const formData = new FormData();
+      // formData.append('audio', audioBlob);
+      // const { data } = await apiClient.post(`/chat/threads/${threadId}/audio`, 
+      //   formData,
+      //   { 
+      //     headers: { 
+      //       'assistant-id': assistantId,
+      //       'Content-Type': 'multipart/form-data' 
+      //     } 
+      //   }
+      // );
+      
       console.log(`Sending audio to thread ${threadId}`);
       
       // Simulate API delay

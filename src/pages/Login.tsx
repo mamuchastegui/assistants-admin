@@ -3,10 +3,12 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { AlertCircle } from 'lucide-react';
+import { useTenant } from '@/context/TenantContext';
 
 const Login = () => {
   const [searchParams] = useSearchParams();
   const { loginWithRedirect } = useAuth0();
+  const { setOrgId } = useTenant();
   const [error, setError] = useState<string | null>(null);
 
   const invitation = searchParams.get('invitation');
@@ -15,6 +17,11 @@ const Login = () => {
 
   useEffect(() => {
     const handleInvitationLogin = async () => {
+      if (organization) {
+        // Save the organization ID for the session
+        setOrgId(organization);
+      }
+      
       if (invitation && organization) {
         try {
           console.log('Initiating invitation login flow with:', { invitation, organization });
@@ -34,7 +41,7 @@ const Login = () => {
     };
 
     handleInvitationLogin();
-  }, [invitation, organization, loginWithRedirect]);
+  }, [invitation, organization, loginWithRedirect, setOrgId]);
 
   return (
     <div className="h-screen flex items-center justify-center bg-background">

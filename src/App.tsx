@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./providers/AuthProvider";
 import { PrivateRoute } from "./components/PrivateRoute";
+import { TenantProvider } from "./context/TenantContext";
 import Index from "./pages/Index";
 import Calendar from "./pages/Calendar";
 import Assistant from "./pages/Assistant";
@@ -45,66 +46,68 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AuthProvider>
-          <ThemeProvider defaultTheme="dark" storageKey="condamind-theme">
-            <TooltipProvider>
-              <div className="min-h-[100dvh] overflow-hidden">
-                <Toaster />
-                <Sonner position="top-center" closeButton />
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/callback" element={<Callback />} />
-                  <Route path="/auth-error" element={<AuthError />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/calendar" element={
-                    <PrivateRoute>
-                      <Calendar />
-                    </PrivateRoute>
-                  } />
-                  <Route path="/assistant" element={
-                    <PrivateRoute>
-                      <Assistant />
-                    </PrivateRoute>
-                  } />
-                  <Route path="/integrations" element={
-                    <PrivateRoute>
-                      <Integrations />
-                    </PrivateRoute>
-                  } />
-                  <Route path="/orders" element={
-                    <PrivateRoute>
-                      <Orders />
-                    </PrivateRoute>
-                  } />
-                  <Route path="/orders/:orderId" element={
-                    <PrivateRoute>
-                      <OrderDetails />
-                    </PrivateRoute>
-                  } />
-                  <Route path="/menu" element={
-                    <PrivateRoute>
-                      <Menu />
-                    </PrivateRoute>
-                  } />
-                  <Route path="/restaurant-menu" element={
-                    <PrivateRoute>
-                      <RestaurantMenu />
-                    </PrivateRoute>
-                  } />
-                  
-                  {/* MercadoPago payment response routes */}
-                  <Route path="/payments/mercadopago/success" element={<Success />} />
-                  <Route path="/payments/mercadopago/failure" element={<Failure />} />
-                  <Route path="/payments/mercadopago/pending" element={<Pending />} />
-                  
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </div>
-            </TooltipProvider>
-          </ThemeProvider>
-        </AuthProvider>
+        <TenantProvider>
+          <AuthProvider>
+            <ThemeProvider defaultTheme="dark" storageKey="condamind-theme">
+              <TooltipProvider>
+                <div className="min-h-[100dvh] overflow-hidden">
+                  <Toaster />
+                  <Sonner position="top-center" closeButton />
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/callback" element={<Callback />} />
+                    <Route path="/auth-error" element={<AuthError />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/calendar" element={
+                      <PrivateRoute>
+                        <Calendar />
+                      </PrivateRoute>
+                    } />
+                    <Route path="/assistant" element={
+                      <PrivateRoute>
+                        <Assistant />
+                      </PrivateRoute>
+                    } />
+                    <Route path="/integrations" element={
+                      <PrivateRoute>
+                        <Integrations />
+                      </PrivateRoute>
+                    } />
+                    <Route path="/orders" element={
+                      <PrivateRoute>
+                        <Orders />
+                      </PrivateRoute>
+                    } />
+                    <Route path="/orders/:orderId" element={
+                      <PrivateRoute>
+                        <OrderDetails />
+                      </PrivateRoute>
+                    } />
+                    <Route path="/menu" element={
+                      <PrivateRoute>
+                        <Menu />
+                      </PrivateRoute>
+                    } />
+                    <Route path="/restaurant-menu" element={
+                      <PrivateRoute>
+                        <RestaurantMenu />
+                      </PrivateRoute>
+                    } />
+                    
+                    {/* MercadoPago payment response routes */}
+                    <Route path="/payments/mercadopago/success" element={<Success />} />
+                    <Route path="/payments/mercadopago/failure" element={<Failure />} />
+                    <Route path="/payments/mercadopago/pending" element={<Pending />} />
+                    
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </div>
+              </TooltipProvider>
+            </ThemeProvider>
+          </AuthProvider>
+        </TenantProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );

@@ -2,6 +2,7 @@
 import React, { ReactNode } from 'react';
 import { Auth0Provider } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router-dom';
+import { useTenant } from '@/context/TenantContext';
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -9,12 +10,12 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const navigate = useNavigate();
+  const { orgId } = useTenant();
 
   // Auth0 configuration from environment variables
   const domain = import.meta.env.VITE_AUTH0_DOMAIN || '';
   const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID || '';
   const audience = import.meta.env.VITE_AUTH0_AUDIENCE || '';
-  const orgId = import.meta.env.VITE_AUTH0_ORG_ID || '';
   const callbackUrl = import.meta.env.VITE_AUTH0_CALLBACK_URL || window.location.origin + '/callback';
 
   const onRedirectCallback = (appState: any) => {
@@ -33,7 +34,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       authorizationParams={{
         redirect_uri: callbackUrl,
         audience: audience,
-        organization: orgId,
+        ...(orgId ? { organization: orgId } : {}),
       }}
       onRedirectCallback={onRedirectCallback}
     >

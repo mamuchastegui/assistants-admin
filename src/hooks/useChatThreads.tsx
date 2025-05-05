@@ -39,11 +39,17 @@ export function useChatThreads() {
   const [loadingThreads, setLoadingThreads] = useState(false);
   const [loadingConversation, setLoadingConversation] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  const fetchThreads = useCallback(async () => {
+  const fetchThreads = useCallback(async (silent = false) => {
+    // Don't try to fetch if we're already loading or if we've encountered an error
+    if (loadingThreads) return;
+    
     try {
-      setLoadingThreads(true);
-      setError(null);
+      if (!silent) {
+        setLoadingThreads(true);
+        setError(null);
+      }
 
       const { data } = await authApiClient.get("/chat/threads", {
         headers: {
@@ -52,14 +58,18 @@ export function useChatThreads() {
       });
 
       setThreads(data);
-      setLoadingThreads(false);
+      if (!silent) {
+        setLoadingThreads(false);
+      }
     } catch (err) {
       console.error("Error fetching chat threads:", err);
-      setError(err.message);
-      setLoadingThreads(false);
-      toast.error("No se pudieron cargar las conversaciones");
+      setError("Error fetching chat threads");
+      if (!silent) {
+        setLoadingThreads(false);
+        toast.error("No se pudieron cargar las conversaciones");
+      }
     }
-  }, [authApiClient]);
+  }, [authApiClient, loadingThreads]);
 
   const fetchConversation = useCallback(async (threadId: string) => {
     if (!threadId) return;
@@ -78,7 +88,7 @@ export function useChatThreads() {
       setLoadingConversation(false);
     } catch (err) {
       console.error("Error fetching conversation:", err);
-      setError(err.message);
+      setError("Error fetching conversation");
       setLoadingConversation(false);
       toast.error("No se pudo cargar la conversación");
     }
@@ -146,9 +156,13 @@ export function useChatThreads() {
     }
   }, [authApiClient, selectedThread]);
 
+  // Only fetch threads on initial mount and when the user manually refreshes
   useEffect(() => {
-    fetchThreads();
-  }, [fetchThreads]);
+    if (isInitialLoad) {
+      fetchThreads();
+      setIsInitialLoad(false);
+    }
+  }, [fetchThreads, isInitialLoad]);
 
   return { 
     threads, 

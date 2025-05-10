@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { useAuthApi } from "@/api/client";
@@ -96,11 +97,16 @@ export function useChatThreads() {
   }, [authApiClient]);
 
   const sendMessage = useCallback(async (content: string) => {
-    if (!selectedThread || !content.trim()) return;
+    if (!selectedThread || !content.trim()) return false;
     
     try {
-      // This would be replaced with an actual API call
-      // For now, just simulate adding the message to the conversation
+      // Call the API to send a message
+      const { data } = await authApiClient.post(`/chat/threads/${selectedThread}/reply`, 
+        { content },
+        { headers: { "assistant-id": ASSISTANT_ID } }
+      );
+      
+      // Update local conversation state
       if (conversation) {
         const newMessage: ChatMessage = {
           role: "assistant",
@@ -118,16 +124,20 @@ export function useChatThreads() {
           };
         });
         
-        // In a real implementation, you would update the backend here
-        console.log(`Message sent to thread ${selectedThread}:`, content);
-        return true;
+        // After sending, refresh the conversation to get the server state
+        setTimeout(() => fetchConversation(selectedThread), 1000);
+        
+        // Also refresh the threads list to update the latest message timestamp
+        setTimeout(() => fetchThreads(true), 1500);
       }
+      
+      return true;
     } catch (err) {
       console.error("Error sending message:", err);
       toast.error("No se pudo enviar el mensaje");
       return false;
     }
-  }, [selectedThread, conversation]);
+  }, [selectedThread, conversation, authApiClient, fetchConversation, fetchThreads]);
 
   const selectThread = useCallback((threadId: string) => {
     setSelectedThread(threadId);

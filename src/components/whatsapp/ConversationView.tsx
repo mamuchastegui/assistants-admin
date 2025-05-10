@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Conversation } from "@/hooks/useChatThreads";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -10,6 +9,7 @@ import { es } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { useConversationActions } from "@/hooks/useConversationActions";
 
 interface ConversationViewProps {
   conversation: Conversation | null;
@@ -28,6 +28,12 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   const [message, setMessage] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Use the conversation actions hook
+  const { sendMessage, uploadFile, sendAudio, isSending, isUploading } = useConversationActions({
+    threadId: selectedThread,
+    assistantId: conversation?.assistant_id || ""
+  });
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -53,16 +59,32 @@ const ConversationView: React.FC<ConversationViewProps> = ({
     setFilteredMessages(filtered);
   }, [searchQuery, conversation]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!message.trim() && !isRecording) return;
     
-    // This would be replaced with actual API call in production
-    toast.success("Mensaje enviado");
-    setMessage("");
+    if (isRecording) {
+      // Handle recording scenario
+      toggleRecording();
+      return;
+    }
     
-    // In a real implementation, we would update the conversation state
-    // after API confirms the message was sent
-    console.log("Message sent:", message);
+    const messageContent = message.trim();
+    setMessage(""); // Clear the input field immediately for better UX
+    
+    try {
+      const result = await sendMessage(messageContent);
+      
+      if (result) {
+        // Message sent successfully, no need for additional toast as the message 
+        // will appear in the conversation
+        console.log("Message sent successfully:", result);
+      } else {
+        toast.error("No se pudo enviar el mensaje");
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast.error("Error al enviar el mensaje");
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -76,20 +98,39 @@ const ConversationView: React.FC<ConversationViewProps> = ({
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      // This would be replaced with actual file upload in production
-      toast.success(`Archivo seleccionado: ${files[0].name}`);
+      try {
+        const fileUrl = await uploadFile(files[0]);
+        if (fileUrl) {
+          console.log("File uploaded successfully:", fileUrl);
+        }
+      } catch (error) {
+        console.error("Error uploading file:", error);
+        toast.error("Error al subir el archivo");
+      }
     }
   };
 
-  const toggleRecording = () => {
+  const toggleRecording = async () => {
     setIsRecording(!isRecording);
     if (!isRecording) {
       toast.info("Grabando audio...");
+      // Start recording logic would go here
     } else {
-      toast.success("Audio grabado");
+      // In a real implementation, you would capture the audio blob
+      // For now, we'll simulate with a dummy blob
+      try {
+        const dummyBlob = new Blob(["dummy audio data"], { type: "audio/wav" });
+        const result = await sendAudio(dummyBlob);
+        if (result) {
+          toast.success("Audio enviado");
+        }
+      } catch (error) {
+        console.error("Error sending audio:", error);
+        toast.error("Error al enviar el audio");
+      }
     }
   };
 
@@ -240,11 +281,14 @@ const ConversationView: React.FC<ConversationViewProps> = ({
               onKeyDown={handleKeyDown}
               placeholder="Escribe un mensaje"
               className="bg-[#2A3942] border-0 text-gray-100 placeholder-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+              disabled={isSending || isUploading}
             />
           </div>
 
           <div className="text-gray-400 pl-2">
-            {message.trim() ? (
+            {isSending ? (
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            ) : message.trim() ? (
               <Send 
                 className="h-6 w-6 cursor-pointer text-[#00A884] hover:text-[#02c499] transition-colors" 
                 onClick={handleSendMessage}

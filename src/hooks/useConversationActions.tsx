@@ -21,19 +21,16 @@ export function useConversationActions({ threadId, assistantId }: UseConversatio
     try {
       setIsSending(true);
       
-      // When ready to implement with real API:
-      // const { data } = await authApiClient.post(`/chat/threads/${threadId}/messages`, 
-      //   { content, role: 'assistant' },
-      //   { headers: { 'assistant-id': assistantId } }
-      // );
+      // Call the actual API endpoint to reply to the thread
+      const { data } = await authApiClient.post(`/chat/threads/${threadId}/reply`, 
+        { content },
+        { headers: { 'assistant-id': assistantId } }
+      );
       
-      // For now, we'll simulate a successful message send
-      console.log(`Sending message to thread ${threadId}:`, content);
+      console.log(`Message sent to thread ${threadId}:`, content);
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const newMessage: ChatMessage = {
+      // Return the new message object from the API response or create one if not available
+      const newMessage: ChatMessage = data?.message || {
         role: 'assistant',
         content: content,
         timestamp: new Date().toISOString()
@@ -57,25 +54,22 @@ export function useConversationActions({ threadId, assistantId }: UseConversatio
       setIsUploading(true);
       
       // When ready to implement with real API:
-      // const formData = new FormData();
-      // formData.append('file', file);
-      // const { data } = await authApiClient.post(`/chat/threads/${threadId}/attachments`, 
-      //   formData,
-      //   { 
-      //     headers: { 
-      //       'assistant-id': assistantId,
-      //       'Content-Type': 'multipart/form-data' 
-      //     } 
-      //   }
-      // );
+      const formData = new FormData();
+      formData.append('file', file);
+      const { data } = await authApiClient.post(`/chat/threads/${threadId}/attachments`, 
+        formData,
+        { 
+          headers: { 
+            'assistant-id': assistantId,
+            'Content-Type': 'multipart/form-data' 
+          } 
+        }
+      );
       
       console.log(`Uploading file to thread ${threadId}:`, file.name);
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Return a simulated file URL
-      const fileUrl = `https://example.com/files/${file.name}`;
+      // Return the file URL from the API response
+      const fileUrl = data?.url || `https://example.com/files/${file.name}`;
       toast.success(`Archivo subido: ${file.name}`);
       
       return fileUrl;
@@ -95,26 +89,25 @@ export function useConversationActions({ threadId, assistantId }: UseConversatio
     try {
       setIsUploading(true);
       
-      // When ready to implement with real API:
-      // const formData = new FormData();
-      // formData.append('audio', audioBlob);
-      // const { data } = await authApiClient.post(`/chat/threads/${threadId}/audio`, 
-      //   formData,
-      //   { 
-      //     headers: { 
-      //       'assistant-id': assistantId,
-      //       'Content-Type': 'multipart/form-data' 
-      //     } 
-      //   }
-      // );
+      // Prepare audio file for upload
+      const formData = new FormData();
+      const audioFile = new File([audioBlob], 'audio.wav', { type: audioBlob.type });
+      formData.append('audio', audioFile);
+      
+      const { data } = await authApiClient.post(`/chat/threads/${threadId}/audio`, 
+        formData,
+        { 
+          headers: { 
+            'assistant-id': assistantId,
+            'Content-Type': 'multipart/form-data' 
+          } 
+        }
+      );
       
       console.log(`Sending audio to thread ${threadId}`);
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
       toast.success('Audio enviado');
-      return 'audio_message';
+      return data?.id || 'audio_message';
     } catch (error) {
       console.error('Error sending audio:', error);
       toast.error('No se pudo enviar el audio');

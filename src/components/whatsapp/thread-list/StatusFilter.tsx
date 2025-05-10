@@ -29,14 +29,14 @@ const StatusFilter: React.FC<StatusFilterProps> = ({ statusFilter, onFilterChang
   return (
     <div className="w-full">
       <Select 
-        value={statusFilter || ""} 
-        onValueChange={(value) => onFilterChange(value === "" ? null : value)}
+        value={statusFilter || "all"} 
+        onValueChange={(value) => onFilterChange(value === "all" ? null : value)}
       >
         <SelectTrigger className="w-full bg-muted/40 text-xs h-9">
           <SelectValue placeholder="Filtrar por estado" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">Todos los estados</SelectItem>
+          <SelectItem value="all">Todos los estados</SelectItem>
           {STATUS_OPTIONS.map((option) => (
             <SelectItem key={option.value} value={option.value} className="flex items-center">
               <div className="flex items-center gap-2">

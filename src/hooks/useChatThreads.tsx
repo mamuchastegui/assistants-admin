@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { useAuthApi } from "@/api/client";
@@ -11,6 +10,7 @@ export interface ChatThread {
   source: string;
   created_at: string;
   updated_at: string;
+  status: string;
 }
 
 export interface ChatMessage {
@@ -40,6 +40,7 @@ export function useChatThreads() {
   const [loadingConversation, setLoadingConversation] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
 
   const fetchThreads = useCallback(async (silent = false) => {
     // Don't try to fetch if we're already loading or if we've encountered an error
@@ -156,6 +157,43 @@ export function useChatThreads() {
     }
   }, [authApiClient, selectedThread]);
 
+  // Get filtered and ordered threads
+  const getFilteredThreads = useCallback(() => {
+    // Create a copy of threads to avoid mutating the original
+    let filteredThreads = [...threads];
+    
+    // Apply status filter if selected
+    if (statusFilter) {
+      filteredThreads = filteredThreads.filter(thread => thread.status === statusFilter);
+    }
+    
+    // Apply priority ordering according to hierarchy
+    filteredThreads.sort((a, b) => {
+      // Define status priorities
+      const statusPriority: {[key: string]: number} = {
+        'human_needed': 1,
+        'human_answering': 2,
+        'error': 3,
+        'bot_handling': 4,
+        'waiting_user': 5
+      };
+      
+      // Get priorities or default to high number (lower priority)
+      const priorityA = statusPriority[a.status] || 100;
+      const priorityB = statusPriority[b.status] || 100;
+      
+      // Compare by status priority first
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+      
+      // If same priority, sort by updated_at (newest first)
+      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+    });
+    
+    return filteredThreads;
+  }, [threads, statusFilter]);
+
   // Only fetch threads on initial mount and when the user manually refreshes
   useEffect(() => {
     if (isInitialLoad) {
@@ -165,7 +203,7 @@ export function useChatThreads() {
   }, [fetchThreads, isInitialLoad]);
 
   return { 
-    threads, 
+    threads: getFilteredThreads(), 
     loadingThreads, 
     error, 
     fetchThreads, 
@@ -175,6 +213,8 @@ export function useChatThreads() {
     loadingConversation,
     deleteThread,
     sendMessage,
-    ASSISTANT_ID
+    ASSISTANT_ID,
+    statusFilter,
+    setStatusFilter
   };
 }

@@ -13,6 +13,7 @@ import ThreadItem from "./thread-list/ThreadItem";
 import EmptyState from "./thread-list/EmptyState";
 import DeleteConfirmDialog from "./thread-list/DeleteConfirmDialog";
 import SearchBar from "./thread-list/SearchBar";
+import StatusFilter from "./thread-list/StatusFilter";
 
 interface ChatThreadListProps {
   threads: ChatThread[];
@@ -22,6 +23,8 @@ interface ChatThreadListProps {
   selectedThread: string | null;
   selectThread: (threadId: string) => void;
   deleteThread?: (threadId: string) => Promise<void>;
+  statusFilter: string | null;
+  setStatusFilter: (status: string | null) => void;
 }
 
 const ChatThreadList: React.FC<ChatThreadListProps> = ({
@@ -31,7 +34,9 @@ const ChatThreadList: React.FC<ChatThreadListProps> = ({
   fetchThreads,
   selectedThread,
   selectThread,
-  deleteThread
+  deleteThread,
+  statusFilter,
+  setStatusFilter
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const isMobile = useIsMobile();
@@ -116,10 +121,16 @@ const ChatThreadList: React.FC<ChatThreadListProps> = ({
         </CardHeader>
         
         <div className="px-3 py-2 border-b bg-muted/20">
-          <SearchBar 
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-          />
+          <div className="space-y-2">
+            <SearchBar 
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+            />
+            <StatusFilter
+              statusFilter={statusFilter}
+              onFilterChange={setStatusFilter}
+            />
+          </div>
         </div>
         
         <CardContent className="p-0 flex-grow overflow-hidden">

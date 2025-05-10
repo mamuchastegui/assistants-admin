@@ -7,6 +7,7 @@ import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { motion } from "framer-motion";
 import { ChatThread } from "@/hooks/useChatThreads";
+import StatusBadge from "./StatusBadge";
 
 interface ThreadItemProps {
   thread: ChatThread;
@@ -56,7 +57,10 @@ const ThreadItem: React.FC<ThreadItemProps> = ({
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col items-start flex-grow overflow-hidden">
-            <span className={`font-medium text-xs ${isSelected ? "text-primary" : ""}`}>{displayName}</span>
+            <div className="flex items-center justify-between w-full">
+              <span className={`font-medium text-xs ${isSelected ? "text-primary" : ""}`}>{displayName}</span>
+              {thread.status && <StatusBadge status={thread.status} />}
+            </div>
             <span className="text-[10px] text-muted-foreground truncate max-w-full">
               Último mensaje: {formatDistanceToNow(date, { addSuffix: true, locale: es })}
             </span>

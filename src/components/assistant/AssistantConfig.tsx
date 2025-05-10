@@ -15,7 +15,9 @@ const AssistantConfig: React.FC = () => {
     selectThread,
     conversation,
     loadingConversation,
-    deleteThread 
+    deleteThread,
+    statusFilter,
+    setStatusFilter
   } = useChatThreads();
 
   return (
@@ -36,6 +38,8 @@ const AssistantConfig: React.FC = () => {
           conversation={conversation}
           loadingConversation={loadingConversation}
           deleteThread={deleteThread}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
         />
       </Card>
     </motion.div>

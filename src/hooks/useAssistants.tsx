@@ -23,6 +23,9 @@ export function useAssistants() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchAssistants = useCallback(async () => {
+    // Prevent duplicate fetches
+    if (loading) return;
+    
     try {
       setLoading(true);
       setError(null);
@@ -62,10 +65,13 @@ export function useAssistants() {
     localStorage.setItem('selectedAssistantId', assistantId);
   }, []);
 
-  // Fetch assistants on mount
+  // Fetch assistants on mount only once
   useEffect(() => {
-    fetchAssistants();
-  }, [fetchAssistants]);
+    // Only fetch if we haven't already loaded assistants and we're not currently loading
+    if (assistants.length === 0 && !loading) {
+      fetchAssistants();
+    }
+  }, [fetchAssistants, assistants.length, loading]);
 
   return {
     assistants,

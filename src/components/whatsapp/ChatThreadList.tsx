@@ -25,6 +25,7 @@ interface ChatThreadListProps {
   deleteThread?: (threadId: string) => Promise<void>;
   statusFilter: string | null;
   setStatusFilter: (status: string | null) => void;
+  assistantId: string | null; // Add this property
 }
 
 const ChatThreadList: React.FC<ChatThreadListProps> = ({

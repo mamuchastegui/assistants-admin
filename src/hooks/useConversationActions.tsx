@@ -6,7 +6,7 @@ import { useAuthApi } from '@/api/client';
 
 interface UseConversationActionsProps {
   threadId: string | null;
-  assistantId: string;
+  assistantId: string | null;
 }
 
 export function useConversationActions({ threadId, assistantId }: UseConversationActionsProps) {
@@ -16,7 +16,7 @@ export function useConversationActions({ threadId, assistantId }: UseConversatio
 
   // Send a text message to the conversation
   const sendMessage = async (content: string): Promise<ChatMessage | null> => {
-    if (!threadId || !content.trim()) return null;
+    if (!threadId || !content.trim() || !assistantId) return null;
     
     try {
       setIsSending(true);
@@ -48,7 +48,7 @@ export function useConversationActions({ threadId, assistantId }: UseConversatio
 
   // Upload a file to the conversation
   const uploadFile = async (file: File): Promise<string | null> => {
-    if (!threadId || !file) return null;
+    if (!threadId || !file || !assistantId) return null;
     
     try {
       setIsUploading(true);
@@ -84,7 +84,7 @@ export function useConversationActions({ threadId, assistantId }: UseConversatio
 
   // Record and send audio
   const sendAudio = async (audioBlob: Blob): Promise<string | null> => {
-    if (!threadId || !audioBlob) return null;
+    if (!threadId || !audioBlob || !assistantId) return null;
     
     try {
       setIsUploading(true);

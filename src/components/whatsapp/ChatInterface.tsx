@@ -16,6 +16,7 @@ interface ChatInterfaceProps {
   deleteThread?: (threadId: string) => Promise<void>;
   statusFilter: string | null;
   setStatusFilter: (status: string | null) => void;
+  assistantId: string | null;
 }
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({
@@ -29,7 +30,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   loadingConversation,
   deleteThread,
   statusFilter,
-  setStatusFilter
+  setStatusFilter,
+  assistantId
 }) => {
   return (
     <div className="grid md:grid-cols-[350px_1fr] lg:grid-cols-[350px_1fr] w-full h-full gap-4">
@@ -45,6 +47,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           deleteThread={deleteThread}
           statusFilter={statusFilter}
           setStatusFilter={setStatusFilter}
+          assistantId={assistantId}
         />
       </div>
       
@@ -54,6 +57,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           conversation={conversation}
           loading={loadingConversation}
           selectedThread={selectedThread}
+          assistantId={assistantId}
         />
       </div>
     </div>

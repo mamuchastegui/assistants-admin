@@ -15,12 +15,14 @@ interface ConversationViewProps {
   conversation: Conversation | null;
   loading: boolean;
   selectedThread: string | null;
+  assistantId: string | null;
 }
 
 const ConversationView: React.FC<ConversationViewProps> = ({ 
   conversation, 
   loading, 
-  selectedThread 
+  selectedThread,
+  assistantId
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -32,7 +34,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   // Use the conversation actions hook
   const { sendMessage, uploadFile, sendAudio, isSending, isUploading } = useConversationActions({
     threadId: selectedThread,
-    assistantId: conversation?.assistant_id || ""
+    assistantId: assistantId
   });
 
   useEffect(() => {
@@ -141,12 +143,17 @@ const ConversationView: React.FC<ConversationViewProps> = ({
     return (nameParts[0][0] + nameParts[1][0]).toUpperCase();
   };
 
-  if (!selectedThread) {
+  if (!selectedThread || !assistantId) {
     return (
       <Card className="h-full flex items-center justify-center">
         <div className="text-center p-6">
           <MessageSquare className="w-10 h-10 mx-auto text-muted-foreground" />
-          <p className="mt-4 text-muted-foreground">Selecciona una conversación para ver los mensajes</p>
+          <p className="mt-4 text-muted-foreground">
+            {!assistantId 
+              ? "Por favor selecciona un asistente para ver las conversaciones" 
+              : "Selecciona una conversación para ver los mensajes"
+            }
+          </p>
         </div>
       </Card>
     );

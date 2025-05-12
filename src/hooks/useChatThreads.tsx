@@ -30,9 +30,7 @@ export interface Conversation {
   updated_at: string;
 }
 
-const ASSISTANT_ID = "asst_OS4bPZIMBpvpYo2GMkG0ast5";
-
-export function useChatThreads() {
+export function useChatThreads(assistantId?: string | null) {
   const authApiClient = useAuthApi();
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [selectedThread, setSelectedThread] = useState<string | null>(null);
@@ -45,7 +43,8 @@ export function useChatThreads() {
 
   const fetchThreads = useCallback(async (silent = false) => {
     // Don't try to fetch if we're already loading or if we've encountered an error
-    if (loadingThreads) return;
+    // or if we don't have an assistant ID
+    if (loadingThreads || !assistantId) return;
     
     try {
       if (!silent) {
@@ -55,7 +54,7 @@ export function useChatThreads() {
 
       const { data } = await authApiClient.get("/chat/threads", {
         headers: {
-          "assistant-id": ASSISTANT_ID
+          "assistant-id": assistantId
         }
       });
 
@@ -71,10 +70,10 @@ export function useChatThreads() {
         toast.error("No se pudieron cargar las conversaciones");
       }
     }
-  }, [authApiClient, loadingThreads]);
+  }, [authApiClient, loadingThreads, assistantId]);
 
   const fetchConversation = useCallback(async (threadId: string) => {
-    if (!threadId) return;
+    if (!threadId || !assistantId) return;
     
     try {
       setLoadingConversation(true);
@@ -82,7 +81,7 @@ export function useChatThreads() {
 
       const { data } = await authApiClient.get(`/chat/threads/${threadId}`, {
         headers: {
-          "assistant-id": ASSISTANT_ID
+          "assistant-id": assistantId
         }
       });
 
@@ -94,16 +93,16 @@ export function useChatThreads() {
       setLoadingConversation(false);
       toast.error("No se pudo cargar la conversación");
     }
-  }, [authApiClient]);
+  }, [authApiClient, assistantId]);
 
   const sendMessage = useCallback(async (content: string) => {
-    if (!selectedThread || !content.trim()) return false;
+    if (!selectedThread || !content.trim() || !assistantId) return false;
     
     try {
       // Call the API to send a message
       const { data } = await authApiClient.post(`/chat/threads/${selectedThread}/reply`, 
         { content },
-        { headers: { "assistant-id": ASSISTANT_ID } }
+        { headers: { "assistant-id": assistantId } }
       );
       
       // Update local conversation state
@@ -137,7 +136,7 @@ export function useChatThreads() {
       toast.error("No se pudo enviar el mensaje");
       return false;
     }
-  }, [selectedThread, conversation, authApiClient, fetchConversation, fetchThreads]);
+  }, [selectedThread, conversation, authApiClient, fetchConversation, fetchThreads, assistantId]);
 
   const selectThread = useCallback((threadId: string) => {
     setSelectedThread(threadId);
@@ -145,10 +144,12 @@ export function useChatThreads() {
   }, [fetchConversation]);
 
   const deleteThread = useCallback(async (threadId: string) => {
+    if (!assistantId) return;
+    
     try {
       await authApiClient.delete(`/chat/threads/${threadId}`, {
         headers: {
-          "assistant-id": ASSISTANT_ID
+          "assistant-id": assistantId
         }
       });
 
@@ -165,7 +166,7 @@ export function useChatThreads() {
       console.error("Error deleting thread:", err);
       throw err;
     }
-  }, [authApiClient, selectedThread]);
+  }, [authApiClient, selectedThread, assistantId]);
 
   // Get filtered and ordered threads
   const getFilteredThreads = useCallback(() => {
@@ -204,13 +205,13 @@ export function useChatThreads() {
     return filteredThreads;
   }, [threads, statusFilter]);
 
-  // Only fetch threads on initial mount and when the user manually refreshes
+  // Fetch threads when the assistant ID changes or on initial mount
   useEffect(() => {
-    if (isInitialLoad) {
+    if (assistantId && (isInitialLoad || !threads.length)) {
       fetchThreads();
       setIsInitialLoad(false);
     }
-  }, [fetchThreads, isInitialLoad]);
+  }, [fetchThreads, isInitialLoad, assistantId, threads.length]);
 
   return { 
     threads: getFilteredThreads(), 
@@ -223,7 +224,7 @@ export function useChatThreads() {
     loadingConversation,
     deleteThread,
     sendMessage,
-    ASSISTANT_ID,
+    assistantId,
     statusFilter,
     setStatusFilter
   };

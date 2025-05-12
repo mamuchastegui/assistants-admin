@@ -10,7 +10,10 @@ const createApiClient = () => {
     baseURL,
     headers: {
       "Content-Type": "application/json",
-    }
+    },
+    // Ensure proper redirect handling
+    maxRedirects: 5,
+    followRedirects: true,
   });
   
   return apiClient;

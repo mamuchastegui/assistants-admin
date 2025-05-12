@@ -21,17 +21,24 @@ export function useAssistants() {
   const [selectedAssistantId, setSelectedAssistantId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fetchAttempts, setFetchAttempts] = useState(0);
 
   const fetchAssistants = useCallback(async () => {
-    // Prevent duplicate fetches
-    if (loading) return;
+    // Prevent duplicate fetches or retries after too many attempts
+    if (loading || fetchAttempts > 3) return;
     
     try {
       setLoading(true);
       setError(null);
+      setFetchAttempts(prev => prev + 1);
 
-      const { data } = await authApiClient.get("/v1/assistants");
+      console.log("Fetching assistants...");
+      const { data } = await authApiClient.get("/v1/assistants", {
+        // Ensure URL is absolute to prevent redirect issues
+        baseURL: import.meta.env.VITE_API_URL
+      });
       
+      console.log("Assistants fetched:", data);
       setAssistants(data || []);
       
       // If there's only one assistant, select it automatically
@@ -52,13 +59,14 @@ export function useAssistants() {
       }
 
       setLoading(false);
+      setFetchAttempts(0); // Reset attempts after successful fetch
     } catch (err) {
       console.error("Error fetching assistants:", err);
       setError("Error fetching assistants");
       setLoading(false);
       toast.error("No se pudieron cargar los asistentes");
     }
-  }, [authApiClient]);
+  }, [authApiClient, fetchAttempts]);
 
   const selectAssistant = useCallback((assistantId: string) => {
     setSelectedAssistantId(assistantId);
@@ -68,10 +76,10 @@ export function useAssistants() {
   // Fetch assistants on mount only once
   useEffect(() => {
     // Only fetch if we haven't already loaded assistants and we're not currently loading
-    if (assistants.length === 0 && !loading) {
+    if (assistants.length === 0 && !loading && fetchAttempts === 0) {
       fetchAssistants();
     }
-  }, [fetchAssistants, assistants.length, loading]);
+  }, [fetchAssistants, assistants.length, loading, fetchAttempts]);
 
   return {
     assistants,

@@ -4,15 +4,29 @@ import { toast } from "sonner";
 import { useAuthApi } from "@/api/client";
 
 export interface Assistant {
-  _id: string;
+  _id?: string;
   assistant_id: string;
   name: string;
-  description?: string;
+  last_name?: string;
+  type?: string;
+  profile_picture?: string;
+  suggestions?: any;
+  welcome_message?: string;
+  welcome_messages?: string[];
+  loading_messages?: string[];
+  default?: boolean;
+  validations?: Record<string, any>;
+  llm?: string;
   model?: string;
   instructions?: string;
-  tools?: any[];
-  created_at: string;
-  updated_at: string;
+  initial_prompts_by_country?: any[];
+  hide_first_message?: boolean;
+  sufix_prompt?: string;
+  regenerate_assistant_id?: string;
+  max_regeneration_attempts?: number;
+  description?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export function useAssistants() {
@@ -33,8 +47,8 @@ export function useAssistants() {
       setFetchAttempts(prev => prev + 1);
 
       console.log("Fetching assistants...");
+      // Use absolute URL to prevent redirect issues
       const { data } = await authApiClient.get("/v1/assistants", {
-        // Ensure URL is absolute to prevent redirect issues
         baseURL: import.meta.env.VITE_API_URL
       });
       

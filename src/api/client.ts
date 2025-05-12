@@ -13,7 +13,6 @@ const createApiClient = () => {
     },
     // Ensure proper redirect handling
     maxRedirects: 5,
-    followRedirects: true,
   });
   
   return apiClient;

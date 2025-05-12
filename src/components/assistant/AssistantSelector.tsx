@@ -76,7 +76,7 @@ const AssistantSelector: React.FC<AssistantSelectorProps> = ({
               key={assistant.assistant_id} 
               value={assistant.assistant_id}
             >
-              {assistant.name || assistant.assistant_id}
+              {assistant.name}
             </SelectItem>
           ))}
         </SelectContent>

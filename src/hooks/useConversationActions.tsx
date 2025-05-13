@@ -22,8 +22,9 @@ export function useConversationActions({ threadId, assistantId }: UseConversatio
       setIsSending(true);
       
       // Call the actual API endpoint to reply to the thread
+      // Changed from 'content' to 'message' in the request body
       const { data } = await authApiClient.post(`/chat/threads/${threadId}/reply`, 
-        { content },
+        { message: content },
         { headers: { 'assistant-id': assistantId } }
       );
       

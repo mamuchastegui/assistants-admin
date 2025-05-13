@@ -99,9 +99,9 @@ export function useChatThreads(assistantId?: string | null) {
     if (!selectedThread || !content.trim() || !assistantId) return false;
     
     try {
-      // Call the API to send a message
+      // Call the API to send a message - changing 'content' to 'message' in the request body
       const { data } = await authApiClient.post(`/chat/threads/${selectedThread}/reply`, 
-        { content },
+        { message: content },
         { headers: { "assistant-id": assistantId } }
       );
       

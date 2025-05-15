@@ -78,7 +78,7 @@ const ChatThreadList: React.FC<ChatThreadListProps> = ({
     setThreadToDelete(null);
   };
 
-  // Render loading, error, or empty states using our EmptyState component
+  // Render loading state
   if (loadingThreads) {
     return (
       <Card className="h-full bg-card/80 backdrop-blur-sm border-muted">
@@ -87,6 +87,7 @@ const ChatThreadList: React.FC<ChatThreadListProps> = ({
     );
   }
 
+  // Render error state
   if (error) {
     return (
       <Card className="h-full bg-card/80 backdrop-blur-sm border-muted">
@@ -95,10 +96,11 @@ const ChatThreadList: React.FC<ChatThreadListProps> = ({
     );
   }
 
+  // Render empty state - this is now different from loading state
   if (!threads || threads.length === 0) {
     return (
       <Card className="h-full bg-card/80 backdrop-blur-sm border-muted">
-        <EmptyState type="empty" onRefresh={handleRefresh} />
+        <EmptyState type="no-conversations" onRefresh={handleRefresh} />
       </Card>
     );
   }

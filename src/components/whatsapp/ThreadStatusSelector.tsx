@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/select";
 import { THREAD_STATUSES } from "@/hooks/useChatThreads";
 import { getStatusColor } from "./thread-list/StatusFilter";
+import { Check, AlertCircle, Bot, User, Clock, CheckCircle2, XCircle, Archive, Timer } from "lucide-react";
 
 interface ThreadStatusSelectorProps {
   currentStatus: string;
@@ -28,6 +29,19 @@ const STATUS_LABELS: { [key: string]: string } = {
   "expired": "Expirado"
 };
 
+// Mapping estado -> icono
+const STATUS_ICONS: { [key: string]: React.ComponentType } = {
+  "new": AlertCircle,
+  "bot_handling": Bot,
+  "human_needed": User,
+  "human_answering": User,
+  "waiting_user": Clock,
+  "resolved": CheckCircle2,
+  "error": XCircle,
+  "archived": Archive,
+  "expired": Timer,
+};
+
 const ThreadStatusSelector: React.FC<ThreadStatusSelectorProps> = ({
   currentStatus,
   onStatusChange,
@@ -45,15 +59,19 @@ const ThreadStatusSelector: React.FC<ThreadStatusSelectorProps> = ({
         >
           <SelectValue placeholder="Cambiar estado" />
         </SelectTrigger>
-        <SelectContent>
-          {Object.values(THREAD_STATUSES).map((status) => (
-            <SelectItem key={status} value={status} className="flex items-center">
-              <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${getStatusColor(status)}`}></div>
-                {STATUS_LABELS[status] || status}
-              </div>
-            </SelectItem>
-          ))}
+        <SelectContent className="bg-background">
+          {Object.values(THREAD_STATUSES).map((status) => {
+            const StatusIcon = STATUS_ICONS[status] || Check;
+            
+            return (
+              <SelectItem key={status} value={status} className="flex items-center">
+                <div className="flex items-center gap-2">
+                  <StatusIcon className="h-4 w-4" />
+                  {STATUS_LABELS[status] || status}
+                </div>
+              </SelectItem>
+            );
+          })}
         </SelectContent>
       </Select>
     </div>

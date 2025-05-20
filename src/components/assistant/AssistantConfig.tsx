@@ -20,7 +20,8 @@ const AssistantConfig: React.FC = () => {
     loadingConversation,
     deleteThread,
     statusFilter,
-    setStatusFilter
+    setStatusFilter,
+    updateThreadStatus
   } = useChatThreads(currentAssistantId);
 
   const handleAssistantChange = (assistantId: string) => {
@@ -52,6 +53,7 @@ const AssistantConfig: React.FC = () => {
           statusFilter={statusFilter}
           setStatusFilter={setStatusFilter}
           assistantId={currentAssistantId}
+          updateThreadStatus={updateThreadStatus}
         />
       </Card>
     </motion.div>

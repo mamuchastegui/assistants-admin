@@ -3,7 +3,7 @@ import { Conversation } from "@/hooks/useChatThreads";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { Loader2, MessageSquare, Search, Paperclip, Send, Image, Mic, Smile } from "lucide-react";
+import { Loader2, MessageSquare, Search, Paperclip, Send, Image, Mic, Smile, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useConversationActions } from "@/hooks/useConversationActions";
 import ThreadStatusSelector from "./ThreadStatusSelector";
+import { Badge } from "@/components/ui/badge";
 
 interface ConversationViewProps {
   conversation: Conversation | null;
@@ -166,6 +167,18 @@ const ConversationView: React.FC<ConversationViewProps> = ({
     return (nameParts[0][0] + nameParts[1][0]).toUpperCase();
   };
 
+  const STATUS_LABELS: { [key: string]: string } = {
+    "new": "Nuevo",
+    "bot_handling": "Bot atendiendo",
+    "human_needed": "Requiere atención",
+    "human_answering": "Respondiendo",
+    "waiting_user": "Esperando usuario",
+    "resolved": "Resuelto",
+    "error": "Error",
+    "archived": "Archivado",
+    "expired": "Expirado"
+  };
+
   if (!selectedThread || !assistantId) {
     return (
       <Card className="h-full flex items-center justify-center">
@@ -231,17 +244,27 @@ const ConversationView: React.FC<ConversationViewProps> = ({
               />
             </div>
           </div>
-          
-          {/* Status selector */}
-          {onStatusChange && (
-            <div className="w-48">
-              <ThreadStatusSelector
-                currentStatus={currentThreadStatus}
-                onStatusChange={handleStatusChange}
-                disabled={isChangingStatus}
-              />
+
+          {/* Status Badge and selector prominently displayed */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Estado:</span>
+              <Badge variant="outline" className="font-semibold">
+                {STATUS_LABELS[currentThreadStatus] || currentThreadStatus}
+              </Badge>
             </div>
-          )}
+            
+            {/* Status selector with better visibility */}
+            {onStatusChange && (
+              <div className="w-56">
+                <ThreadStatusSelector
+                  currentStatus={currentThreadStatus}
+                  onStatusChange={handleStatusChange}
+                  disabled={isChangingStatus}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </CardHeader>
       

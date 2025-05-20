@@ -12,8 +12,9 @@ export const LogoutButton: React.FC = () => {
     toast.success("Has cerrado sesión correctamente");
     logout({ 
       logoutParams: {
-        returnTo: window.location.origin 
-      }
+        returnTo: 'https://admin.condamind.com/'
+      },
+      openUrl: false
     });
   };
 

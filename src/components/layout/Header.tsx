@@ -1,12 +1,22 @@
 
 import React from "react";
-import { Bell, Search } from "lucide-react";
+import { Bell, LogOut, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSidebar } from "@/components/ui/sidebar";
 import { motion, AnimatePresence } from "framer-motion";
 import { DarkModeToggle } from "@/components/ui/dark-mode-toggle";
+import { useAuth0 } from "@auth0/auth0-react";
+import { LogoutButton } from "@/components/LogoutButton";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface HeaderProps {
   children?: React.ReactNode;
@@ -16,6 +26,17 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
   const isMobile = useIsMobile();
   const { openMobile } = useSidebar();
   const [showSearch, setShowSearch] = React.useState(false);
+  const { isAuthenticated, user } = useAuth0();
+  
+  // Get user initials for the avatar
+  const getUserInitials = () => {
+    if (!user?.name) return 'U';
+    return user.name.split(' ')
+      .map(name => name[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
+  };
   
   return (
     <motion.header 
@@ -71,13 +92,52 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
           <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8">
             <Bell className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </Button>
-          <motion.span 
-            className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-medium text-xs sm:text-sm"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            UD
-          </motion.span>
+          
+          {isAuthenticated ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <motion.span 
+                  className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-medium text-xs sm:text-sm cursor-pointer"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {getUserInitials()}
+                </motion.span>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                {user && (
+                  <>
+                    <DropdownMenuLabel>
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user.name}</p>
+                        <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                <DropdownMenuItem asChild>
+                  <a href="/auth">
+                    Mi Perfil
+                  </a>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <div>
+                    <LogoutButton />
+                  </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <motion.span 
+              className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-medium text-xs sm:text-sm"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              UD
+            </motion.span>
+          )}
         </div>
       </div>
 

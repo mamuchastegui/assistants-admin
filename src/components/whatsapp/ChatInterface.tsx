@@ -17,6 +17,7 @@ interface ChatInterfaceProps {
   statusFilter: string | null;
   setStatusFilter: (status: string | null) => void;
   assistantId: string | null;
+  updateThreadStatus?: (threadId: string, status: string) => Promise<boolean>;
 }
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({
@@ -31,8 +32,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   deleteThread,
   statusFilter,
   setStatusFilter,
-  assistantId
+  assistantId,
+  updateThreadStatus
 }) => {
+  // Find the current thread to get its status
+  const currentThread = threads.find(thread => thread.thread_id === selectedThread);
+  const currentThreadStatus = currentThread?.status || "new";
+
   return (
     <div className="grid md:grid-cols-[350px_1fr] lg:grid-cols-[350px_1fr] w-full h-full gap-4">
       {/* Conversation threads list on the left */}
@@ -58,6 +64,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           loading={loadingConversation}
           selectedThread={selectedThread}
           assistantId={assistantId}
+          currentThreadStatus={currentThreadStatus}
+          onStatusChange={updateThreadStatus}
         />
       </div>
     </div>

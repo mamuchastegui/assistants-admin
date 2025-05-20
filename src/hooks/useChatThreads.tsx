@@ -30,6 +30,19 @@ export interface Conversation {
   updated_at: string;
 }
 
+// Thread status constants
+export const THREAD_STATUSES = {
+  NEW: "new",
+  BOT_HANDLING: "bot_handling",
+  HUMAN_NEEDED: "human_needed",
+  HUMAN_ANSWERING: "human_answering",
+  WAITING_USER: "waiting_user",
+  RESOLVED: "resolved",
+  ERROR: "error",
+  ARCHIVED: "archived",
+  EXPIRED: "expired"
+};
+
 export function useChatThreads(assistantId?: string | null) {
   const authApiClient = useAuthApi();
   const [threads, setThreads] = useState<ChatThread[]>([]);
@@ -168,6 +181,38 @@ export function useChatThreads(assistantId?: string | null) {
     }
   }, [authApiClient, selectedThread, assistantId]);
 
+  // New function to update thread status
+  const updateThreadStatus = useCallback(async (threadId: string, status: string) => {
+    if (!assistantId) return false;
+    
+    try {
+      const { data } = await authApiClient.patch(`/chat/threads/${threadId}/status`, 
+        { status },
+        { headers: { "assistant-id": assistantId } }
+      );
+      
+      // Update local state
+      setThreads(prevThreads => prevThreads.map(thread => 
+        thread.thread_id === threadId 
+          ? { ...thread, status: status, updated_at: new Date().toISOString() }
+          : thread
+      ));
+      
+      toast.success(`Estado actualizado a: ${status}`);
+      
+      // If this was the selected thread, update the conversation too
+      if (selectedThread === threadId) {
+        fetchConversation(threadId);
+      }
+      
+      return true;
+    } catch (err) {
+      console.error("Error updating thread status:", err);
+      toast.error("No se pudo actualizar el estado de la conversación");
+      return false;
+    }
+  }, [authApiClient, assistantId, selectedThread, fetchConversation]);
+
   // Get filtered and ordered threads
   const getFilteredThreads = useCallback(() => {
     // Create a copy of threads to avoid mutating the original
@@ -226,6 +271,8 @@ export function useChatThreads(assistantId?: string | null) {
     sendMessage,
     assistantId,
     statusFilter,
-    setStatusFilter
+    setStatusFilter,
+    updateThreadStatus,
+    THREAD_STATUSES
   };
 }

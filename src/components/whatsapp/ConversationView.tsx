@@ -10,19 +10,24 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useConversationActions } from "@/hooks/useConversationActions";
+import ThreadStatusSelector from "./ThreadStatusSelector";
 
 interface ConversationViewProps {
   conversation: Conversation | null;
   loading: boolean;
   selectedThread: string | null;
   assistantId: string | null;
+  currentThreadStatus?: string;
+  onStatusChange?: (threadId: string, status: string) => Promise<boolean>;
 }
 
 const ConversationView: React.FC<ConversationViewProps> = ({ 
   conversation, 
   loading, 
   selectedThread,
-  assistantId
+  assistantId,
+  currentThreadStatus = "new",
+  onStatusChange
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -30,6 +35,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   const [message, setMessage] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isChangingStatus, setIsChangingStatus] = useState(false);
   
   // Use the conversation actions hook
   const { sendMessage, uploadFile, sendAudio, isSending, isUploading } = useConversationActions({
@@ -60,6 +66,23 @@ const ConversationView: React.FC<ConversationViewProps> = ({
     
     setFilteredMessages(filtered);
   }, [searchQuery, conversation]);
+
+  const handleStatusChange = async (status: string) => {
+    if (!selectedThread || !onStatusChange) return;
+    
+    setIsChangingStatus(true);
+    try {
+      const success = await onStatusChange(selectedThread, status);
+      if (!success) {
+        toast.error("No se pudo actualizar el estado");
+      }
+    } catch (error) {
+      console.error("Error changing status:", error);
+      toast.error("Error al cambiar el estado");
+    } finally {
+      setIsChangingStatus(false);
+    }
+  };
 
   const handleSendMessage = async () => {
     if (!message.trim() && !isRecording) return;
@@ -186,26 +209,39 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="pb-2 border-b flex-shrink-0">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-lg flex items-center">
-            <Avatar className="h-8 w-8 mr-2">
-              <AvatarFallback>
-                {getInitials(conversation.profile_name)}
-              </AvatarFallback>
-            </Avatar>
-            {displayName}
-          </CardTitle>
-          
-          <div className="relative w-48">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input 
-              type="search" 
-              placeholder="Buscar..." 
-              className="pl-8 h-8 text-xs"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+        <div className="flex flex-col space-y-2">
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-lg flex items-center">
+              <Avatar className="h-8 w-8 mr-2">
+                <AvatarFallback>
+                  {getInitials(conversation.profile_name)}
+                </AvatarFallback>
+              </Avatar>
+              {displayName}
+            </CardTitle>
+            
+            <div className="relative w-48">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input 
+                type="search" 
+                placeholder="Buscar..." 
+                className="pl-8 h-8 text-xs"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
           </div>
+          
+          {/* Status selector */}
+          {onStatusChange && (
+            <div className="w-48">
+              <ThreadStatusSelector
+                currentStatus={currentThreadStatus}
+                onStatusChange={handleStatusChange}
+                disabled={isChangingStatus}
+              />
+            </div>
+          )}
         </div>
       </CardHeader>
       

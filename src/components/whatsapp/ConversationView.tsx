@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Conversation } from "@/hooks/useChatThreads";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -14,6 +15,7 @@ import ThreadStatusSelector from "./ThreadStatusSelector";
 import { Badge } from "@/components/ui/badge";
 import QuickResponses from "./QuickResponses";
 import { useAuth0 } from '@auth0/auth0-react';
+import { Progress } from "@/components/ui/progress";
 
 interface ConversationViewProps {
   conversation: Conversation | null;
@@ -22,6 +24,13 @@ interface ConversationViewProps {
   assistantId: string | null;
   currentThreadStatus?: string;
   onStatusChange?: (threadId: string, status: string) => Promise<boolean>;
+}
+
+// Define a pending message type
+interface PendingMessage {
+  id: string;
+  content: string;
+  timestamp: string;
 }
 
 const ConversationView: React.FC<ConversationViewProps> = ({ 
@@ -43,6 +52,11 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   const [isChangingStatus, setIsChangingStatus] = useState(false);
   const previousMessageCount = useRef<number>(0);
   const initialLoadComplete = useRef<boolean>(false);
+  
+  // New state for tracking pending messages
+  const [pendingMessages, setPendingMessages] = useState<PendingMessage[]>([]);
+  const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
+  const responseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Use the conversation actions hook
   const { sendMessage, uploadFile, sendAudio, isSending, isUploading } = useConversationActions({
@@ -89,8 +103,27 @@ const ConversationView: React.FC<ConversationViewProps> = ({
     
     // Update the previous count
     previousMessageCount.current = currentMessageCount;
-  }, [conversation]);
+
+    // Check if there are pending messages and a new message has arrived
+    if (pendingMessages.length > 0 && currentMessageCount > previousMessageCount.current) {
+      // If we got a response, we can clear the pending state
+      setIsWaitingForResponse(false);
+      if (responseTimeoutRef.current) {
+        clearTimeout(responseTimeoutRef.current);
+        responseTimeoutRef.current = null;
+      }
+    }
+  }, [conversation, pendingMessages.length]);
   
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (responseTimeoutRef.current) {
+        clearTimeout(responseTimeoutRef.current);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     if (!conversation || !conversation.conversation) {
       setFilteredMessages([]);
@@ -138,19 +171,52 @@ const ConversationView: React.FC<ConversationViewProps> = ({
     const messageContent = message.trim();
     setMessage(""); // Clear the input field immediately for better UX
     
+    // Create a pending message to show immediately
+    const pendingMessageId = Date.now().toString();
+    const newPendingMessage = {
+      id: pendingMessageId,
+      content: messageContent,
+      timestamp: new Date().toISOString()
+    };
+    
+    // Add to pending messages
+    setPendingMessages(prev => [...prev, newPendingMessage]);
+    
+    // Set waiting state
+    setIsWaitingForResponse(true);
+    
+    // Set a timeout to detect if no response comes within 30 seconds
+    if (responseTimeoutRef.current) {
+      clearTimeout(responseTimeoutRef.current);
+    }
+    
+    responseTimeoutRef.current = setTimeout(() => {
+      setIsWaitingForResponse(false);
+      toast.error("No se recibió respuesta del asistente en tiempo esperado");
+    }, 30000); // 30 seconds timeout
+    
     try {
       const result = await sendMessage(messageContent);
       
-      if (result) {
-        // Message sent successfully, no need for additional toast as the message 
-        // will appear in the conversation
-        console.log("Message sent successfully:", result);
-      } else {
+      if (!result) {
+        // Remove pending message if sending failed
+        setPendingMessages(prev => prev.filter(msg => msg.id !== pendingMessageId));
         toast.error("No se pudo enviar el mensaje");
       }
+      
+      // The actual message removal will happen when new messages arrive in the conversation
+      
     } catch (error) {
       console.error("Error sending message:", error);
       toast.error("Error al enviar el mensaje");
+      // Remove pending message if there was an error
+      setPendingMessages(prev => prev.filter(msg => msg.id !== pendingMessageId));
+      setIsWaitingForResponse(false);
+      
+      if (responseTimeoutRef.current) {
+        clearTimeout(responseTimeoutRef.current);
+        responseTimeoutRef.current = null;
+      }
     }
   };
 
@@ -270,6 +336,16 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   const displayName = conversation.profile_name || "Usuario";
   const currentUserName = user?.name || "Asistente";
 
+  const allMessages = [
+    ...filteredMessages,
+    ...pendingMessages.map(msg => ({
+      role: "assistant" as const,
+      content: msg.content,
+      timestamp: msg.timestamp,
+      isPending: true
+    }))
+  ];
+
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="pb-2 border-b flex-shrink-0">
@@ -330,9 +406,10 @@ const ConversationView: React.FC<ConversationViewProps> = ({
       >
         <ScrollArea className="h-full pr-4">
           <div className="space-y-4 pb-4">
-            {filteredMessages.map((message, index) => {
+            {allMessages.map((message, index) => {
               const date = new Date(message.timestamp);
               const isUser = message.role === "user";
+              const isPending = 'isPending' in message && message.isPending;
 
               return (
                 <div
@@ -344,21 +421,35 @@ const ConversationView: React.FC<ConversationViewProps> = ({
                       isUser
                         ? "bg-[#1F2C34] text-gray-100" // Dark gray for user messages
                         : "bg-[#005C4B] text-white"    // Green for assistant messages
-                    }`}
+                    } ${isPending ? "opacity-70" : ""}`}
                   >
                     <div className="whitespace-pre-wrap break-words">{message.content}</div>
                     <div
-                      className={`text-xs mt-1 ${
+                      className={`text-xs mt-1 flex items-center justify-between ${
                         isUser ? "text-gray-400" : "text-gray-200"
                       }`}
                     >
-                      {format(date, "HH:mm - d MMM", { locale: es })}
+                      <span>{format(date, "HH:mm - d MMM", { locale: es })}</span>
+                      {isPending && (
+                        <Loader2 className="h-3 w-3 ml-2 animate-spin" />
+                      )}
                     </div>
                   </div>
                 </div>
               );
             })}
             <div ref={messagesEndRef} />
+            
+            {/* Show waiting for response indicator */}
+            {isWaitingForResponse && (
+              <div className="flex flex-col items-center justify-center py-2 px-4">
+                <div className="text-xs text-gray-300 mb-1">Esperando respuesta...</div>
+                <Progress 
+                  className="h-1 w-36 bg-gray-700" 
+                  value={100} 
+                />
+              </div>
+            )}
           </div>
         </ScrollArea>
       </CardContent>
@@ -404,12 +495,12 @@ const ConversationView: React.FC<ConversationViewProps> = ({
               onKeyDown={handleKeyDown}
               placeholder="Escribe un mensaje"
               className="bg-[#2A3942] border-0 text-gray-100 placeholder-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
-              disabled={isSending || isUploading}
+              disabled={isSending || isUploading || isWaitingForResponse}
             />
           </div>
 
           <div className="text-gray-400 pl-2">
-            {isSending ? (
+            {isSending || isWaitingForResponse ? (
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
             ) : message.trim() ? (
               <Send 

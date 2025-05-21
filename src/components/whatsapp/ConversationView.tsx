@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Conversation } from "@/hooks/useChatThreads";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -31,12 +32,14 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   onStatusChange
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [filteredMessages, setFilteredMessages] = useState<any[]>([]);
   const [message, setMessage] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isChangingStatus, setIsChangingStatus] = useState(false);
+  const previousMessageCount = useRef<number>(0);
   
   // Use the conversation actions hook
   const { sendMessage, uploadFile, sendAudio, isSending, isUploading } = useConversationActions({
@@ -44,11 +47,30 @@ const ConversationView: React.FC<ConversationViewProps> = ({
     assistantId: assistantId
   });
 
+  // Intelligently handle scrolling when new messages arrive
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    if (!conversation || !conversation.conversation) return;
+    
+    const currentMessageCount = conversation.conversation.length;
+    
+    // Only scroll to bottom in these cases:
+    // 1. Initial load (previousMessageCount is 0)
+    // 2. We sent a message (so we need to see the reply)
+    // 3. New messages came in and we're already at the bottom
+    const shouldScrollToBottom = 
+      previousMessageCount.current === 0 || 
+      currentMessageCount > previousMessageCount.current;
+    
+    if (shouldScrollToBottom && messagesEndRef.current) {
+      // Use a small timeout to ensure the DOM has updated
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
     }
-  }, [conversation, filteredMessages]);
+    
+    // Update the previous count
+    previousMessageCount.current = currentMessageCount;
+  }, [conversation]);
   
   useEffect(() => {
     if (!conversation || !conversation.conversation) {
@@ -275,6 +297,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({
           backgroundColor: '#0B141A',
           backgroundRepeat: 'repeat',
         }}
+        ref={scrollAreaRef}
       >
         <ScrollArea className="h-full pr-4">
           <div className="space-y-4 pb-4">

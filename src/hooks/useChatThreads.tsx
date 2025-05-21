@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { useAuthApi } from "@/api/client";
@@ -72,6 +71,9 @@ export function useChatThreads(assistantId?: string | null) {
   // Use a ref to track last fetch time to ensure consistent intervals
   const lastThreadsFetchTime = useRef<number>(0);
   const lastConversationFetchTime = useRef<number>(0);
+  
+  // Add ref to store current conversation message count to detect changes
+  const messageCountRef = useRef<number>(0);
 
   const fetchThreads = useCallback(async (silent = false) => {
     // Don't try to fetch if we're already loading, if we've encountered an error,
@@ -105,6 +107,7 @@ export function useChatThreads(assistantId?: string | null) {
       // Compare with previous data to avoid unnecessary updates
       const newDataString = JSON.stringify(data);
       if (newDataString !== lastThreadsData.current) {
+        // Only update state if data has changed
         setThreads(data);
         lastThreadsData.current = newDataString;
       }
@@ -141,7 +144,10 @@ export function useChatThreads(assistantId?: string | null) {
     isRefreshingConversation.current = true;
     
     try {
-      setLoadingConversation(true);
+      // Only show loading indicator on first load, not on refreshes
+      if (!conversation || conversation.thread_id !== threadId) {
+        setLoadingConversation(true);
+      }
       setError(null);
 
       const { data } = await authApiClient.get(`/chat/threads/${threadId}`, {
@@ -152,12 +158,37 @@ export function useChatThreads(assistantId?: string | null) {
 
       // Compare with previous conversation data to avoid unnecessary updates
       const newConversationString = JSON.stringify(data);
+      
       if (newConversationString !== lastConversationData.current) {
-        setConversation(data);
+        // Check if we need to keep scroll position (only update if message count changed)
+        const oldMessageCount = messageCountRef.current;
+        const newMessageCount = data?.conversation?.length || 0;
+        
+        // Only update conversation if there's a change
+        setConversation(prev => {
+          // If it's a different thread or we don't have any data yet, replace entirely
+          if (!prev || prev.thread_id !== threadId) {
+            messageCountRef.current = newMessageCount;
+            return data;
+          }
+          
+          // Otherwise, check if there are actually new messages
+          if (newMessageCount > oldMessageCount) {
+            // Update the message count ref
+            messageCountRef.current = newMessageCount;
+            return data;
+          }
+          
+          // If no new messages, keep current state to prevent re-renders
+          return prev;
+        });
+        
         lastConversationData.current = newConversationString;
       }
       
-      setLoadingConversation(false);
+      if (loadingConversation) {
+        setLoadingConversation(false);
+      }
     } catch (err) {
       console.error("Error fetching conversation:", err);
       setError("Error fetching conversation");
@@ -167,7 +198,7 @@ export function useChatThreads(assistantId?: string | null) {
       // Reset the refreshing flag
       isRefreshingConversation.current = false;
     }
-  }, [authApiClient, assistantId]);
+  }, [authApiClient, assistantId, conversation, loadingConversation]);
 
   // Auto-refresh threads every 5 seconds
   useEffect(() => {

@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { useAuthApi } from "@/api/client";
 
@@ -53,6 +52,13 @@ export function useChatThreads(assistantId?: string | null) {
   const [error, setError] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  
+  // Add refs to store last fetch timestamps to avoid unnecessary UI updates
+  const lastThreadsData = useRef<string>("");
+  const lastConversationData = useRef<string>("");
+  
+  // Add refresh interval (5 seconds = 5000ms)
+  const REFRESH_INTERVAL = 5000;
 
   const fetchThreads = useCallback(async (silent = false) => {
     // Don't try to fetch if we're already loading or if we've encountered an error
@@ -71,7 +77,13 @@ export function useChatThreads(assistantId?: string | null) {
         }
       });
 
-      setThreads(data);
+      // Compare with previous data to avoid unnecessary updates
+      const newDataString = JSON.stringify(data);
+      if (newDataString !== lastThreadsData.current) {
+        setThreads(data);
+        lastThreadsData.current = newDataString;
+      }
+      
       if (!silent) {
         setLoadingThreads(false);
       }
@@ -98,7 +110,13 @@ export function useChatThreads(assistantId?: string | null) {
         }
       });
 
-      setConversation(data);
+      // Compare with previous conversation data to avoid unnecessary updates
+      const newConversationString = JSON.stringify(data);
+      if (newConversationString !== lastConversationData.current) {
+        setConversation(data);
+        lastConversationData.current = newConversationString;
+      }
+      
       setLoadingConversation(false);
     } catch (err) {
       console.error("Error fetching conversation:", err);
@@ -107,6 +125,42 @@ export function useChatThreads(assistantId?: string | null) {
       toast.error("No se pudo cargar la conversación");
     }
   }, [authApiClient, assistantId]);
+
+  // Auto-refresh threads every 5 seconds
+  useEffect(() => {
+    if (!assistantId) return;
+    
+    // Initial fetch
+    fetchThreads();
+    
+    // Set up the interval for threads refresh
+    const threadsInterval = setInterval(() => {
+      fetchThreads(true); // Silent refresh
+    }, REFRESH_INTERVAL);
+    
+    // Clean up on unmount
+    return () => {
+      clearInterval(threadsInterval);
+    };
+  }, [fetchThreads, assistantId]);
+  
+  // Auto-refresh the current conversation every 5 seconds if one is selected
+  useEffect(() => {
+    if (!selectedThread || !assistantId) return;
+    
+    // Initial fetch
+    fetchConversation(selectedThread);
+    
+    // Set up the interval for conversation refresh
+    const conversationInterval = setInterval(() => {
+      fetchConversation(selectedThread);
+    }, REFRESH_INTERVAL);
+    
+    // Clean up on unmount or when selected thread changes
+    return () => {
+      clearInterval(conversationInterval);
+    };
+  }, [fetchConversation, selectedThread, assistantId]);
 
   const sendMessage = useCallback(async (content: string) => {
     if (!selectedThread || !content.trim() || !assistantId) return false;

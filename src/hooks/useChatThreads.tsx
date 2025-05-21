@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { useAuthApi } from "@/api/client";
@@ -57,13 +58,24 @@ export function useChatThreads(assistantId?: string | null) {
   const lastThreadsData = useRef<string>("");
   const lastConversationData = useRef<string>("");
   
-  // Add refresh interval (5 seconds = 5000ms)
-  const REFRESH_INTERVAL = 5000;
+  // Store refresh interval as ref to prevent it from causing effect reruns
+  const REFRESH_INTERVAL = 5000; // 5 seconds in milliseconds
+  
+  // Use refs to track if refreshes are in progress to prevent overlapping calls
+  const isRefreshingThreads = useRef(false);
+  const isRefreshingConversation = useRef(false);
+  
+  // Use refs to store the interval IDs for cleanup
+  const threadsIntervalRef = useRef<number | null>(null);
+  const conversationIntervalRef = useRef<number | null>(null);
 
   const fetchThreads = useCallback(async (silent = false) => {
-    // Don't try to fetch if we're already loading or if we've encountered an error
-    // or if we don't have an assistant ID
-    if (loadingThreads || !assistantId) return;
+    // Don't try to fetch if we're already loading, if we've encountered an error,
+    // if we don't have an assistant ID, or if another refresh is already in progress
+    if (loadingThreads || !assistantId || isRefreshingThreads.current) return;
+    
+    // Set the refreshing flag to true
+    isRefreshingThreads.current = true;
     
     try {
       if (!silent) {
@@ -94,11 +106,17 @@ export function useChatThreads(assistantId?: string | null) {
         setLoadingThreads(false);
         toast.error("No se pudieron cargar las conversaciones");
       }
+    } finally {
+      // Reset the refreshing flag
+      isRefreshingThreads.current = false;
     }
   }, [authApiClient, loadingThreads, assistantId]);
 
   const fetchConversation = useCallback(async (threadId: string) => {
-    if (!threadId || !assistantId) return;
+    if (!threadId || !assistantId || isRefreshingConversation.current) return;
+    
+    // Set the refreshing flag to true
+    isRefreshingConversation.current = true;
     
     try {
       setLoadingConversation(true);
@@ -123,6 +141,9 @@ export function useChatThreads(assistantId?: string | null) {
       setError("Error fetching conversation");
       setLoadingConversation(false);
       toast.error("No se pudo cargar la conversación");
+    } finally {
+      // Reset the refreshing flag
+      isRefreshingConversation.current = false;
     }
   }, [authApiClient, assistantId]);
 
@@ -130,17 +151,28 @@ export function useChatThreads(assistantId?: string | null) {
   useEffect(() => {
     if (!assistantId) return;
     
+    // Clear any existing interval first
+    if (threadsIntervalRef.current) {
+      clearInterval(threadsIntervalRef.current);
+    }
+    
     // Initial fetch
     fetchThreads();
     
     // Set up the interval for threads refresh
-    const threadsInterval = setInterval(() => {
+    const intervalId = window.setInterval(() => {
       fetchThreads(true); // Silent refresh
     }, REFRESH_INTERVAL);
     
+    // Store the interval ID
+    threadsIntervalRef.current = intervalId as unknown as number;
+    
     // Clean up on unmount
     return () => {
-      clearInterval(threadsInterval);
+      if (threadsIntervalRef.current) {
+        clearInterval(threadsIntervalRef.current);
+        threadsIntervalRef.current = null;
+      }
     };
   }, [fetchThreads, assistantId]);
   
@@ -148,17 +180,28 @@ export function useChatThreads(assistantId?: string | null) {
   useEffect(() => {
     if (!selectedThread || !assistantId) return;
     
+    // Clear any existing interval first
+    if (conversationIntervalRef.current) {
+      clearInterval(conversationIntervalRef.current);
+    }
+    
     // Initial fetch
     fetchConversation(selectedThread);
     
     // Set up the interval for conversation refresh
-    const conversationInterval = setInterval(() => {
+    const intervalId = window.setInterval(() => {
       fetchConversation(selectedThread);
     }, REFRESH_INTERVAL);
     
+    // Store the interval ID
+    conversationIntervalRef.current = intervalId as unknown as number;
+    
     // Clean up on unmount or when selected thread changes
     return () => {
-      clearInterval(conversationInterval);
+      if (conversationIntervalRef.current) {
+        clearInterval(conversationIntervalRef.current);
+        conversationIntervalRef.current = null;
+      }
     };
   }, [fetchConversation, selectedThread, assistantId]);
 

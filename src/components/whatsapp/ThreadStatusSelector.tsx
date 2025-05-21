@@ -45,10 +45,19 @@ const ThreadStatusSelector: React.FC<ThreadStatusSelectorProps> = ({
   onStatusChange,
   disabled = false
 }) => {
+  // Define type for displayableStatuses
+  type ThreadStatusKey = keyof typeof THREAD_STATUSES;
+  type ThreadStatusValue = typeof THREAD_STATUSES[ThreadStatusKey];
+  
+  // Create a typed object for displayable statuses
+  const displayableStatuses: Record<string, string> = {};
+  
   // Filter out bot_handling from the status options
-  const displayableStatuses = Object.entries(THREAD_STATUSES)
-    .filter(([_, value]) => value !== 'bot_handling')
-    .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {});
+  Object.entries(THREAD_STATUSES).forEach(([key, value]) => {
+    if (value !== 'bot_handling') {
+      displayableStatuses[key] = value as string;
+    }
+  });
     
   return (
     <div className="w-full">
@@ -63,14 +72,14 @@ const ThreadStatusSelector: React.FC<ThreadStatusSelectorProps> = ({
           <SelectValue placeholder="Cambiar estado" />
         </SelectTrigger>
         <SelectContent className="bg-background">
-          {Object.values(displayableStatuses).map((status) => {
-            const StatusIcon = STATUS_ICONS[status] || Check;
+          {Object.entries(displayableStatuses).map(([key, status]) => {
+            const StatusIcon = STATUS_ICONS[status as string] || Check;
             
             return (
-              <SelectItem key={status} value={status} className="flex items-center">
+              <SelectItem key={key} value={status} className="flex items-center">
                 <div className="flex items-center gap-2">
                   <StatusIcon className="h-4 w-4" />
-                  {STATUS_LABELS[status] || status}
+                  {STATUS_LABELS[status as string] || status}
                 </div>
               </SelectItem>
             );

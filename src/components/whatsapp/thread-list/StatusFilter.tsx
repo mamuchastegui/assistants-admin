@@ -12,6 +12,7 @@ const STATUS_OPTIONS = [
   { value: "human_needed", label: "Requiere atención", color: "bg-red-600" },
   { value: "human_answering", label: "Respondiendo", color: "bg-amber-500" },
   { value: "error", label: "Error", color: "bg-red-800" },
+  { value: "bot_handling", label: "Bot atendiendo", color: "bg-blue-600" },
   { value: "waiting_user", label: "Esperando al usuario", color: "bg-green-600" },
   { value: "new", label: "Nuevo", color: "bg-purple-600" },
   { value: "resolved", label: "Resuelto", color: "bg-green-800" },

@@ -11,6 +11,7 @@ const STATUS_LABELS: { [key: string]: string } = {
   "human_needed": "Requiere atención",
   "human_answering": "Respondiendo",
   "error": "Error",
+  "bot_handling": "Bot atendiendo",
   "waiting_user": "Esperando usuario",
   "new": "Nuevo",
   "resolved": "Resuelto",
@@ -19,11 +20,6 @@ const STATUS_LABELS: { [key: string]: string } = {
 };
 
 const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
-  // Do not render anything for bot_handling status
-  if (status === 'bot_handling') {
-    return null;
-  }
-  
   const statusLabel = STATUS_LABELS[status] || status;
   const colorClass = getStatusColor(status);
   

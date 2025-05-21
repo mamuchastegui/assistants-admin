@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select";
 import { THREAD_STATUSES } from "@/hooks/useChatThreads";
 import { getStatusColor } from "./thread-list/StatusFilter";
-import { Check, AlertCircle, User, Clock, CheckCircle2, XCircle, Archive, Timer } from "lucide-react";
+import { Check, AlertCircle, Bot, User, Clock, CheckCircle2, XCircle, Archive, Timer } from "lucide-react";
 
 interface ThreadStatusSelectorProps {
   currentStatus: string;
@@ -19,6 +19,7 @@ interface ThreadStatusSelectorProps {
 
 const STATUS_LABELS: { [key: string]: string } = {
   "new": "Nuevo",
+  "bot_handling": "Bot atendiendo",
   "human_needed": "Requiere atención",
   "human_answering": "Respondiendo",
   "waiting_user": "Esperando usuario",
@@ -31,6 +32,7 @@ const STATUS_LABELS: { [key: string]: string } = {
 // Mapping estado -> icono
 const STATUS_ICONS: { [key: string]: React.ComponentType } = {
   "new": AlertCircle,
+  "bot_handling": Bot,
   "human_needed": User,
   "human_answering": User,
   "waiting_user": Clock,
@@ -45,41 +47,27 @@ const ThreadStatusSelector: React.FC<ThreadStatusSelectorProps> = ({
   onStatusChange,
   disabled = false
 }) => {
-  // Define type for displayableStatuses
-  type ThreadStatusKey = keyof typeof THREAD_STATUSES;
-  type ThreadStatusValue = typeof THREAD_STATUSES[ThreadStatusKey];
-  
-  // Create a typed object for displayable statuses
-  const displayableStatuses: Record<string, string> = {};
-  
-  // Filter out bot_handling from the status options
-  Object.entries(THREAD_STATUSES).forEach(([key, value]) => {
-    if (value !== 'bot_handling') {
-      displayableStatuses[key] = value as string;
-    }
-  });
-    
   return (
     <div className="w-full">
       <Select
-        value={currentStatus === 'bot_handling' ? 'waiting_user' : currentStatus}
+        value={currentStatus}
         onValueChange={onStatusChange}
         disabled={disabled}
       >
         <SelectTrigger 
-          className={`w-full text-xs h-8 px-3 font-medium ${getStatusColor(currentStatus === 'bot_handling' ? 'waiting_user' : currentStatus)} text-white border-none`}
+          className={`w-full text-xs h-8 px-3 font-medium ${getStatusColor(currentStatus)} text-white border-none`}
         >
           <SelectValue placeholder="Cambiar estado" />
         </SelectTrigger>
         <SelectContent className="bg-background">
-          {Object.entries(displayableStatuses).map(([key, status]) => {
-            const StatusIcon = STATUS_ICONS[status as string] || Check;
+          {Object.values(THREAD_STATUSES).map((status) => {
+            const StatusIcon = STATUS_ICONS[status] || Check;
             
             return (
-              <SelectItem key={key} value={status} className="flex items-center">
+              <SelectItem key={status} value={status} className="flex items-center">
                 <div className="flex items-center gap-2">
                   <StatusIcon className="h-4 w-4" />
-                  {STATUS_LABELS[status as string] || status}
+                  {STATUS_LABELS[status] || status}
                 </div>
               </SelectItem>
             );

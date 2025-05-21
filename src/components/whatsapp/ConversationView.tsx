@@ -40,12 +40,29 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isChangingStatus, setIsChangingStatus] = useState(false);
   const previousMessageCount = useRef<number>(0);
+  const initialLoadComplete = useRef<boolean>(false);
   
   // Use the conversation actions hook
   const { sendMessage, uploadFile, sendAudio, isSending, isUploading } = useConversationActions({
     threadId: selectedThread,
     assistantId: assistantId
   });
+
+  // Initial scroll to bottom when conversation loads
+  useEffect(() => {
+    if (conversation && conversation.conversation && !initialLoadComplete.current) {
+      // Use setTimeout to ensure DOM has been updated
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+        initialLoadComplete.current = true;
+      }, 100);
+    }
+    
+    // Reset the initialLoadComplete ref when thread changes
+    return () => {
+      initialLoadComplete.current = false;
+    };
+  }, [selectedThread, conversation]);
 
   // Intelligently handle scrolling when new messages arrive
   useEffect(() => {

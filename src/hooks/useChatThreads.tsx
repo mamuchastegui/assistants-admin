@@ -74,6 +74,9 @@ export function useChatThreads(assistantId?: string | null) {
   
   // Add ref to store current conversation message count to detect changes
   const messageCountRef = useRef<number>(0);
+  
+  // Add ref to track when we've changed threads to force a full refresh
+  const threadSwitchedRef = useRef<boolean>(false);
 
   const fetchThreads = useCallback(async (silent = false) => {
     // Don't try to fetch if we're already loading, if we've encountered an error,
@@ -133,7 +136,7 @@ export function useChatThreads(assistantId?: string | null) {
     
     // Check if enough time has passed since the last fetch
     const now = Date.now();
-    if (now - lastConversationFetchTime.current < REFRESH_INTERVAL) {
+    if (now - lastConversationFetchTime.current < REFRESH_INTERVAL && !threadSwitchedRef.current) {
       return;
     }
     
@@ -147,6 +150,7 @@ export function useChatThreads(assistantId?: string | null) {
       // Only show loading indicator on first load, not on refreshes
       if (!conversation || conversation.thread_id !== threadId) {
         setLoadingConversation(true);
+        threadSwitchedRef.current = true; // Mark that we've switched threads
       }
       setError(null);
 
@@ -159,16 +163,17 @@ export function useChatThreads(assistantId?: string | null) {
       // Compare with previous conversation data to avoid unnecessary updates
       const newConversationString = JSON.stringify(data);
       
-      if (newConversationString !== lastConversationData.current) {
+      if (newConversationString !== lastConversationData.current || threadSwitchedRef.current) {
         // Check if we need to keep scroll position (only update if message count changed)
         const oldMessageCount = messageCountRef.current;
         const newMessageCount = data?.conversation?.length || 0;
         
-        // Only update conversation if there's a change
+        // Only update conversation if there's a change or we've switched threads
         setConversation(prev => {
           // If it's a different thread or we don't have any data yet, replace entirely
-          if (!prev || prev.thread_id !== threadId) {
+          if (!prev || prev.thread_id !== threadId || threadSwitchedRef.current) {
             messageCountRef.current = newMessageCount;
+            threadSwitchedRef.current = false; // Reset the thread switched flag
             return data;
           }
           
@@ -298,6 +303,11 @@ export function useChatThreads(assistantId?: string | null) {
   }, [selectedThread, conversation, authApiClient, fetchConversation, fetchThreads, assistantId]);
 
   const selectThread = useCallback((threadId: string) => {
+    // Reset our tracking refs when selecting a new thread
+    threadSwitchedRef.current = true;
+    messageCountRef.current = 0;
+    lastConversationData.current = "";
+    
     setSelectedThread(threadId);
     fetchConversation(threadId);
   }, [fetchConversation]);

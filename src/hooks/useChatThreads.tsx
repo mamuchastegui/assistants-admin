@@ -66,13 +66,26 @@ export function useChatThreads(assistantId?: string | null) {
   const isRefreshingConversation = useRef(false);
   
   // Use refs to store the interval IDs for cleanup
-  const threadsIntervalRef = useRef<number | null>(null);
-  const conversationIntervalRef = useRef<number | null>(null);
+  const threadsIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const conversationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Use a ref to track last fetch time to ensure consistent intervals
+  const lastThreadsFetchTime = useRef<number>(0);
+  const lastConversationFetchTime = useRef<number>(0);
 
   const fetchThreads = useCallback(async (silent = false) => {
     // Don't try to fetch if we're already loading, if we've encountered an error,
     // if we don't have an assistant ID, or if another refresh is already in progress
     if (loadingThreads || !assistantId || isRefreshingThreads.current) return;
+    
+    // Check if enough time has passed since the last fetch
+    const now = Date.now();
+    if (!silent && now - lastThreadsFetchTime.current < REFRESH_INTERVAL) {
+      return;
+    }
+    
+    // Update the last fetch time
+    lastThreadsFetchTime.current = now;
     
     // Set the refreshing flag to true
     isRefreshingThreads.current = true;
@@ -115,6 +128,15 @@ export function useChatThreads(assistantId?: string | null) {
   const fetchConversation = useCallback(async (threadId: string) => {
     if (!threadId || !assistantId || isRefreshingConversation.current) return;
     
+    // Check if enough time has passed since the last fetch
+    const now = Date.now();
+    if (now - lastConversationFetchTime.current < REFRESH_INTERVAL) {
+      return;
+    }
+    
+    // Update the last fetch time
+    lastConversationFetchTime.current = now;
+    
     // Set the refreshing flag to true
     isRefreshingConversation.current = true;
     
@@ -154,18 +176,16 @@ export function useChatThreads(assistantId?: string | null) {
     // Clear any existing interval first
     if (threadsIntervalRef.current) {
       clearInterval(threadsIntervalRef.current);
+      threadsIntervalRef.current = null;
     }
     
     // Initial fetch
     fetchThreads();
     
     // Set up the interval for threads refresh
-    const intervalId = window.setInterval(() => {
+    threadsIntervalRef.current = setInterval(() => {
       fetchThreads(true); // Silent refresh
     }, REFRESH_INTERVAL);
-    
-    // Store the interval ID
-    threadsIntervalRef.current = intervalId as unknown as number;
     
     // Clean up on unmount
     return () => {
@@ -183,18 +203,16 @@ export function useChatThreads(assistantId?: string | null) {
     // Clear any existing interval first
     if (conversationIntervalRef.current) {
       clearInterval(conversationIntervalRef.current);
+      conversationIntervalRef.current = null;
     }
     
     // Initial fetch
     fetchConversation(selectedThread);
     
     // Set up the interval for conversation refresh
-    const intervalId = window.setInterval(() => {
+    conversationIntervalRef.current = setInterval(() => {
       fetchConversation(selectedThread);
     }, REFRESH_INTERVAL);
-    
-    // Store the interval ID
-    conversationIntervalRef.current = intervalId as unknown as number;
     
     // Clean up on unmount or when selected thread changes
     return () => {

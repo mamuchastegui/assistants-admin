@@ -208,7 +208,6 @@ const ConversationView: React.FC<ConversationViewProps> = ({
 
   const STATUS_LABELS: { [key: string]: string } = {
     "new": "Nuevo",
-    "bot_handling": "Bot atendiendo",
     "human_needed": "Requiere atención",
     "human_answering": "Respondiendo",
     "waiting_user": "Esperando usuario",
@@ -257,6 +256,8 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   }
 
   const displayName = conversation.profile_name || "Usuario";
+  // Get displayable status (don't show bot_handling)
+  const displayStatus = currentThreadStatus === 'bot_handling' ? null : currentThreadStatus;
 
   return (
     <Card className="h-full flex flex-col">
@@ -284,14 +285,16 @@ const ConversationView: React.FC<ConversationViewProps> = ({
             </div>
           </div>
 
-          {/* Status Badge and selector prominently displayed */}
+          {/* Status Badge and selector prominently displayed - hide if bot_handling */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">Estado:</span>
-              <Badge variant="outline" className="font-semibold">
-                {STATUS_LABELS[currentThreadStatus] || currentThreadStatus}
-              </Badge>
-            </div>
+            {displayStatus && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Estado:</span>
+                <Badge variant="outline" className="font-semibold">
+                  {STATUS_LABELS[displayStatus] || displayStatus}
+                </Badge>
+              </div>
+            )}
             
             {/* Status selector with better visibility */}
             {onStatusChange && (

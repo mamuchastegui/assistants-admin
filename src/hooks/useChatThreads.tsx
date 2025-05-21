@@ -386,7 +386,7 @@ export function useChatThreads(assistantId?: string | null) {
         'human_needed': 1,
         'human_answering': 2,
         'error': 3,
-        'bot_handling': 4,
+        'bot_handling': 4, // Keep in priority order, but hide in UI
         'waiting_user': 5
       };
       

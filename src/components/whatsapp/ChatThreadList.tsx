@@ -25,7 +25,7 @@ interface ChatThreadListProps {
   deleteThread?: (threadId: string) => Promise<void>;
   statusFilter: string | null;
   setStatusFilter: (status: string | null) => void;
-  assistantId: string | null; // Add this property
+  assistantId: string | null;
 }
 
 const ChatThreadList: React.FC<ChatThreadListProps> = ({
@@ -78,33 +78,6 @@ const ChatThreadList: React.FC<ChatThreadListProps> = ({
     setThreadToDelete(null);
   };
 
-  // Render loading state
-  if (loadingThreads) {
-    return (
-      <Card className="h-full bg-card/80 backdrop-blur-sm border-muted">
-        <EmptyState type="loading" />
-      </Card>
-    );
-  }
-
-  // Render error state
-  if (error) {
-    return (
-      <Card className="h-full bg-card/80 backdrop-blur-sm border-muted">
-        <EmptyState type="error" errorMessage={error} onRefresh={handleRefresh} />
-      </Card>
-    );
-  }
-
-  // Render empty state - this is now different from loading state
-  if (!threads || threads.length === 0) {
-    return (
-      <Card className="h-full bg-card/80 backdrop-blur-sm border-muted">
-        <EmptyState type="no-conversations" onRefresh={handleRefresh} />
-      </Card>
-    );
-  }
-
   return (
     <>
       <Card className="h-full flex flex-col bg-card/80 backdrop-blur-sm shadow-lg border-muted md:border-r">
@@ -137,10 +110,16 @@ const ChatThreadList: React.FC<ChatThreadListProps> = ({
         </div>
         
         <CardContent className="p-0 flex-grow overflow-hidden">
-          <ScrollArea className="h-full">
-            {filteredThreads.length === 0 ? (
-              <EmptyState type="no-results" />
-            ) : (
+          {loadingThreads ? (
+            <EmptyState type="loading" />
+          ) : error ? (
+            <EmptyState type="error" errorMessage={error} onRefresh={handleRefresh} />
+          ) : !threads || threads.length === 0 ? (
+            <EmptyState type="no-conversations" onRefresh={handleRefresh} />
+          ) : filteredThreads.length === 0 ? (
+            <EmptyState type="no-results" />
+          ) : (
+            <ScrollArea className="h-full">
               <div className="space-y-0.5 p-1">
                 {filteredThreads.map((thread, index) => (
                   <ThreadItem
@@ -153,8 +132,8 @@ const ChatThreadList: React.FC<ChatThreadListProps> = ({
                   />
                 ))}
               </div>
-            )}
-          </ScrollArea>
+            </ScrollArea>
+          )}
         </CardContent>
       </Card>
 

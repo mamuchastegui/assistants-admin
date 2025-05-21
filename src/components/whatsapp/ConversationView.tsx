@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Conversation } from "@/hooks/useChatThreads";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -13,6 +12,8 @@ import { toast } from "sonner";
 import { useConversationActions } from "@/hooks/useConversationActions";
 import ThreadStatusSelector from "./ThreadStatusSelector";
 import { Badge } from "@/components/ui/badge";
+import QuickResponses from "./QuickResponses";
+import { useAuth0 } from '@auth0/auth0-react';
 
 interface ConversationViewProps {
   conversation: Conversation | null;
@@ -31,6 +32,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   currentThreadStatus = "new",
   onStatusChange
 }) => {
+  const { user } = useAuth0();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -199,6 +201,15 @@ const ConversationView: React.FC<ConversationViewProps> = ({
     }
   };
 
+  const handleQuickResponse = (responseText: string) => {
+    setMessage(responseText);
+    // Focus the input after setting the response
+    const inputElement = document.querySelector('input[placeholder="Escribe un mensaje"]') as HTMLInputElement;
+    if (inputElement) {
+      inputElement.focus();
+    }
+  };
+
   const getInitials = (name?: string | null) => {
     if (!name) return "WA";
     const nameParts = name.split(" ");
@@ -257,6 +268,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   }
 
   const displayName = conversation.profile_name || "Usuario";
+  const currentUserName = user?.name || "Asistente";
 
   return (
     <Card className="h-full flex flex-col">
@@ -377,6 +389,11 @@ const ConversationView: React.FC<ConversationViewProps> = ({
                 fileInputRef.current?.click();
                 fileInputRef.current?.setAttribute('accept', 'image/*');
               }}
+            />
+            <QuickResponses 
+              onSelectResponse={handleQuickResponse} 
+              profileName={conversation.profile_name}
+              currentUserName={currentUserName}
             />
           </div>
 

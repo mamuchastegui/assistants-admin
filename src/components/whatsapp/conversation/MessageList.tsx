@@ -62,7 +62,7 @@ const MessageList: React.FC<MessageListProps> = ({
               content={message.content}
               timestamp={message.timestamp}
               isUser={message.role === "user"}
-              isPending={'isPending' in message && message.isPending}
+              isPending={Boolean('isPending' in message && message.isPending)}
             />
           ))}
           <div ref={messagesEndRef} />

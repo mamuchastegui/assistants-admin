@@ -1,3 +1,4 @@
+
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -11,12 +12,14 @@ import {
   Package2,
   MessageSquare,
   X,
-  ChevronRight
+  ChevronRight,
+  Bell
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { motion } from "framer-motion";
+import { useHumanNeededCounter } from "@/hooks/useHumanNeededCounter";
 
 interface SidebarProps {
   className?: string;
@@ -29,6 +32,7 @@ interface NavButtonProps {
   label: string;
   collapsed?: boolean;
   isChildItem?: boolean;
+  badge?: React.ReactNode;
 }
 
 const NavButton = ({ 
@@ -36,7 +40,8 @@ const NavButton = ({
   icon, 
   label, 
   collapsed = false,
-  isChildItem = false 
+  isChildItem = false,
+  badge
 }: NavButtonProps) => {
   const { setOpenMobile } = useSidebar();
   const isMobile = useIsMobile();
@@ -60,7 +65,7 @@ const NavButton = ({
                 isActive 
                   ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md" 
                   : "hover:bg-sidebar-accent text-sidebar-foreground/60 hover:text-sidebar-foreground",
-                "hover:scale-110 transition-transform"
+                "hover:scale-110 transition-transform relative"
               )}
             >
               <div className="flex items-center justify-center">
@@ -73,6 +78,12 @@ const NavButton = ({
                   )
                 })}
               </div>
+              
+              {badge && (
+                <div className="absolute -top-1 -right-1">
+                  {badge}
+                </div>
+              )}
             </NavLink>
           </TooltipTrigger>
           <TooltipContent side="right" className="bg-popover text-popover-foreground">
@@ -92,7 +103,7 @@ const NavButton = ({
         to={to} 
         onClick={handleClick}
         className={({isActive}) => cn(
-          "flex items-center rounded-md px-3 py-2 text-sm font-medium transition-all duration-200",
+          "flex items-center rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 relative",
           isChildItem && "pl-6",
           isActive ? 
             "bg-primary text-primary-foreground shadow-sm" : 
@@ -108,6 +119,13 @@ const NavButton = ({
               })}
             </div>
             <span>{label}</span>
+            
+            {badge && (
+              <div className="ml-auto mr-2">
+                {badge}
+              </div>
+            )}
+            
             {isActive && (
               <motion.div 
                 layoutId="active-indicator"
@@ -122,6 +140,23 @@ const NavButton = ({
           </>
         )}
       </NavLink>
+    </motion.div>
+  );
+};
+
+// Badge component for notifications count
+const NotificationBadge = () => {
+  const { count, loading, error } = useHumanNeededCounter();
+  
+  if (loading || error || count === 0) return null;
+  
+  return (
+    <motion.div
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
+      className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-medium text-white"
+    >
+      {count}
     </motion.div>
   );
 };
@@ -195,10 +230,17 @@ export default function Sidebar({ className }: SidebarProps) {
                 collapsed={isCollapsed}
                 label="WhatsApp"
               />
+              <NavButton
+                to="/notifications"
+                icon={<Bell />}
+                collapsed={isCollapsed}
+                label="Notificaciones"
+                badge={<NotificationBadge />}
+              />
             </motion.div>
           </div>
         </ScrollArea>
       </div>
     </div>
   );
-}
+};

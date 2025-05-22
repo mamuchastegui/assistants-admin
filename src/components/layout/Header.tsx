@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { DarkModeToggle } from "@/components/ui/dark-mode-toggle";
 import { useAuth0 } from "@auth0/auth0-react";
 import { LogoutButton } from "@/components/LogoutButton";
+import NotificationCounter from "@/components/notifications/NotificationCounter";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -89,9 +90,11 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
           )}
           {/* Dark mode toggle */}
           <DarkModeToggle />
-          <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8">
-            <Bell className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-          </Button>
+          
+          {/* Notification Counter */}
+          {isAuthenticated && (
+            <NotificationCounter className="h-7 w-7 sm:h-8 sm:w-8" />
+          )}
           
           {isAuthenticated ? (
             <DropdownMenu>

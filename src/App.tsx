@@ -15,6 +15,7 @@ import Orders from "./pages/Orders";
 import OrderDetails from "./pages/OrderDetails";
 import Menu from "./pages/Menu";
 import RestaurantMenu from "./pages/RestaurantMenu";
+import Notifications from "./pages/Notifications";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Callback from "./pages/Callback";
@@ -92,6 +93,11 @@ function App() {
                     <Route path="/restaurant-menu" element={
                       <PrivateRoute>
                         <RestaurantMenu />
+                      </PrivateRoute>
+                    } />
+                    <Route path="/notifications" element={
+                      <PrivateRoute>
+                        <Notifications />
                       </PrivateRoute>
                     } />
                     

@@ -1,4 +1,3 @@
-
 // Inlined badge removal script - runs before anything else
 const removeBadgeScript = `
   (function() {
@@ -95,8 +94,9 @@ if (typeof document !== 'undefined') {
   document.head.appendChild(themeScript);
 }
 
+import React from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(<React.StrictMode><App /></React.StrictMode>);

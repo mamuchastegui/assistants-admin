@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useEffect, useState } from "react"
+import React, { createContext, useContext, useEffect, useState } from "react"
 
 type TenantCtx = { orgId?: string; setOrgId: (id?: string) => void }
 const TenantContext = createContext<TenantCtx>({ orgId: undefined, setOrgId: () => {} })

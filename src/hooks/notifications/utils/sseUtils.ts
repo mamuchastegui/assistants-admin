@@ -10,8 +10,8 @@ export async function processEvents(
   onMessage: (eventType: string, data: string) => void,
   connectionRef: React.MutableRefObject<ConnectionRef>,
   isMountedRef: React.MutableRefObject<boolean>,
-  onConnectionStateChange?: (isConnected: boolean) => void,
-  scheduleReconnect?: (err: any) => void
+  onConnectionStateChange: ((isConnected: boolean) => void) | undefined,
+  scheduleReconnect: ((err: any) => void) | undefined
 ) {
   // Don't continue reading if component is unmounted
   if (!isMountedRef.current || !connectionRef.current.activeConnection) return;

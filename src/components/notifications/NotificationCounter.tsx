@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { useHumanNeededCounter } from '@/hooks/useHumanNeededCounter';
+import { useNotifications } from '@/providers/NotificationsProvider';
 import { cn } from '@/lib/utils';
 import { Loader2, Bell, AlertOctagon } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -10,7 +9,7 @@ interface NotificationCounterProps {
 }
 
 const NotificationCounter: React.FC<NotificationCounterProps> = ({ className }) => {
-  const { count, loading, error } = useHumanNeededCounter();
+  const { count, loading, error } = useNotifications();
   
   return (
     <motion.div 

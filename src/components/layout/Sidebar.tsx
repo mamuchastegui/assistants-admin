@@ -1,4 +1,3 @@
-
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -19,7 +18,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { motion } from "framer-motion";
-import { useHumanNeededCounter } from "@/hooks/useHumanNeededCounter";
+import { useNotifications } from "@/providers/NotificationsProvider";
 
 interface SidebarProps {
   className?: string;
@@ -146,7 +145,7 @@ const NavButton = ({
 
 // Badge component for notifications count
 const NotificationBadge = () => {
-  const { count, loading, error } = useHumanNeededCounter();
+  const { count, loading, error } = useNotifications();
   
   if (loading || error || count === 0) return null;
   

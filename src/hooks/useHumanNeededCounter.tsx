@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useToast } from '@/hooks/use-toast';
 import { useSSEConnection } from './notifications/useSSEConnection';
@@ -22,31 +22,28 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
   useDocumentTitle({ count });
   
   // Handle SSE messages
-  const handleMessage = useCallback((eventType: string, data: string) => {
-    if (eventType === 'initial') {
-      const initialCount = parseInt(data, 10);
-      setCount(initialCount);
-      setLoading(false);
-    }
-    else if (eventType === 'update') {
-      const newCount = parseInt(data, 10);
-      
-      // Play sound only if count increases
-      if (newCount > count) {
-        playNotificationSound();
-        toast({
-          title: "Nuevas solicitudes pendientes",
-          description: `Hay ${newCount} solicitudes que requieren atención humana.`,
-        });
+  const lastCount = useRef(0);
+  const handleMessage = useCallback(
+    (eventType: string, data: string) => {
+      if (eventType === "initial" || eventType === "update") {
+        const newCount = parseInt(data, 10);
+  
+        if (newCount > lastCount.current) {
+          playNotificationSound();
+          toast({
+            title: "Nuevas solicitudes pendientes",
+            description: `Hay ${newCount} que requieren atención humana.`,
+          });
+        }
+  
+        lastCount.current = newCount;
+        setCount(newCount);      // esto dispara un re-render, pero NO crea
+                                 // una nueva versión de handleMessage
+        setLoading(false);
       }
-      
-      setCount(newCount);
-      setLoading(false);
-    }
-    else if (eventType === 'ping') {
-      console.log('SSE ping received');
-    }
-  }, [count, playNotificationSound, toast]);
+    },
+    [playNotificationSound, toast]   // <- ¡count ya no está!
+  );
   
   // Handle connection errors
   const handleError = useCallback((err: Error) => {

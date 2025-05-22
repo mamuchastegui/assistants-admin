@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { useHumanNeededCounter } from '@/hooks/useHumanNeededCounter';
+import { useNotifications } from '@/providers/NotificationsProvider';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, Loader2, AlertTriangle, Users } from 'lucide-react';
@@ -13,7 +12,7 @@ interface NotificationPanelProps {
 }
 
 const NotificationPanel: React.FC<NotificationPanelProps> = ({ className }) => {
-  const { count, loading, error } = useHumanNeededCounter();
+  const { count, loading, error } = useNotifications();
   const navigate = useNavigate();
   
   const handleViewRequests = () => {

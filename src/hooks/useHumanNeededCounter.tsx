@@ -18,10 +18,14 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
   const connectionRef = useRef<{
     controller: AbortController | null;
     isConnecting: boolean;
-  }>({ controller: null, isConnecting: false });
+    reconnectAttempts: number;
+  }>({ controller: null, isConnecting: false, reconnectAttempts: 0 });
   
   // Reference to track retry timing
   const retryTimerRef = useRef<number | null>(null);
+  
+  // Flag to track if component is mounted
+  const isMountedRef = useRef<boolean>(true);
   
   // Notification sound setup
   const notificationSound = new Audio('/notification.mp3');
@@ -45,6 +49,15 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
     };
   }, [count]);
   
+  // Set mounted flag on cleanup
+  useEffect(() => {
+    isMountedRef.current = true;
+    
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+  
   // Function to abort current connection
   const abortCurrentConnection = useCallback(() => {
     if (connectionRef.current.controller) {
@@ -63,6 +76,11 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
   
   // Function to establish SSE connection
   const connectSSE = useCallback(async () => {
+    // Don't attempt to connect if component is unmounted
+    if (!isMountedRef.current) {
+      return;
+    }
+    
     // Avoid multiple simultaneous connection attempts
     if (connectionRef.current.isConnecting || !isAuthenticated) {
       if (!isAuthenticated) setLoading(false);
@@ -98,6 +116,9 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
         },
         signal: controller.signal,
       }).then(response => {
+        // Don't proceed if component is unmounted
+        if (!isMountedRef.current) return;
+        
         if (!response.ok) {
           // Handle non-OK response (e.g., 401 Unauthorized)
           if (response.status === 401) {
@@ -110,6 +131,7 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
         setError(null);
         setLoading(false);
         connectionRef.current.isConnecting = false;
+        connectionRef.current.reconnectAttempts = 0; // Reset attempt counter on success
         
         const reader = response.body!.getReader();
         const decoder = new TextDecoder();
@@ -117,7 +139,13 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
         
         // Function to process SSE events
         function processEvents() {
+          // Don't continue reading if component is unmounted
+          if (!isMountedRef.current) return;
+          
           reader.read().then(({ value, done }) => {
+            // Don't process if component is unmounted
+            if (!isMountedRef.current) return;
+            
             if (done) {
               console.log('SSE stream closed normally');
               // Consider this a normal close, not an error
@@ -170,9 +198,14 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
               }
             }
             
-            // Continue reading
-            processEvents();
+            // Continue reading only if component is still mounted
+            if (isMountedRef.current) {
+              processEvents();
+            }
           }).catch(err => {
+            // Don't proceed if component is unmounted
+            if (!isMountedRef.current) return;
+            
             if (err.name === 'AbortError') {
               console.log('SSE connection aborted intentionally');
               return;
@@ -184,17 +217,28 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
         }
         
         // Start processing events
-        processEvents();
+        if (isMountedRef.current) {
+          processEvents();
+        }
         
       }).catch(err => {
+        // Don't proceed if component is unmounted
+        if (!isMountedRef.current) return;
+        
         console.error('Failed to establish SSE connection:', err);
         setError(err instanceof Error ? err : new Error('Unknown error connecting to notifications service'));
         setLoading(false);
         
-        scheduleReconnect(err);
+        // Only schedule reconnect if not aborted intentionally
+        if (err.name !== 'AbortError') {
+          scheduleReconnect(err);
+        }
       });
       
     } catch (err) {
+      // Don't proceed if component is unmounted
+      if (!isMountedRef.current) return;
+      
       console.error('Error setting up SSE connection:', err);
       setError(err instanceof Error ? err : new Error('Unknown error connecting to notifications service'));
       setLoading(false);
@@ -205,10 +249,17 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
   
   // Function to schedule reconnection with exponential backoff
   const scheduleReconnect = useCallback((err: any) => {
+    // Don't schedule reconnection if component is unmounted
+    if (!isMountedRef.current) {
+      return;
+    }
+    
+    // Mark connection as not connecting
+    connectionRef.current.isConnecting = false;
+    
     // Don't auto-reconnect for auth errors (401)
     if (err instanceof Error && err.message.includes('401')) {
       console.error('Authentication error (401). Stopping reconnection attempts.');
-      connectionRef.current.isConnecting = false;
       toast({
         title: "Error de autenticación",
         description: "No se pudo establecer conexión por falta de autenticación.",
@@ -220,26 +271,40 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
     // Clear any existing retry timer
     if (retryTimerRef.current !== null) {
       window.clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
     }
     
-    // Use a fixed 5-second reconnect delay as requested
+    // Increment reconnection attempt counter (for future use if we want exponential backoff)
+    connectionRef.current.reconnectAttempts += 1;
+    
+    // Use a fixed 5-second reconnect delay
     const reconnectDelay = 5000; // 5 seconds between reconnect attempts
     
     console.log(`Scheduling reconnection attempt in ${reconnectDelay/1000} seconds`);
     
-    connectionRef.current.isConnecting = false;
-    retryTimerRef.current = window.setTimeout(() => {
-      connectSSE();
-    }, reconnectDelay);
+    // Only schedule reconnection if component is still mounted
+    if (isMountedRef.current) {
+      retryTimerRef.current = window.setTimeout(() => {
+        // Check if component is still mounted before attempting reconnection
+        if (isMountedRef.current && !connectionRef.current.isConnecting) {
+          connectSSE();
+        }
+      }, reconnectDelay);
+    }
   }, [connectSSE, toast]);
   
   // Initialize connection
   useEffect(() => {
-    // Initial connection
-    connectSSE();
+    // Only connect if authenticated
+    if (isAuthenticated) {
+      connectSSE();
+    } else {
+      setLoading(false);
+    }
     
     // Clean up on unmount
     return () => {
+      isMountedRef.current = false;
       abortCurrentConnection();
     };
   }, [isAuthenticated, connectSSE, abortCurrentConnection]);

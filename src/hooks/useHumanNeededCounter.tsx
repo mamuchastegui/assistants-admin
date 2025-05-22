@@ -26,23 +26,31 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
   const handleMessage = useCallback(
     (eventType: string, data: string) => {
       if (eventType === "initial" || eventType === "update") {
-        const newCount = parseInt(data, 10);
-  
-        if (newCount > lastCount.current) {
-          playNotificationSound();
-          toast({
-            title: "Nuevas solicitudes pendientes",
-            description: `Hay ${newCount} que requieren atención humana.`,
-          });
+        try {
+          const newCount = parseInt(data, 10);
+          
+          // Asegurarse de que newCount es un número válido antes de actualizar el estado
+          if (!isNaN(newCount)) {
+            if (newCount > lastCount.current) {
+              playNotificationSound();
+              toast({
+                title: "Nuevas solicitudes pendientes",
+                description: `Hay ${newCount} que requieren atención humana.`,
+              });
+            }
+            
+            lastCount.current = newCount;
+            setCount(newCount);
+            setLoading(false);
+          } else {
+            console.error("Recibido valor inválido para count:", data);
+          }
+        } catch (err) {
+          console.error("Error parsing count data:", err, "Data received:", data);
         }
-  
-        lastCount.current = newCount;
-        setCount(newCount);      // esto dispara un re-render, pero NO crea
-                                 // una nueva versión de handleMessage
-        setLoading(false);
       }
     },
-    [playNotificationSound, toast]   // <- ¡count ya no está!
+    [playNotificationSound, toast]
   );
   
   // Handle connection errors

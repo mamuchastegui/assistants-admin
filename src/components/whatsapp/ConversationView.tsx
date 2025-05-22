@@ -151,6 +151,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({
       if (!success) {
         toast.error("No se pudo actualizar el estado");
       }
+      // Eliminamos el toast de éxito aquí ya que se está manejando en useChatThreads
     } catch (error) {
       console.error("Error changing status:", error);
       toast.error("Error al cambiar el estado");

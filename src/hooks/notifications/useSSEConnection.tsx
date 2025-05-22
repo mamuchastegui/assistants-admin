@@ -1,27 +1,15 @@
 
 import { useCallback, useRef, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-
-interface ConnectionRef {
-  controller: AbortController | null;
-  isConnecting: boolean;
-  reconnectAttempts: number;
-  activeConnection: boolean;
-}
-
-interface UseSSEConnectionProps {
-  endpoint: string;
-  onMessage: (eventType: string, data: string) => void;
-  onError?: (error: Error) => void;
-  onConnectionStateChange?: (isConnected: boolean) => void;
-}
+import { ConnectionRef, UseSSEConnectionProps, SSEConnectionResult } from './types/sseTypes';
+import { processEvents } from './utils/sseUtils';
 
 export const useSSEConnection = ({
   endpoint,
   onMessage,
   onError,
   onConnectionStateChange
-}: UseSSEConnectionProps) => {
+}: UseSSEConnectionProps): SSEConnectionResult => {
   const { getAccessTokenSilently, isAuthenticated } = useAuth0();
   
   // Reference to track active connection
@@ -177,90 +165,21 @@ export const useSSEConnection = ({
       
       const reader = response.body!.getReader();
       const decoder = new TextDecoder();
-      let buffer = '';
-      
-      // Function to process SSE events
-      async function processEvents() {
-        // Don't continue reading if component is unmounted
-        if (!isMountedRef.current || !connectionRef.current.activeConnection) return;
-        
-        try {
-          const { value, done } = await reader.read();
-          
-          // Don't process if component is unmounted
-          if (!isMountedRef.current || !connectionRef.current.activeConnection) return;
-          
-          if (done) {
-            console.log('SSE stream closed normally');
-            // Consider this a normal close, not an error
-            connectionRef.current.isConnecting = false;
-            connectionRef.current.activeConnection = false;
-            
-            if (onConnectionStateChange) {
-              onConnectionStateChange(false);
-            }
-            
-            // Schedule reconnect for normal closures
-            if (isMountedRef.current) {
-              scheduleReconnect(new Error('Stream closed normally'));
-            }
-            return;
-          }
-          
-          buffer += decoder.decode(value, { stream: true });
-          
-          const lines = buffer.split('\n\n');
-          buffer = lines.pop() || '';
-          
-          for (const line of lines) {
-            if (line.trim() === '') continue;
-            
-            try {
-              const eventMatch = line.match(/^event: (.+)$/m);
-              const dataMatch = line.match(/^data: (.+)$/m);
-              
-              if (eventMatch && dataMatch) {
-                const eventType = eventMatch[1];
-                const data = dataMatch[1];
-                
-                console.log('SSE received:', eventType, data);
-                onMessage(eventType, data);
-              }
-            } catch (err) {
-              console.error('Error processing SSE data:', err);
-            }
-          }
-          
-          // Continue reading only if component is still mounted and connection is active
-          if (isMountedRef.current && connectionRef.current.activeConnection) {
-            processEvents();
-          }
-        } catch (err) {
-          // Don't proceed if component is unmounted
-          if (!isMountedRef.current) return;
-          
-          if (err.name === 'AbortError') {
-            console.log('SSE connection aborted intentionally');
-            return;
-          }
-          
-          console.error('Error reading SSE stream:', err);
-          connectionRef.current.activeConnection = false;
-          
-          if (onConnectionStateChange) {
-            onConnectionStateChange(false);
-          }
-          
-          scheduleReconnect(err);
-        }
-      }
       
       // Start processing events
       if (isMountedRef.current) {
-        processEvents();
+        processEvents(
+          reader, 
+          decoder, 
+          onMessage, 
+          connectionRef, 
+          isMountedRef, 
+          onConnectionStateChange,
+          scheduleReconnect
+        );
       }
       
-    } catch (err) {
+    } catch (err: any) {
       // Don't proceed if component is unmounted
       if (!isMountedRef.current) return;
       

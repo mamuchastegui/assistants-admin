@@ -89,8 +89,17 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
     }
     
     // Avoid multiple simultaneous connection attempts
-    if (connectionRef.current.isConnecting || connectionRef.current.activeConnection || !isAuthenticated) {
+    if (connectionRef.current.isConnecting || !isAuthenticated) {
       if (!isAuthenticated) setLoading(false);
+      return;
+    }
+    
+    // Only abort existing connection if we're not already connected
+    if (!connectionRef.current.activeConnection) {
+      // Abort any existing connection
+      abortCurrentConnection();
+    } else {
+      // If we already have an active connection, don't create a new one
       return;
     }
     
@@ -102,14 +111,11 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
       const token = await getAccessTokenSilently();
       const baseUrl = import.meta.env.VITE_API_URL || "https://api.condamind.com";
       
-      // Abort any existing connection
-      abortCurrentConnection();
-      
       // Create a new AbortController for this connection
       const controller = new AbortController();
       connectionRef.current.controller = controller;
       
-      // Create URL with proper headers for authorization
+      // Create URL for SSE connection
       const url = `${baseUrl}/notifications/sse/human-needed`;
       
       // Using fetch with AbortController for manual SSE implementation
@@ -250,14 +256,12 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
       setError(err instanceof Error ? err : new Error('Unknown error connecting to notifications service'));
       setLoading(false);
       connectionRef.current.activeConnection = false;
+      connectionRef.current.isConnecting = false;
       
       // Only schedule reconnect if not aborted intentionally
       if (err.name !== 'AbortError') {
         scheduleReconnect(err);
       }
-    } finally {
-      // Reset connecting flag regardless of outcome
-      connectionRef.current.isConnecting = false;
     }
   }, [isAuthenticated, getAccessTokenSilently, count, playNotificationSound, toast, abortCurrentConnection]);
   
@@ -326,4 +330,3 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
   
   return { count, loading, error };
 };
-

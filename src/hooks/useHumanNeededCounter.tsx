@@ -19,7 +19,13 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
     controller: AbortController | null;
     isConnecting: boolean;
     reconnectAttempts: number;
-  }>({ controller: null, isConnecting: false, reconnectAttempts: 0 });
+    activeConnection: boolean;
+  }>({ 
+    controller: null, 
+    isConnecting: false, 
+    reconnectAttempts: 0,
+    activeConnection: false
+  });
   
   // Reference to track retry timing
   const retryTimerRef = useRef<number | null>(null);
@@ -72,6 +78,7 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
     }
     
     connectionRef.current.isConnecting = false;
+    connectionRef.current.activeConnection = false;
   }, []);
   
   // Function to establish SSE connection
@@ -82,7 +89,7 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
     }
     
     // Avoid multiple simultaneous connection attempts
-    if (connectionRef.current.isConnecting || !isAuthenticated) {
+    if (connectionRef.current.isConnecting || connectionRef.current.activeConnection || !isAuthenticated) {
       if (!isAuthenticated) setLoading(false);
       return;
     }
@@ -106,7 +113,7 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
       const url = `${baseUrl}/notifications/sse/human-needed`;
       
       // Using fetch with AbortController for manual SSE implementation
-      fetch(url, {
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -115,147 +122,155 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
           'Connection': 'keep-alive',
         },
         signal: controller.signal,
-      }).then(response => {
-        // Don't proceed if component is unmounted
-        if (!isMountedRef.current) return;
+      });
         
-        if (!response.ok) {
-          // Handle non-OK response (e.g., 401 Unauthorized)
-          if (response.status === 401) {
-            throw new Error('401 Unauthorized');
-          }
-          throw new Error(`HTTP error! Status: ${response.status}`);
+      // Don't proceed if component is unmounted
+      if (!isMountedRef.current) {
+        abortCurrentConnection();
+        return;
+      }
+      
+      if (!response.ok) {
+        // Handle non-OK response (e.g., 401 Unauthorized)
+        if (response.status === 401) {
+          throw new Error('401 Unauthorized');
         }
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      console.log('SSE connection established successfully');
+      setError(null);
+      setLoading(false);
+      connectionRef.current.isConnecting = false;
+      connectionRef.current.activeConnection = true;
+      connectionRef.current.reconnectAttempts = 0; // Reset attempt counter on success
+      
+      const reader = response.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      
+      // Function to process SSE events
+      async function processEvents() {
+        // Don't continue reading if component is unmounted
+        if (!isMountedRef.current || !connectionRef.current.activeConnection) return;
         
-        console.log('SSE connection established successfully');
-        setError(null);
-        setLoading(false);
-        connectionRef.current.isConnecting = false;
-        connectionRef.current.reconnectAttempts = 0; // Reset attempt counter on success
-        
-        const reader = response.body!.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-        
-        // Function to process SSE events
-        function processEvents() {
-          // Don't continue reading if component is unmounted
+        try {
+          const { value, done } = await reader.read();
+          
+          // Don't process if component is unmounted
+          if (!isMountedRef.current || !connectionRef.current.activeConnection) return;
+          
+          if (done) {
+            console.log('SSE stream closed normally');
+            // Consider this a normal close, not an error
+            connectionRef.current.isConnecting = false;
+            connectionRef.current.activeConnection = false;
+            
+            // Schedule reconnect for normal closures
+            if (isMountedRef.current) {
+              scheduleReconnect(new Error('Stream closed normally'));
+            }
+            return;
+          }
+          
+          buffer += decoder.decode(value, { stream: true });
+          
+          const lines = buffer.split('\n\n');
+          buffer = lines.pop() || '';
+          
+          for (const line of lines) {
+            if (line.trim() === '') continue;
+            
+            try {
+              const eventMatch = line.match(/^event: (.+)$/m);
+              const dataMatch = line.match(/^data: (.+)$/m);
+              
+              if (eventMatch && dataMatch) {
+                const eventType = eventMatch[1];
+                const data = dataMatch[1];
+                
+                console.log('SSE received:', eventType, data);
+                
+                if (eventType === 'initial') {
+                  const initialCount = parseInt(data, 10);
+                  setCount(initialCount);
+                }
+                else if (eventType === 'update') {
+                  const newCount = parseInt(data, 10);
+                  
+                  // Play sound only if count increases
+                  if (newCount > count) {
+                    playNotificationSound();
+                    toast({
+                      title: "Nuevas solicitudes pendientes",
+                      description: `Hay ${newCount} solicitudes que requieren atención humana.`,
+                    });
+                  }
+                  
+                  setCount(newCount);
+                }
+                else if (eventType === 'ping') {
+                  console.log('SSE ping received');
+                }
+              }
+            } catch (err) {
+              console.error('Error processing SSE data:', err);
+            }
+          }
+          
+          // Continue reading only if component is still mounted and connection is active
+          if (isMountedRef.current && connectionRef.current.activeConnection) {
+            processEvents();
+          }
+        } catch (err) {
+          // Don't proceed if component is unmounted
           if (!isMountedRef.current) return;
           
-          reader.read().then(({ value, done }) => {
-            // Don't process if component is unmounted
-            if (!isMountedRef.current) return;
-            
-            if (done) {
-              console.log('SSE stream closed normally');
-              // Consider this a normal close, not an error
-              connectionRef.current.isConnecting = false;
-              return;
-            }
-            
-            buffer += decoder.decode(value, { stream: true });
-            
-            const lines = buffer.split('\n\n');
-            buffer = lines.pop() || '';
-            
-            for (const line of lines) {
-              if (line.trim() === '') continue;
-              
-              try {
-                const eventMatch = line.match(/^event: (.+)$/m);
-                const dataMatch = line.match(/^data: (.+)$/m);
-                
-                if (eventMatch && dataMatch) {
-                  const eventType = eventMatch[1];
-                  const data = dataMatch[1];
-                  
-                  console.log('SSE received:', eventType, data);
-                  
-                  if (eventType === 'initial') {
-                    const initialCount = parseInt(data, 10);
-                    setCount(initialCount);
-                  }
-                  else if (eventType === 'update') {
-                    const newCount = parseInt(data, 10);
-                    
-                    // Play sound only if count increases
-                    if (newCount > count) {
-                      playNotificationSound();
-                      toast({
-                        title: "Nuevas solicitudes pendientes",
-                        description: `Hay ${newCount} solicitudes que requieren atención humana.`,
-                      });
-                    }
-                    
-                    setCount(newCount);
-                  }
-                  else if (eventType === 'ping') {
-                    console.log('SSE ping received');
-                  }
-                }
-              } catch (err) {
-                console.error('Error processing SSE data:', err);
-              }
-            }
-            
-            // Continue reading only if component is still mounted
-            if (isMountedRef.current) {
-              processEvents();
-            }
-          }).catch(err => {
-            // Don't proceed if component is unmounted
-            if (!isMountedRef.current) return;
-            
-            if (err.name === 'AbortError') {
-              console.log('SSE connection aborted intentionally');
-              return;
-            }
-            
-            console.error('Error reading SSE stream:', err);
-            scheduleReconnect(err);
-          });
-        }
-        
-        // Start processing events
-        if (isMountedRef.current) {
-          processEvents();
-        }
-        
-      }).catch(err => {
-        // Don't proceed if component is unmounted
-        if (!isMountedRef.current) return;
-        
-        console.error('Failed to establish SSE connection:', err);
-        setError(err instanceof Error ? err : new Error('Unknown error connecting to notifications service'));
-        setLoading(false);
-        
-        // Only schedule reconnect if not aborted intentionally
-        if (err.name !== 'AbortError') {
+          if (err.name === 'AbortError') {
+            console.log('SSE connection aborted intentionally');
+            return;
+          }
+          
+          console.error('Error reading SSE stream:', err);
+          connectionRef.current.activeConnection = false;
           scheduleReconnect(err);
         }
-      });
+      }
+      
+      // Start processing events
+      if (isMountedRef.current) {
+        processEvents();
+      }
       
     } catch (err) {
       // Don't proceed if component is unmounted
       if (!isMountedRef.current) return;
       
-      console.error('Error setting up SSE connection:', err);
+      console.error('Failed to establish SSE connection:', err);
       setError(err instanceof Error ? err : new Error('Unknown error connecting to notifications service'));
       setLoading(false);
+      connectionRef.current.activeConnection = false;
       
-      scheduleReconnect(err);
+      // Only schedule reconnect if not aborted intentionally
+      if (err.name !== 'AbortError') {
+        scheduleReconnect(err);
+      }
+    } finally {
+      // Reset connecting flag regardless of outcome
+      connectionRef.current.isConnecting = false;
     }
   }, [isAuthenticated, getAccessTokenSilently, count, playNotificationSound, toast, abortCurrentConnection]);
   
-  // Function to schedule reconnection with exponential backoff
+  // Function to schedule reconnection with fixed delay
   const scheduleReconnect = useCallback((err: any) => {
     // Don't schedule reconnection if component is unmounted
     if (!isMountedRef.current) {
       return;
     }
     
-    // Mark connection as not connecting
+    // Mark connection as not connecting or active
     connectionRef.current.isConnecting = false;
+    connectionRef.current.activeConnection = false;
     
     // Don't auto-reconnect for auth errors (401)
     if (err instanceof Error && err.message.includes('401')) {
@@ -274,19 +289,19 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
       retryTimerRef.current = null;
     }
     
-    // Increment reconnection attempt counter (for future use if we want exponential backoff)
+    // Increment reconnection attempt counter
     connectionRef.current.reconnectAttempts += 1;
     
     // Use a fixed 5-second reconnect delay
     const reconnectDelay = 5000; // 5 seconds between reconnect attempts
     
-    console.log(`Scheduling reconnection attempt in ${reconnectDelay/1000} seconds`);
+    console.log(`Scheduling reconnection attempt in ${reconnectDelay/1000} seconds (attempt ${connectionRef.current.reconnectAttempts})`);
     
     // Only schedule reconnection if component is still mounted
     if (isMountedRef.current) {
       retryTimerRef.current = window.setTimeout(() => {
         // Check if component is still mounted before attempting reconnection
-        if (isMountedRef.current && !connectionRef.current.isConnecting) {
+        if (isMountedRef.current && !connectionRef.current.isConnecting && !connectionRef.current.activeConnection) {
           connectSSE();
         }
       }, reconnectDelay);
@@ -311,3 +326,4 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
   
   return { count, loading, error };
 };
+

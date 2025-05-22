@@ -38,15 +38,13 @@ const NotificationCounter: React.FC<NotificationCounterProps> = ({ className }) 
       {count > 0 && !loading && !error && (
         <motion.div
           initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-white"
-          key={count}
-          exit={{ scale: 0 }}
-          layoutId="notificationBadge"
           animate={{
             scale: [1, 1.25, 1],
             transition: { duration: 0.5 }
           }}
+          className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-white"
+          key={count}
+          layoutId="notificationBadge"
         >
           {count}
         </motion.div>

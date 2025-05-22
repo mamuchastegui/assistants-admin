@@ -37,7 +37,7 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
   }, [count]);
   
   useEffect(() => {
-    let eventSource: EventSource | null = null;
+    let controller: AbortController | null = null;
     let reconnectAttempts = 0;
     const maxReconnectAttempts = 3;
     let reconnectTimeout: number | null = null;
@@ -45,28 +45,21 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
     const connectSSE = async () => {
       if (!isAuthenticated) {
         setLoading(false);
-        return;
+        return null;
       }
       
       try {
         const token = await getAccessTokenSilently();
         const baseUrl = import.meta.env.VITE_API_URL || "https://api.condamind.com";
         
-        // Close any existing connection before creating a new one
-        if (eventSource) {
-          eventSource.close();
-        }
+        // Create a new AbortController for this connection
+        controller = new AbortController();
+        const { signal } = controller;
         
-        // Since vanilla EventSource doesn't support custom headers, we need to use a custom SSE implementation
-        // or use a proxy endpoint that accepts the token in the URL (which is what the current system appears to do)
-        
-        // Create URL with authorization in header using fetch API to create a proxy SSE connection
+        // Create URL and use proper headers for authorization
         const url = `${baseUrl}/notifications/sse/human-needed`;
         
         // Using fetch with AbortController for manual SSE implementation with proper headers
-        const controller = new AbortController();
-        const { signal } = controller;
-        
         fetch(url, {
           method: 'GET',
           headers: {
@@ -150,7 +143,7 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
               processEvents();
             }).catch(err => {
               console.error('Error reading SSE stream:', err);
-              controller.abort();
+              if (controller) controller.abort();
               
               // Handle reconnection logic similar to the previous implementation
               handleReconnection(err);
@@ -206,7 +199,7 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
           }
         };
         
-        return controller; // Return controller to allow abort on cleanup
+        return controller;
       } catch (err) {
         console.error('Error setting up SSE connection:', err);
         setError(err instanceof Error ? err : new Error('Unknown error connecting to notifications service'));
@@ -215,8 +208,8 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
       }
     };
     
-    // Connect to SSE
-    const controller = connectSSE();
+    // Connect to SSE and store the controller
+    connectSSE();
     
     // Clean up on unmount
     return () => {

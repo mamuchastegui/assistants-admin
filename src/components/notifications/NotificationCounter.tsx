@@ -10,9 +10,7 @@ interface NotificationCounterProps {
 }
 
 const NotificationCounter: React.FC<NotificationCounterProps> = ({ className }) => {
-  const { count, loading, error } = useHumanNeededCounter({
-    onError: (msg) => console.error(msg)
-  });
+  const { count, loading, error } = useHumanNeededCounter();
   
   return (
     <motion.div 

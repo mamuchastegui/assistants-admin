@@ -77,11 +77,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
     try {
       // Convert empty strings to undefined for optional fields
       const formattedData: ProductCreate = {
-        ...data,
+        name: data.name,
         description: data.description || undefined,
+        price: data.price,
+        category: data.category,
         style: data.style || undefined,
         size: data.size || undefined,
         color: data.color || undefined,
+        stock: data.stock,
         image_url: data.image_url || undefined,
       };
       

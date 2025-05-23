@@ -49,6 +49,7 @@ export interface ProductFilters {
   min_price?: number;
   limit?: number;
   offset?: number;
+  name?: string; // Add this field as it's used in the code
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
 }
@@ -90,32 +91,40 @@ export const useProductApi = () => {
         }
       });
       
-      const response = await authApiClient.get(`${PRODUCTS_ENDPOINT}?${params.toString()}`);
-      return response.data;
+      const response = await authApiClient.authFetch(`${API_URL}${PRODUCTS_ENDPOINT}?${params.toString()}`);
+      return response;
     },
     
     // Get a specific product (authenticated)
     async getProduct(id: string): Promise<Product> {
-      const response = await authApiClient.get(`${PRODUCTS_ENDPOINT}/${id}`);
-      return response.data;
+      const response = await authApiClient.authFetch(`${API_URL}${PRODUCTS_ENDPOINT}/${id}`);
+      return response;
     },
     
     // Create a new product
     async createProduct(product: ProductCreate): Promise<Product> {
-      const response = await authApiClient.post(PRODUCTS_ENDPOINT, product);
-      return response.data;
+      const response = await authApiClient.authFetch(`${API_URL}${PRODUCTS_ENDPOINT}`, {
+        method: 'POST',
+        body: JSON.stringify(product)
+      });
+      return response;
     },
     
     // Update an existing product
     async updateProduct(id: string, productData: Partial<ProductCreate>): Promise<Product> {
-      const response = await authApiClient.put(`${PRODUCTS_ENDPOINT}/${id}`, productData);
-      return response.data;
+      const response = await authApiClient.authFetch(`${API_URL}${PRODUCTS_ENDPOINT}/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(productData)
+      });
+      return response;
     },
     
     // Delete a product
     async deleteProduct(id: string): Promise<{ deleted: boolean }> {
-      const response = await authApiClient.delete(`${PRODUCTS_ENDPOINT}/${id}`);
-      return response.data;
+      const response = await authApiClient.authFetch(`${API_URL}${PRODUCTS_ENDPOINT}/${id}`, {
+        method: 'DELETE'
+      });
+      return response;
     }
   };
 };

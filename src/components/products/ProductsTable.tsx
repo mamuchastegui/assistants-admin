@@ -1,6 +1,6 @@
 
 import React from "react";
-import { useProducts, ProductFilters } from "@/hooks/useProducts";
+import { useProducts } from "@/hooks/useProducts";
 import { Product } from "@/api/productService";
 import {
   Table,
@@ -32,7 +32,8 @@ import {
 } from "@/components/ui/pagination";
 import { Card, CardContent } from "@/components/ui/card";
 import { useState } from "react";
-import { edit, trash, plus } from "lucide-react";
+import { Edit, Trash, Plus } from "lucide-react";
+import { ProductFilters } from "@/hooks/useProducts";
 
 interface ProductsTableProps {
   initialFilters?: ProductFilters;
@@ -104,7 +105,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
           </Button>
         </form>
         <Button onClick={onAdd} className="flex items-center gap-2">
-          <plus className="h-4 w-4" />
+          <Plus className="h-4 w-4" />
           <span>Nuevo Producto</span>
         </Button>
       </div>
@@ -154,14 +155,14 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
                           size="sm"
                           onClick={() => onEdit(product)}
                         >
-                          <edit className="h-4 w-4" />
+                          <Edit className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleDeleteClick(product.id)}
                         >
-                          <trash className="h-4 w-4" />
+                          <Trash className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>

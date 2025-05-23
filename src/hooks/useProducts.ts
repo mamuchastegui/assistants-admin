@@ -9,6 +9,9 @@ import {
   ProductFilters 
 } from '@/api/productService';
 
+// Re-export the ProductFilters interface
+export type { ProductFilters };
+
 export const useProducts = (initialFilters: ProductFilters = {}) => {
   const [filters, setFilters] = useState<ProductFilters>(initialFilters);
   const productApi = useProductApi();

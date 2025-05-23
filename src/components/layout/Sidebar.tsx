@@ -12,7 +12,8 @@ import {
   MessageSquare,
   X,
   ChevronRight,
-  Bell
+  Bell,
+  BoxIcon
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -216,6 +217,12 @@ export default function Sidebar({ className }: SidebarProps) {
                 icon={<ClipboardEdit />}
                 collapsed={isCollapsed}
                 label="Gestión Menú"
+              />
+              <NavButton
+                to="/products"
+                icon={<Package2 />}
+                collapsed={isCollapsed}
+                label="Productos"
               />
               <NavButton
                 to="/orders"

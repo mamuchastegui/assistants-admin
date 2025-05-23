@@ -28,6 +28,9 @@ const Index = () => {
               <Link to="/menu">
                 <Button className="w-full" variant="outline">Menu</Button>
               </Link>
+              <Link to="/products">
+                <Button className="w-full" variant="outline">Products</Button>
+              </Link>
               <Link to="/assistant">
                 <Button className="w-full" variant="outline">Assistant</Button>
               </Link>

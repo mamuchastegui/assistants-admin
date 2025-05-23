@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,6 +17,7 @@ import OrderDetails from "./pages/OrderDetails";
 import Menu from "./pages/Menu";
 import RestaurantMenu from "./pages/RestaurantMenu";
 import Notifications from "./pages/Notifications";
+import Products from "./pages/Products"; // Importar la página de Products
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Callback from "./pages/Callback";
@@ -99,6 +101,11 @@ function App() {
                       <Route path="/notifications" element={
                         <PrivateRoute>
                           <Notifications />
+                        </PrivateRoute>
+                      } />
+                      <Route path="/products" element={
+                        <PrivateRoute>
+                          <Products />
                         </PrivateRoute>
                       } />
                       

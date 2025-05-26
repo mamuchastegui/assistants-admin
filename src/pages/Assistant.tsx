@@ -2,7 +2,6 @@
 import React from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import AssistantConfig from "@/components/assistant/AssistantConfig";
-import { Toaster } from "sonner";
 
 const Assistant = () => {
   return (
@@ -17,7 +16,6 @@ const Assistant = () => {
         
         <AssistantConfig />
       </div>
-      <Toaster position="top-right" closeButton richColors />
     </DashboardLayout>
   );
 };

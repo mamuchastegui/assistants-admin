@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useAuth } from '@/hooks/useAuth';
 import { useSSEConnection } from './useSSEConnection';
 import { useDocumentTitle } from './useDocumentTitle';
 import { useHumanNeededEvents } from './useHumanNeededEvents';
@@ -13,7 +13,7 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { isAuthenticated } = useAuth0();
+  const { isAuthenticated } = useAuth();
   const { handleMessage } = useHumanNeededEvents();
   
   // Update document title based on count

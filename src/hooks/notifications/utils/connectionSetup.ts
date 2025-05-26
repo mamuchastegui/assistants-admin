@@ -1,5 +1,5 @@
 
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth } from "@/hooks/useAuth";
 import { ConnectionRef } from '../types/sseTypes';
 
 /**
@@ -9,7 +9,7 @@ export async function establishSSEConnection(
   endpoint: string,
   isMountedRef: React.MutableRefObject<boolean>,
   connectionRef: React.MutableRefObject<ConnectionRef>,
-  getAccessTokenSilently: ReturnType<typeof useAuth0>['getAccessTokenSilently'],
+  getAccessTokenSilently: ReturnType<typeof useAuth>['getAccessTokenSilently'],
   onConnectionStateChange: ((isConnected: boolean) => void) | undefined,
   processEventsCallback: (
     reader: ReadableStreamDefaultReader<Uint8Array>,

@@ -1,9 +1,9 @@
 
 import { useCallback } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useAuth } from '@/hooks/useAuth';
 
 export const useAuthApi = () => {
-  const { getAccessTokenSilently } = useAuth0();
+  const { getAccessTokenSilently } = useAuth();
 
   const authFetch = useCallback(
     async (url: string, options: RequestInit = {}) => {

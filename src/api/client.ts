@@ -1,6 +1,6 @@
 
 import axios from "axios";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth } from "@/hooks/useAuth";
 
 // Create an axios instance with base URL from environment variable
 const createApiClient = () => {
@@ -23,7 +23,7 @@ export const apiClient = createApiClient();
 
 // Custom hook for authenticated API requests
 export const useAuthApi = () => {
-  const { getAccessTokenSilently } = useAuth0();
+  const { getAccessTokenSilently } = useAuth();
   
   const authApiClient = createApiClient();
   

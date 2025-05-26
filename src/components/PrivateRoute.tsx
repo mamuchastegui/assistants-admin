@@ -1,6 +1,6 @@
 
 import React, { ReactNode } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
 
 interface PrivateRouteProps {
@@ -8,7 +8,7 @@ interface PrivateRouteProps {
 }
 
 export const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth0();
+  const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
     return (

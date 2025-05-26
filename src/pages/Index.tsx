@@ -3,10 +3,10 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LoginButton } from "@/components/LoginButton";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
-  const { isAuthenticated } = useAuth0();
+  const { isAuthenticated } = useAuth();
   
   return (
     <div className="h-screen flex items-center justify-center bg-background">

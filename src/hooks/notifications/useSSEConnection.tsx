@@ -1,6 +1,6 @@
 
 import { useCallback, useRef, useEffect } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useAuth } from '@/hooks/useAuth';
 import { ConnectionRef, UseSSEConnectionProps, SSEConnectionResult } from './types/sseTypes';
 import { processEvents } from './utils/sseUtils';
 import { 
@@ -16,7 +16,7 @@ export const useSSEConnection = ({
   onError,
   onConnectionStateChange
 }: UseSSEConnectionProps): SSEConnectionResult => {
-  const { getAccessTokenSilently, isAuthenticated } = useAuth0();
+  const { getAccessTokenSilently, isAuthenticated } = useAuth();
   
   // Reference to track active connection
   const connectionRef = useRef<ConnectionRef>({ 

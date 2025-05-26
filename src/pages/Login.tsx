@@ -1,13 +1,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useAuth } from '@/hooks/useAuth';
 import { AlertCircle } from 'lucide-react';
 import { useTenant } from '@/context/TenantContext';
 
 const Login = () => {
   const [searchParams] = useSearchParams();
-  const { loginWithRedirect } = useAuth0();
+  const { loginWithRedirect } = useAuth();
   const { setOrgId } = useTenant();
   const [error, setError] = useState<string | null>(null);
 

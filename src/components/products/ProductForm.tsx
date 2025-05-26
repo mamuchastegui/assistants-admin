@@ -89,11 +89,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
       };
       
       onSubmit(formattedData);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Ha ocurrido un error al enviar el formulario",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Ha ocurrido un error al enviar el formulario",
       });
     }
   };

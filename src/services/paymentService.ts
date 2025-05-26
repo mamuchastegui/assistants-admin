@@ -6,7 +6,7 @@ export interface PaymentMethod {
   id: string;
   name: string;
   type: string;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   is_active: boolean;
   created_at?: string;
   updated_at?: string;

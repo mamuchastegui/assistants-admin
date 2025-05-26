@@ -13,7 +13,7 @@ export interface Payment {
   amount: number;
   payment_method: PaymentMethod;
   payment_status: "pending" | "paid" | "cancelled" | "refunded";
-  payment_details?: Record<string, any>;
+  payment_details?: Record<string, unknown>;
   reference_number?: string;
 }
 
@@ -48,7 +48,7 @@ export interface Order {
   payment_status?: "pending" | "paid" | "cancelled" | "refunded";
   payment_method?: PaymentMethod;
   payment_id?: string | null;
-  payment_details?: Record<string, any>;
+  payment_details?: Record<string, unknown>;
   total_guests?: number;
   total_amount?: number;
   menus?: MenuItem[];

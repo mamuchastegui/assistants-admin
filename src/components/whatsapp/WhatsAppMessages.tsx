@@ -64,7 +64,7 @@ const WhatsAppMessages: React.FC<WhatsAppMessagesProps> = ({
   };
   
   const formatPhoneNumber = (phoneNumber: string): string => {
-    let formatted = phoneNumber.replace("whatsapp:", "");
+    const formatted = phoneNumber.replace("whatsapp:", "");
     return formatted;
   };
 

@@ -13,7 +13,7 @@ export function createReconnectScheduler(
   onConnectionStateChange?: (isConnected: boolean) => void,
   onError?: (error: Error) => void
 ) {
-  return (err: any) => {
+  return (err: unknown) => {
     // Don't schedule reconnection if component is unmounted
     if (!isMountedRef.current) {
       return;

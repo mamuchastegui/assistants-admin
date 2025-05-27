@@ -2,7 +2,7 @@
 import React, { useEffect } from "react";
 import { Conversation } from "@/hooks/useChatThreads";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
-import { useAuth0 } from '@auth0/auth0-react';
+import { useAuth } from '@/hooks/useAuth';
 import { useConversationState } from "@/hooks/whatsapp/useConversationState";
 import ConversationHeader from "./conversation/ConversationHeader";
 import MessageList from "./conversation/MessageList";
@@ -26,7 +26,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   currentThreadStatus = "new",
   onStatusChange
 }) => {
-  const { user } = useAuth0();
+  const { user } = useAuth();
   
   const { 
     message,

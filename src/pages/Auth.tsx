@@ -1,13 +1,13 @@
 
 import React from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useAuth } from '@/hooks/useAuth';
 import { LoginButton } from '@/components/LoginButton';
 import { LogoutButton } from '@/components/LogoutButton';
 import { UserInfo } from '@/components/UserInfo';
 import DashboardLayout from "@/components/layout/DashboardLayout";
 
 const Auth = () => {
-  const { isAuthenticated, isLoading } = useAuth0();
+  const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
     return (

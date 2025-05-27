@@ -3,6 +3,7 @@ import React, { ReactNode } from 'react';
 import { Auth0Provider } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router-dom';
 import { useTenant } from '@/context/TenantContext';
+import { DevAuthProvider } from '@/devAuth/DevAuthProvider';
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -11,6 +12,17 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const navigate = useNavigate();
   const { orgId } = useTenant();
+
+  const shouldBypass =
+    import.meta.env.DEV &&
+    import.meta.env.VITE_SKIP_AUTH === 'true' &&
+    (typeof window === 'undefined'
+      ? false
+      : window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+  if (shouldBypass) {
+    return <DevAuthProvider>{children}</DevAuthProvider>;
+  }
 
   // Auth0 configuration from environment variables
   const domain = import.meta.env.VITE_AUTH0_DOMAIN || '';

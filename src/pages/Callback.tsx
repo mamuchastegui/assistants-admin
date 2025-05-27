@@ -1,10 +1,10 @@
 
 import React, { useEffect } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
 const Callback = () => {
-  const { isAuthenticated, isLoading, error } = useAuth0();
+  const { isAuthenticated, isLoading, error } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {

@@ -7,7 +7,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useSidebar } from "@/components/ui/sidebar";
 import { motion, AnimatePresence } from "framer-motion";
 import { DarkModeToggle } from "@/components/ui/dark-mode-toggle";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth } from "@/hooks/useAuth";
 import { LogoutButton } from "@/components/LogoutButton";
 import NotificationCounter from "@/components/notifications/NotificationCounter";
 import {
@@ -27,7 +27,7 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
   const isMobile = useIsMobile();
   const { openMobile } = useSidebar();
   const [showSearch, setShowSearch] = React.useState(false);
-  const { isAuthenticated, user } = useAuth0();
+  const { isAuthenticated, user } = useAuth();
   
   // Get user initials for the avatar
   const getUserInitials = () => {

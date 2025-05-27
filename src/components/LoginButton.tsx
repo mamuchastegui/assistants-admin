@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { useTenant } from '@/context/TenantContext';
 
 export const LoginButton: React.FC = () => {
-  const { loginWithRedirect } = useAuth0();
+  const { loginWithRedirect } = useAuth();
   const { orgId } = useTenant();
 
   const handleLogin = () => {

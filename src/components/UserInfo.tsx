@@ -1,10 +1,10 @@
 
 import React, { useEffect, useState } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const UserInfo: React.FC = () => {
-  const { user, getAccessTokenSilently, isAuthenticated } = useAuth0();
+  const { user, getAccessTokenSilently, isAuthenticated } = useAuth();
   const [organizationId, setOrganizationId] = useState<string | null>(null);
 
   useEffect(() => {

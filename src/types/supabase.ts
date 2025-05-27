@@ -53,7 +53,7 @@ export interface Database {
           updated_at: string | null;
           payment_method: "mercado_pago" | "cash" | "transfer" | null;
           payment_status: string | null;
-          payment_details: Record<string, any> | null;
+          payment_details: Record<string, unknown> | null;
           dinner_group_id: string | null;
         };
         Insert: {
@@ -68,7 +68,7 @@ export interface Database {
           updated_at?: string | null;
           payment_method?: "mercado_pago" | "cash" | "transfer" | null;
           payment_status?: string | null;
-          payment_details?: Record<string, any> | null;
+          payment_details?: Record<string, unknown> | null;
           dinner_group_id?: string | null;
         };
         Update: {
@@ -83,7 +83,7 @@ export interface Database {
           updated_at?: string | null;
           payment_method?: "mercado_pago" | "cash" | "transfer" | null;
           payment_status?: string | null;
-          payment_details?: Record<string, any> | null;
+          payment_details?: Record<string, unknown> | null;
           dinner_group_id?: string | null;
         };
       };

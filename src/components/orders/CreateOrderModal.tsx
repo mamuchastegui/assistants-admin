@@ -66,7 +66,8 @@ interface CreateOrderModalProps {
 
 const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange }) => {
   const queryClient = useQueryClient();
-  const [paymentDetails, setPaymentDetails] = useState<Record<string, any>>({});
+  const [paymentDetails, setPaymentDetails] =
+    useState<Record<string, string | number | null>>({});
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
   const [showCashForm, setShowCashForm] = useState(false);
   const [existingGroups, setExistingGroups] = useState<DinnerGroup[]>([]);

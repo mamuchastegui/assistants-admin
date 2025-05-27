@@ -18,10 +18,10 @@ export async function establishSSEConnection(
     connectionRef: React.MutableRefObject<ConnectionRef>,
     isMountedRef: React.MutableRefObject<boolean>,
     onConnectionStateChange: ((isConnected: boolean) => void) | undefined,
-    scheduleReconnect: ((err: any) => void) | undefined
+    scheduleReconnect: ((err: unknown) => void) | undefined
   ) => void,
   onMessage: (eventType: string, data: string) => void,
-  scheduleReconnect: (err: any) => void,
+  scheduleReconnect: (err: unknown) => void,
   onError?: (error: Error) => void
 ) {
   // Don't attempt to connect if component is unmounted
@@ -95,7 +95,7 @@ export async function establishSSEConnection(
       );
     }
     
-  } catch (err: any) {
+  } catch (err: unknown) {
     // Don't proceed if component is unmounted
     if (!isMountedRef.current) return;
     

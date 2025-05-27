@@ -1,7 +1,7 @@
 import { ConnectionRef } from '../types/sseTypes';
 
 /**
- * Processes SSE events from a stream
+ * Processes SSE events from a stream.
  */
 export async function processEvents(
   reader: ReadableStreamDefaultReader<Uint8Array>,
@@ -9,10 +9,10 @@ export async function processEvents(
   onMessage: (eventType: string, data: string) => void,
   connectionRef: React.MutableRefObject<ConnectionRef>,
   isMountedRef: React.MutableRefObject<boolean>,
-  onConnectionStateChange: ((isConnected: boolean) => void) | undefined,
-  scheduleReconnect: ((err: any) => void) | undefined
+  onConnectionStateChange?: (isConnected: boolean) => void,
+  scheduleReconnect?: (err: unknown) => void
 ) {
-  // Buffer to accumulate partial events between reads
+  // Buffer used to accumulate partial events between reads
   let pendingBuffer = '';
 
   const readLoop = async (): Promise<void> => {
@@ -21,6 +21,7 @@ export async function processEvents(
     try {
       const { value, done } = await reader.read();
 
+      // Abort if component unmounted or connection lost in-between the read
       if (!isMountedRef.current || !connectionRef.current.activeConnection) return;
 
       if (done) {
@@ -28,28 +29,23 @@ export async function processEvents(
         connectionRef.current.isConnecting = false;
         connectionRef.current.activeConnection = false;
 
-        if (onConnectionStateChange) {
-          onConnectionStateChange(false);
-        }
-
-        if (isMountedRef.current && scheduleReconnect) {
-          scheduleReconnect(new Error('Stream closed normally'));
-        }
+        onConnectionStateChange?.(false);
+        if (isMountedRef.current) scheduleReconnect?.(new Error('Stream closed normally'));
         return;
       }
 
-      // Append new chunk to buffer and process complete events
+      // Decode chunk and split into complete events
       pendingBuffer += decoder.decode(value, { stream: true });
 
       const parts = pendingBuffer.split('\n\n');
-      pendingBuffer = parts.pop() || '';
+      pendingBuffer = parts.pop() ?? '';
 
       for (const part of parts) {
         if (part.trim() === '') continue;
 
         try {
-          const eventMatch = part.match(/^event: (.+)$/m);
-          const dataMatch = part.match(/^data: (.+)$/m);
+          const eventMatch = part.match(/^event:\s*(.+)$/m);
+          const dataMatch = part.match(/^data:\s*(.+)$/m);
 
           if (eventMatch && dataMatch) {
             const eventType = eventMatch[1];
@@ -63,6 +59,7 @@ export async function processEvents(
         }
       }
 
+      // Continue reading while mounted and connected
       if (isMountedRef.current && connectionRef.current.activeConnection) {
         await readLoop();
       }
@@ -77,13 +74,8 @@ export async function processEvents(
       console.error('Error reading SSE stream:', err);
       connectionRef.current.activeConnection = false;
 
-      if (onConnectionStateChange) {
-        onConnectionStateChange(false);
-      }
-
-      if (scheduleReconnect) {
-        scheduleReconnect(err);
-      }
+      onConnectionStateChange?.(false);
+      scheduleReconnect?.(err);
     }
   };
 

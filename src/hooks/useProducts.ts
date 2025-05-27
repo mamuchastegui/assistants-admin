@@ -31,7 +31,7 @@ export const useProducts = (initialFilters: ProductFilters = {}) => {
   });
 
   // Query for fetching a single product
-  const getProduct = (id: string) => {
+  const useGetProduct = (id: string) => {
     return useQuery({
       queryKey: ['product', id],
       queryFn: () => productApi.getProduct(id),
@@ -48,11 +48,14 @@ export const useProducts = (initialFilters: ProductFilters = {}) => {
         description: "El producto ha sido creado exitosamente",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         variant: "destructive",
         title: "Error al crear el producto",
-        description: error.message || "Ha ocurrido un error inesperado",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Ha ocurrido un error inesperado",
       });
     },
   });
@@ -69,11 +72,14 @@ export const useProducts = (initialFilters: ProductFilters = {}) => {
         description: "El producto ha sido actualizado exitosamente",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         variant: "destructive",
         title: "Error al actualizar el producto",
-        description: error.message || "Ha ocurrido un error inesperado",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Ha ocurrido un error inesperado",
       });
     },
   });
@@ -88,11 +94,14 @@ export const useProducts = (initialFilters: ProductFilters = {}) => {
         description: "El producto ha sido eliminado exitosamente",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         variant: "destructive",
         title: "Error al eliminar el producto",
-        description: error.message || "Ha ocurrido un error inesperado",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Ha ocurrido un error inesperado",
       });
     },
   });
@@ -115,7 +124,7 @@ export const useProducts = (initialFilters: ProductFilters = {}) => {
     updateFilters,
     
     // CRUD operations
-    getProduct,
+    useGetProduct,
     createProduct: createProductMutation.mutate,
     updateProduct: updateProductMutation.mutate,
     deleteProduct: deleteProductMutation.mutate,

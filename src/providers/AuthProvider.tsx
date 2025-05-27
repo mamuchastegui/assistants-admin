@@ -18,7 +18,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const audience = import.meta.env.VITE_AUTH0_AUDIENCE || '';
   const callbackUrl = import.meta.env.VITE_AUTH0_CALLBACK_URL || window.location.origin + '/callback';
 
-  const onRedirectCallback = (appState: any) => {
+  const onRedirectCallback = (appState?: { returnTo?: string }) => {
     navigate(appState?.returnTo || window.location.pathname);
   };
 

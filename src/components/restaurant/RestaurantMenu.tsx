@@ -61,7 +61,11 @@ const MenuCategory = ({ category, index }: { category: MenuCategory; index: numb
 
 const RestaurantMenu: React.FC = () => {
   // Fetch menu items from Supabase with staleTime: 0 to ensure we get fresh data
-  const { data: menuItems, isLoading, error } = useQuery({
+  const {
+    data: menuItems,
+    isLoading,
+    error,
+  } = useQuery<MenuItem[]>({
     queryKey: ["restaurant-menu-items"],
     queryFn: async () => {
       console.log("Fetching menu items...");
@@ -76,7 +80,7 @@ const RestaurantMenu: React.FC = () => {
       }
       
       console.log("Menu items fetched:", data);
-      return data || [];
+      return (data || []) as MenuItem[];
     },
     staleTime: 0, // Make sure we always get fresh data
   });
@@ -87,8 +91,8 @@ const RestaurantMenu: React.FC = () => {
     
     // Group menu items by category
     const categoryMap: Record<string, MenuItem[]> = {};
-    
-    menuItems.forEach((item: any) => {
+
+    menuItems.forEach(item => {
       const category = item.category || "Sin categoría";
       
       if (!categoryMap[category]) {

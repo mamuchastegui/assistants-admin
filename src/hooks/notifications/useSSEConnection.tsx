@@ -12,6 +12,7 @@ import {
 
 export const useSSEConnection = ({
   endpoint,
+  queryParams,
   onMessage,
   onError,
   onConnectionStateChange
@@ -79,6 +80,7 @@ export const useSSEConnection = ({
     
     await establishSSEConnection(
       endpoint,
+      queryParams,
       isMountedRef,
       connectionRef,
       getAccessTokenSilently,
@@ -92,6 +94,7 @@ export const useSSEConnection = ({
     isAuthenticated,
     getAccessTokenSilently,
     endpoint,
+    queryParams,
     onMessage,
     onError,
     onConnectionStateChange,

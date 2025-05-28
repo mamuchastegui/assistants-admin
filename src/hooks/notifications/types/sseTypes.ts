@@ -8,6 +8,7 @@ export interface ConnectionRef {
 
 export interface UseSSEConnectionProps {
   endpoint: string;
+  queryParams?: Record<string, string>;
   onMessage: (eventType: string, data: string) => void;
   onError?: (error: Error) => void;
   onConnectionStateChange?: (isConnected: boolean) => void;

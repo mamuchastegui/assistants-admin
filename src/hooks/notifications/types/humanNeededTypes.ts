@@ -1,7 +1,7 @@
 
-// Types for the human needed counter functionality
 export interface UseHumanNeededCounterProps {
-  onError?: (message: string) => void;
+  assistantId?: string;
+  onError?: (error: string) => void;
 }
 
 export interface UseHumanNeededCounterResult {

@@ -7,6 +7,7 @@ import { ConnectionRef } from '../types/sseTypes';
  */
 export async function establishSSEConnection(
   endpoint: string,
+  queryParams: Record<string, string> | undefined,
   isMountedRef: React.MutableRefObject<boolean>,
   connectionRef: React.MutableRefObject<ConnectionRef>,
   getAccessTokenSilently: ReturnType<typeof useAuth>['getAccessTokenSilently'],
@@ -41,11 +42,22 @@ export async function establishSSEConnection(
     const controller = new AbortController();
     connectionRef.current.controller = controller;
     
-    // Create URL for SSE connection
-    const url = `${baseUrl}${endpoint}`;
+    // Build URL with query parameters
+    const url = new URL(`${baseUrl}${endpoint}`);
+    
+    // Add query parameters if provided
+    if (queryParams) {
+      Object.entries(queryParams).forEach(([key, value]) => {
+        if (value) {
+          url.searchParams.append(key, value);
+        }
+      });
+    }
+    
+    console.log('SSE connection URL:', url.toString());
     
     // Using fetch with AbortController for manual SSE implementation
-    const response = await fetch(url, {
+    const response = await fetch(url.toString(), {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,

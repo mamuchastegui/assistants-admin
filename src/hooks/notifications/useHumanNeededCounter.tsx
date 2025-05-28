@@ -9,7 +9,10 @@ import { UseHumanNeededCounterProps, UseHumanNeededCounterResult } from './types
 /**
  * Hook that tracks the number of requests that need human attention
  */
-export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = {}): UseHumanNeededCounterResult => {
+export const useHumanNeededCounter = ({ 
+  assistantId,
+  onError 
+}: UseHumanNeededCounterProps = {}): UseHumanNeededCounterResult => {
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -44,9 +47,13 @@ export const useHumanNeededCounter = ({ onError }: UseHumanNeededCounterProps = 
     }
   }, []);
   
+  // Prepare query parameters
+  const queryParams = assistantId ? { assistant_id: assistantId } : undefined;
+  
   // Use SSE connection hook
   useSSEConnection({
     endpoint: '/notifications/sse/human-needed',
+    queryParams,
     onMessage: processMessage,
     onError: handleError,
     onConnectionStateChange: handleConnectionStateChange

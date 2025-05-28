@@ -1,5 +1,7 @@
+
 import React, { createContext, useContext } from "react";
 import { useHumanNeededCounter } from "@/hooks/useHumanNeededCounter";
+import { useAssistants } from "@/hooks/useAssistants";
 
 interface NotificationsContextType {
   count: number;
@@ -14,8 +16,13 @@ const NotificationsContext = createContext<NotificationsContextType>({
 });
 
 export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Utilizamos el hook una sola vez a nivel de provider
-  const value = useHumanNeededCounter({});
+  // Obtenemos el asistente seleccionado actualmente
+  const { selectedAssistantId } = useAssistants();
+  
+  // Utilizamos el hook con el assistant_id
+  const value = useHumanNeededCounter({
+    assistantId: selectedAssistantId || undefined
+  });
   
   return (
     <NotificationsContext.Provider value={value}>
@@ -24,4 +31,4 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
-export const useNotifications = () => useContext(NotificationsContext); 
+export const useNotifications = () => useContext(NotificationsContext);

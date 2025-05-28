@@ -212,12 +212,11 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
       const { error: paymentError } = await supabase
         .from("payments")
         .insert({
-          order_id: newOrder.id,
           amount: paymentAmount,
           payment_method: data.payment_method,
           payment_status: data.payment_status,
           payment_details: paymentDetails,
-          reference_number: paymentDetails.receipt_number || null
+          reference_number: (paymentDetails.receipt_number as string) || null
         });
 
       if (paymentError) throw paymentError;
@@ -262,7 +261,7 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
               <FormControl>
                 <Input 
                   readOnly 
-                  value={selectedPaymentMethod.details.account_number || ""} 
+                  value={String(selectedPaymentMethod.details.account_number || "")} 
                   className="bg-gray-50" 
                 />
               </FormControl>
@@ -272,7 +271,7 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
               <FormControl>
                 <Input 
                   readOnly 
-                  value={selectedPaymentMethod.details.bank || ""} 
+                  value={String(selectedPaymentMethod.details.bank || "")} 
                   className="bg-gray-50" 
                 />
               </FormControl>
@@ -296,7 +295,7 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
               <FormControl>
                 <Input 
                   readOnly 
-                  value={selectedPaymentMethod.details.alias || ""} 
+                  value={String(selectedPaymentMethod.details.alias || "")} 
                   className="bg-gray-50" 
                 />
               </FormControl>
@@ -320,7 +319,7 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
               <FormControl>
                 <Input 
                   readOnly 
-                  value={selectedPaymentMethod.details.cbu || ""} 
+                  value={String(selectedPaymentMethod.details.cbu || "")} 
                   className="bg-gray-50" 
                 />
               </FormControl>
@@ -344,7 +343,7 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ open, onOpenChange 
               <FormControl>
                 <Input 
                   readOnly 
-                  value={selectedPaymentMethod.details.username || ""} 
+                  value={String(selectedPaymentMethod.details.username || "")} 
                   className="bg-gray-50" 
                 />
               </FormControl>

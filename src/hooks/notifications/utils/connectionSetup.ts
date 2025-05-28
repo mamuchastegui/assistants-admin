@@ -116,7 +116,8 @@ export async function establishSSEConnection(
     connectionRef.current.isConnecting = false;
     
     if (onError) {
-      onError(err instanceof Error ? err : new Error('Unknown error connecting to notifications service'));
+      const errorMessage = err instanceof Error ? err : new Error('Unknown error connecting to notifications service');
+      onError(errorMessage);
     }
     
     if (onConnectionStateChange) {
@@ -124,7 +125,7 @@ export async function establishSSEConnection(
     }
     
     // Only schedule reconnect if not aborted intentionally
-    if (err.name !== 'AbortError') {
+    if (err instanceof Error && err.name !== 'AbortError') {
       scheduleReconnect(err);
     }
   }

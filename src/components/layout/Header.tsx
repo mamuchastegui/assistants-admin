@@ -27,16 +27,30 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
   const isMobile = useIsMobile();
   const { openMobile } = useSidebar();
   const [showSearch, setShowSearch] = React.useState(false);
-  const { isAuthenticated, user } = useAuth();
+  const authContext = useAuth();
   
+  // Type guard to check if we have Auth0 context with user
+  const isAuth0Context = (ctx: any): ctx is { user: any; isAuthenticated: boolean } => {
+    return ctx && 'user' in ctx;
+  };
+
   // Get user initials for the avatar
   const getUserInitials = () => {
-    if (!user?.name) return 'U';
-    return user.name.split(' ')
-      .map(name => name[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase();
+    if (isAuth0Context(authContext) && authContext.user?.name) {
+      return authContext.user.name.split(' ')
+        .map((name: string) => name[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase();
+    }
+    return 'DU'; // Dev User
+  };
+
+  const getUserData = () => {
+    if (isAuth0Context(authContext)) {
+      return authContext.user;
+    }
+    return { name: 'Dev User', email: 'dev@example.com' };
   };
   
   return (
@@ -92,11 +106,11 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
           <DarkModeToggle />
           
           {/* Notification Counter */}
-          {isAuthenticated && (
+          {authContext.isAuthenticated && (
             <NotificationCounter className="h-7 w-7 sm:h-8 sm:w-8" />
           )}
           
-          {isAuthenticated ? (
+          {authContext.isAuthenticated ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <motion.span 
@@ -108,17 +122,13 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
                 </motion.span>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                {user && (
-                  <>
-                    <DropdownMenuLabel>
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{user.name}</p>
-                        <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
+                <DropdownMenuLabel>
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{getUserData().name}</p>
+                    <p className="text-xs leading-none text-muted-foreground">{getUserData().email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <a href="/auth">
                     Mi Perfil

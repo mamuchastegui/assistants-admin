@@ -26,7 +26,19 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   currentThreadStatus = "new",
   onStatusChange
 }) => {
-  const { user } = useAuth();
+  const authContext = useAuth();
+  
+  // Type guard to check if we have Auth0 context with user
+  const isAuth0Context = (ctx: any): ctx is { user: any } => {
+    return ctx && 'user' in ctx;
+  };
+
+  const getCurrentUserName = () => {
+    if (isAuth0Context(authContext) && authContext.user?.name) {
+      return authContext.user.name;
+    }
+    return "Asistente";
+  };
   
   const { 
     message,
@@ -73,7 +85,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({
     : [];
 
   const displayName = conversation?.profile_name || "Usuario";
-  const currentUserName = user?.name || "Asistente";
+  const currentUserName = getCurrentUserName();
 
   // Empty or loading states
   if (!selectedThread || !assistantId || loading) {

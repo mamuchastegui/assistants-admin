@@ -16,17 +16,17 @@ export const useHumanNeededEvents = () => {
       if (eventType === "initial" || eventType === "update") {
         try {
           const newCount = parseInt(data, 10);
-          
+
           // Make sure newCount is valid before updating state
           if (!isNaN(newCount)) {
-            if (newCount > lastCount.current) {
+            if (eventType === "update" && newCount > lastCount.current) {
               playNotificationSound();
               toast({
                 title: "Nuevas solicitudes pendientes",
                 description: `Hay ${newCount} que requieren atención humana.`,
               });
             }
-            
+
             lastCount.current = newCount;
             return newCount;
           } else {

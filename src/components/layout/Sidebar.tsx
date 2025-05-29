@@ -235,6 +235,7 @@ export default function Sidebar({ className }: SidebarProps) {
                 icon={<MessageSquare />}
                 collapsed={isCollapsed}
                 label="WhatsApp"
+                badge={<NotificationBadge />}
               />
               <NavButton
                 to="/notifications"

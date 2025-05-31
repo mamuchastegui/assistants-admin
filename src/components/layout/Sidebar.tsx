@@ -9,6 +9,7 @@ import {
   Utensils,
   ClipboardEdit,
   Package2,
+  ShoppingCart,
   MessageSquare,
   X,
   ChevronRight,
@@ -223,6 +224,12 @@ export default function Sidebar({ className }: SidebarProps) {
                 icon={<Package2 />}
                 collapsed={isCollapsed}
                 label="Productos"
+              />
+              <NavButton
+                to="/tiendanube-products"
+                icon={<ShoppingCart />}
+                collapsed={isCollapsed}
+                label="Tienda Nube"
               />
               <NavButton
                 to="/orders"

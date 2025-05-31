@@ -1,4 +1,4 @@
-import { createEventSourceWithHeaders, canUseEventSourceWithHeaders } from './eventSourceWithHeaders';
+import { createEventSourceWithHeaders } from './eventSourceWithHeaders.js';
 
 export function subscribeToHumanNeeded({ token, assistantId, onMessage, onError }) {
   const baseUrl = import.meta.env?.VITE_API_URL || 'https://api.condamind.com';
@@ -15,14 +15,13 @@ export function subscribeToHumanNeeded({ token, assistantId, onMessage, onError 
   let source;
   
   // Si tenemos token y podemos usar EventSourceWithHeaders, lo usamos para enviar el token como header
-  if (token && canUseEventSourceWithHeaders()) {
+  if (token) {
     source = createEventSourceWithHeaders(url.toString(), {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
   } else {
-    // Fallback a EventSource estándar
     source = new EventSource(url.toString());
   }
   

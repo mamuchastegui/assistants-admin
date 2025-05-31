@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import ChatInterface from "@/components/whatsapp/ChatInterface";
@@ -21,7 +20,8 @@ const AssistantConfig: React.FC = () => {
     deleteThread,
     statusFilter,
     setStatusFilter,
-    updateThreadStatus
+    updateThreadStatus,
+    sendMessage
   } = useChatThreads(currentAssistantId);
 
   const handleAssistantChange = (assistantId: string) => {
@@ -54,6 +54,7 @@ const AssistantConfig: React.FC = () => {
           setStatusFilter={setStatusFilter}
           assistantId={currentAssistantId}
           updateThreadStatus={updateThreadStatus}
+          sendMessage={sendMessage}
         />
       </Card>
     </motion.div>

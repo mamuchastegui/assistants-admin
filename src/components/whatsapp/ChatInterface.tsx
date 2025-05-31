@@ -1,4 +1,3 @@
-
 import React from "react";
 import ChatThreadList from "./ChatThreadList";
 import ConversationView from "./ConversationView";
@@ -18,6 +17,7 @@ interface ChatInterfaceProps {
   setStatusFilter: (status: string | null) => void;
   assistantId: string | null;
   updateThreadStatus?: (threadId: string, status: string) => Promise<boolean>;
+  sendMessage: (content: string) => Promise<boolean>;
 }
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({
@@ -33,7 +33,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   statusFilter,
   setStatusFilter,
   assistantId,
-  updateThreadStatus
+  updateThreadStatus,
+  sendMessage
 }) => {
   // Find the current thread to get its status
   const currentThread = threads.find(thread => thread.thread_id === selectedThread);
@@ -66,6 +67,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           assistantId={assistantId}
           currentThreadStatus={currentThreadStatus}
           onStatusChange={updateThreadStatus}
+          sendMessage={sendMessage}
         />
       </div>
     </div>

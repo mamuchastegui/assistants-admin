@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { Conversation } from "@/hooks/useChatThreads";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
@@ -16,6 +15,7 @@ interface ConversationViewProps {
   assistantId: string | null;
   currentThreadStatus?: string;
   onStatusChange?: (threadId: string, status: string) => Promise<boolean>;
+  sendMessage: (content: string) => Promise<boolean>;
 }
 
 const ConversationView: React.FC<ConversationViewProps> = ({ 
@@ -24,7 +24,8 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   selectedThread,
   assistantId,
   currentThreadStatus = "new",
-  onStatusChange
+  onStatusChange,
+  sendMessage
 }) => {
   const authContext = useAuth();
   
@@ -63,7 +64,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({
       if (onStatusChange) {
         await onStatusChange(selectedThread!, "human_answering");
       }
-      return conversation?.conversation ? true : false;
+      return await sendMessage(messageContent);
     }
   });
 

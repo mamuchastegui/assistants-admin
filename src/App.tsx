@@ -18,6 +18,7 @@ import Menu from "./pages/Menu";
 import RestaurantMenu from "./pages/RestaurantMenu";
 import Notifications from "./pages/Notifications";
 import Products from "./pages/Products"; // Importar la página de Products
+import TiendaNubeProducts from "./pages/TiendaNubeProducts";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Callback from "./pages/Callback";
@@ -106,6 +107,11 @@ function App() {
                       <Route path="/products" element={
                         <PrivateRoute>
                           <Products />
+                        </PrivateRoute>
+                      } />
+                      <Route path="/tiendanube-products" element={
+                        <PrivateRoute>
+                          <TiendaNubeProducts />
                         </PrivateRoute>
                       } />
                       

@@ -1,5 +1,6 @@
 import assert from 'assert';
-import { subscribeToHumanNeeded } from '../src/hooks/notifications/eventSourceSubscriber.js';
+
+let subscribeToHumanNeeded;
 
 let closed = false;
 let listeners = {};
@@ -17,8 +18,13 @@ class MockEventSource {
 }
 
 global.EventSource = MockEventSource;
+global.EventSourcePolyfill = MockEventSource;
 
 let received = [];
+
+const { subscribeToHumanNeeded: imported } = await import('../src/hooks/notifications/eventSourceSubscriber.js');
+subscribeToHumanNeeded = imported;
+
 const sub = subscribeToHumanNeeded({
   token: 't',
   assistantId: '1',

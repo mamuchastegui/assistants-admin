@@ -26,6 +26,7 @@ import AuthError from "./pages/AuthError";
 import Login from "./pages/Login";
 import { ThemeProvider } from "./hooks/use-theme";
 import React from "react";
+import VersionIndicator from "./components/ui/version-indicator";
 import Success from "./pages/payments/mercadopago/Success";
 import Failure from "./pages/payments/mercadopago/Failure";
 import Pending from "./pages/payments/mercadopago/Pending";
@@ -123,6 +124,7 @@ function App() {
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>
+                    <VersionIndicator />
                   </div>
                 </NotificationsProvider>
               </TooltipProvider>

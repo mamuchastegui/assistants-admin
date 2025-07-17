@@ -62,7 +62,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
   };
 
   return (
-    <div className="border-t flex-shrink-0 min-h-[60px] bg-[#1F2C34]">
+    <div className="border-t flex-shrink-0 min-h-[60px] bg-[#1F2C34] w-full">
       <div className="flex items-center w-full px-3 py-2 gap-2">
         <div className="flex items-center gap-2 text-gray-400 flex-shrink-0">
           <Smile 

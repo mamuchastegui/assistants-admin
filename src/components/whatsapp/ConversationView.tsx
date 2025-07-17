@@ -135,8 +135,8 @@ const ConversationView: React.FC<ConversationViewProps> = ({
         />
       </CardContent>
       
-      <CardFooter className="p-0">
-        <MessageInput 
+      <CardFooter className="p-0 w-full">
+        <MessageInput
           message={message}
           setMessage={setMessage}
           onSendMessage={handleSendMessage}

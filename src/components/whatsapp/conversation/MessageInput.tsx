@@ -62,9 +62,9 @@ const MessageInput: React.FC<MessageInputProps> = ({
   };
 
   return (
-    <div className="border-t p-0 flex-shrink-0 min-h-[60px] bg-[#1F2C34]">
-      <div className="flex items-center w-full px-2 py-1">
-        <div className="flex items-center space-x-3 text-gray-400 px-2">
+    <div className="border-t flex-shrink-0 min-h-[60px] bg-[#1F2C34]">
+      <div className="flex items-center w-full px-3 py-2 gap-2">
+        <div className="flex items-center gap-2 text-gray-400 flex-shrink-0">
           <Smile 
             className="h-6 w-6 cursor-pointer hover:text-gray-200 transition-colors" 
             onClick={() => toast.info("Emoji selector")}
@@ -96,18 +96,18 @@ const MessageInput: React.FC<MessageInputProps> = ({
           />
         </div>
 
-        <div className="flex-grow mx-2">
+        <div className="flex-1 min-w-0">
           <Input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Escribe un mensaje"
-            className="bg-[#2A3942] border-0 text-gray-100 placeholder-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="bg-[#2A3942] border-0 text-gray-100 placeholder-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0 w-full"
             disabled={isSending || isUploading || isWaitingForResponse}
           />
         </div>
 
-        <div className="text-gray-400 pl-2">
+        <div className="text-gray-400 flex-shrink-0">
           {isSending || isWaitingForResponse ? (
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
           ) : message.trim() ? (

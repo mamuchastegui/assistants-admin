@@ -1,3 +1,4 @@
+
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -6,15 +7,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Home,
   Calendar, 
-  Utensils,
-  ClipboardEdit,
   Package2,
   ShoppingCart,
   MessageSquare,
   X,
   ChevronRight,
-  Bell,
-  BoxIcon
+  Bell
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -206,18 +204,6 @@ export default function Sidebar({ className }: SidebarProps) {
                 icon={<Calendar />}
                 collapsed={isCollapsed}
                 label="Calendario"
-              />
-              <NavButton
-                to="/restaurant-menu"
-                icon={<Utensils />}
-                collapsed={isCollapsed}
-                label="Menú Restaurante"
-              />
-              <NavButton
-                to="/menu"
-                icon={<ClipboardEdit />}
-                collapsed={isCollapsed}
-                label="Gestión Menú"
               />
               <NavButton
                 to="/products"

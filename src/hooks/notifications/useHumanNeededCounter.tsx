@@ -34,6 +34,9 @@ export const useHumanNeededCounter = ({
   // EventSource instance reference
   const eventSourceRef = useRef<EventSource | null>(null);
 
+  // Referencia a la suscripción para poder cerrarla
+  const subscriptionRef = useRef<{ close: () => void } | null>(null);
+
   // Establish EventSource connection
   useEffect(() => {
     if (!isAuthenticated) {
@@ -56,9 +59,14 @@ export const useHumanNeededCounter = ({
             setError(error as Error);
             setLoading(false);
             onError?.((error as Error).message);
+          },
+          // Función para renovar el token cuando expire
+          refreshToken: async () => {
+            return await getAccessTokenSilently({ cacheMode: 'off' });
           }
         });
 
+        subscriptionRef.current = subscription;
         eventSourceRef.current = subscription.source;
         setLoading(false);
       } catch (err: any) {
@@ -73,7 +81,9 @@ export const useHumanNeededCounter = ({
 
     return () => {
       isMounted = false;
-      eventSourceRef.current?.close();
+      // Usar la referencia de suscripción para cerrar correctamente
+      subscriptionRef.current?.close();
+      subscriptionRef.current = null;
       eventSourceRef.current = null;
     };
   }, [assistantId, isAuthenticated, getAccessTokenSilently, processMessage, onError]);

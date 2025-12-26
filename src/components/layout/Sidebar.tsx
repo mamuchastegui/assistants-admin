@@ -3,24 +3,14 @@ import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  Home,
-  Calendar, 
-  Utensils,
-  ClipboardEdit,
-  Package2,
-  ShoppingCart,
-  MessageSquare,
-  X,
-  ChevronRight,
-  Bell,
-  BoxIcon
-} from "lucide-react";
+import { X, ChevronRight } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { motion } from "framer-motion";
 import { useNotifications } from "@/providers/NotificationsProvider";
+import { useBusinessType } from "@/context/BusinessTypeContext";
+import { getMenuItems, MenuItem } from "@/config/businessMenus";
 
 interface SidebarProps {
   className?: string;
@@ -36,41 +26,41 @@ interface NavButtonProps {
   badge?: React.ReactNode;
 }
 
-const NavButton = ({ 
-  to, 
-  icon, 
-  label, 
+const NavButton = ({
+  to,
+  icon,
+  label,
   collapsed = false,
   isChildItem = false,
   badge
 }: NavButtonProps) => {
   const { setOpenMobile } = useSidebar();
   const isMobile = useIsMobile();
-  
+
   const handleClick = () => {
     if (isMobile) {
       setOpenMobile(false);
     }
   };
-  
+
   if (collapsed) {
     return (
       <TooltipProvider delayDuration={200}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <NavLink 
-              to={to} 
+            <NavLink
+              to={to}
               onClick={handleClick}
               className={({isActive}) => cn(
                 "flex items-center justify-center rounded-md h-9 w-9 mx-auto my-2.5 transition-all duration-200",
-                isActive 
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md" 
+                isActive
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
                   : "hover:bg-sidebar-accent text-sidebar-foreground/60 hover:text-sidebar-foreground",
                 "hover:scale-110 transition-transform relative"
               )}
             >
               <div className="flex items-center justify-center">
-                {React.cloneElement(icon as React.ReactElement, { 
+                {React.cloneElement(icon as React.ReactElement, {
                   size: 18,
                   strokeWidth: 1.5,
                   className: cn(
@@ -79,7 +69,7 @@ const NavButton = ({
                   )
                 })}
               </div>
-              
+
               {badge && (
                 <div className="absolute -top-1 -right-1">
                   {badge}
@@ -94,41 +84,41 @@ const NavButton = ({
       </TooltipProvider>
     );
   }
-  
+
   return (
     <motion.div
       whileHover={{ x: 2 }}
       transition={{ type: "spring", stiffness: 500 }}
     >
-      <NavLink 
-        to={to} 
+      <NavLink
+        to={to}
         onClick={handleClick}
         className={({isActive}) => cn(
           "flex items-center rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 relative",
           isChildItem && "pl-6",
-          isActive ? 
-            "bg-primary text-primary-foreground shadow-sm" : 
+          isActive ?
+            "bg-primary text-primary-foreground shadow-sm" :
             "hover:bg-accent text-foreground/80 hover:text-foreground"
         )}
       >
         {({isActive}) => (
           <>
             <div className="mr-2 flex items-center justify-center">
-              {React.cloneElement(icon as React.ReactElement, { 
+              {React.cloneElement(icon as React.ReactElement, {
                 size: 18,
                 strokeWidth: 1.5
               })}
             </div>
             <span>{label}</span>
-            
+
             {badge && (
               <div className="ml-auto mr-2">
                 {badge}
               </div>
             )}
-            
+
             {isActive && (
-              <motion.div 
+              <motion.div
                 layoutId="active-indicator"
                 className="ml-auto"
                 initial={{ opacity: 0 }}
@@ -148,9 +138,9 @@ const NavButton = ({
 // Badge component for notifications count
 const NotificationBadge = () => {
   const { count, loading, error } = useNotifications();
-  
+
   if (loading || error || count === 0) return null;
-  
+
   return (
     <motion.div
       initial={{ scale: 0 }}
@@ -166,15 +156,18 @@ export default function Sidebar({ className }: SidebarProps) {
   const isMobile = useIsMobile();
   const { state, setOpenMobile } = useSidebar();
   const isCollapsed = state === "collapsed";
-  
+  const { businessType } = useBusinessType();
+
+  const menuItems = getMenuItems(businessType);
+
   return (
     <div className={cn("pb-3 w-full h-full flex flex-col bg-card", className)}>
       {isMobile && (
         <div className="flex items-center justify-between p-3 border-b border-border">
           <h2 className="text-lg font-semibold tracking-tight">Menu</h2>
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setOpenMobile(false)}
             className="h-8 w-8"
           >
@@ -182,11 +175,11 @@ export default function Sidebar({ className }: SidebarProps) {
           </Button>
         </div>
       )}
-      
+
       <div className="py-2 h-full flex flex-col">
         <ScrollArea className="flex-1 px-3">
           <div className="space-y-1">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}
@@ -195,62 +188,16 @@ export default function Sidebar({ className }: SidebarProps) {
                 isCollapsed && "space-y-4 pt-4"
               )}
             >
-              <NavButton
-                to="/"
-                icon={<Home />}
-                collapsed={isCollapsed}
-                label="Inicio"
-              />
-              <NavButton
-                to="/calendar"
-                icon={<Calendar />}
-                collapsed={isCollapsed}
-                label="Calendario"
-              />
-              <NavButton
-                to="/restaurant-menu"
-                icon={<Utensils />}
-                collapsed={isCollapsed}
-                label="Menú Restaurante"
-              />
-              <NavButton
-                to="/menu"
-                icon={<ClipboardEdit />}
-                collapsed={isCollapsed}
-                label="Gestión Menú"
-              />
-              <NavButton
-                to="/products"
-                icon={<Package2 />}
-                collapsed={isCollapsed}
-                label="Productos"
-              />
-              <NavButton
-                to="/tiendanube-products"
-                icon={<ShoppingCart />}
-                collapsed={isCollapsed}
-                label="Tienda Nube"
-              />
-              <NavButton
-                to="/orders"
-                icon={<Package2 />}
-                collapsed={isCollapsed}
-                label="Pedidos"
-              />
-              <NavButton
-                to="/assistant"
-                icon={<MessageSquare />}
-                collapsed={isCollapsed}
-                label="WhatsApp"
-                badge={<NotificationBadge />}
-              />
-              <NavButton
-                to="/notifications"
-                icon={<Bell />}
-                collapsed={isCollapsed}
-                label="Notificaciones"
-                badge={<NotificationBadge />}
-              />
+              {menuItems.map((item: MenuItem) => (
+                <NavButton
+                  key={item.id}
+                  to={item.path}
+                  icon={<item.icon />}
+                  collapsed={isCollapsed}
+                  label={item.label}
+                  badge={item.showNotificationBadge ? <NotificationBadge /> : undefined}
+                />
+              ))}
             </motion.div>
           </div>
         </ScrollArea>

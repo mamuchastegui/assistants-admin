@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Progress } from '@/components/ui/progress';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useAuth } from '@/hooks/useAuth';
+import { useBusinessType, BusinessType } from '@/context/BusinessTypeContext';
 import {
   Bot,
   Calendar,
@@ -13,7 +14,11 @@ import {
   ArrowRight,
   ArrowLeft,
   Check,
-  Sparkles
+  Sparkles,
+  Dumbbell,
+  Hotel,
+  Target,
+  Building2
 } from 'lucide-react';
 
 interface OnboardingStep {
@@ -24,9 +29,64 @@ interface OnboardingStep {
   content: React.ReactNode;
 }
 
+const BusinessTypeSelector: React.FC<{
+  selected: BusinessType;
+  onSelect: (type: BusinessType) => void;
+}> = ({ selected, onSelect }) => {
+  const options: { type: Exclude<BusinessType, null>; icon: React.ReactNode; label: string; description: string }[] = [
+    {
+      type: 'gym',
+      icon: <Dumbbell className="h-8 w-8" />,
+      label: 'Gimnasio',
+      description: 'Gestiona miembros, clases y pagos'
+    },
+    {
+      type: 'hotel',
+      icon: <Hotel className="h-8 w-8" />,
+      label: 'Hoteleria',
+      description: 'Gestiona reservas y habitaciones'
+    },
+    {
+      type: 'habits',
+      icon: <Target className="h-8 w-8" />,
+      label: 'Habitos',
+      description: 'Ayuda a tus usuarios a crear habitos'
+    }
+  ];
+
+  return (
+    <div className="grid gap-4">
+      {options.map((option) => (
+        <Card
+          key={option.type}
+          className={`p-4 cursor-pointer transition-all hover:border-primary ${
+            selected === option.type ? 'border-primary bg-primary/5 ring-2 ring-primary' : ''
+          }`}
+          onClick={() => onSelect(option.type)}
+        >
+          <div className="flex items-center gap-4">
+            <div className={`${selected === option.type ? 'text-primary' : 'text-muted-foreground'}`}>
+              {option.icon}
+            </div>
+            <div className="flex-1">
+              <div className="font-semibold">{option.label}</div>
+              <div className="text-sm text-muted-foreground">{option.description}</div>
+            </div>
+            {selected === option.type && (
+              <Check className="h-5 w-5 text-primary" />
+            )}
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+};
+
 const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState(0);
+  const [selectedBusinessType, setSelectedBusinessType] = useState<BusinessType>(null);
   const { completeOnboarding } = useOnboarding();
+  const { setBusinessType } = useBusinessType();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -59,6 +119,18 @@ const Onboarding = () => {
             </div>
           </div>
         </div>
+      )
+    },
+    {
+      id: 'business-type',
+      title: 'Que tipo de negocio tienes?',
+      description: 'Selecciona el tipo de negocio para personalizar tu experiencia',
+      icon: <Building2 className="h-12 w-12 text-primary" />,
+      content: (
+        <BusinessTypeSelector
+          selected={selectedBusinessType}
+          onSelect={setSelectedBusinessType}
+        />
       )
     },
     {
@@ -175,6 +247,11 @@ const Onboarding = () => {
   const currentStepData = steps[currentStep];
 
   const handleNext = () => {
+    // Si estamos en el paso de business-type, guardar la seleccion
+    if (currentStepData.id === 'business-type' && selectedBusinessType) {
+      setBusinessType(selectedBusinessType);
+    }
+
     if (isLastStep) {
       completeOnboarding();
       navigate('/');
@@ -182,6 +259,9 @@ const Onboarding = () => {
       setCurrentStep((prev) => prev + 1);
     }
   };
+
+  // Determinar si el boton Siguiente debe estar deshabilitado
+  const isNextDisabled = currentStepData.id === 'business-type' && !selectedBusinessType;
 
   const handlePrev = () => {
     if (!isFirstStep) {
@@ -218,7 +298,7 @@ const Onboarding = () => {
               Saltar
             </Button>
 
-            <Button onClick={handleNext}>
+            <Button onClick={handleNext} disabled={isNextDisabled}>
               {isLastStep ? 'Comenzar' : 'Siguiente'}
               {!isLastStep && <ArrowRight className="ml-2 h-4 w-4" />}
             </Button>

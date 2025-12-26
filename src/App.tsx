@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./providers/AuthProvider";
 import { PrivateRoute } from "./components/PrivateRoute";
 import { TenantProvider } from "./context/TenantContext";
+import { BusinessTypeProvider } from "./context/BusinessTypeContext";
 import { NotificationsProvider } from "./providers/NotificationsProvider";
 import Index from "./pages/Index";
 import Calendar from "./pages/Calendar";
@@ -26,6 +27,9 @@ import AuthError from "./pages/AuthError";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Onboarding from "./pages/Onboarding";
+import GymMembers from "./pages/gym/Members";
+import GymClasses from "./pages/gym/Classes";
+import GymPayments from "./pages/gym/Payments";
 import { ThemeProvider } from "./hooks/use-theme";
 import React from "react";
 import VersionIndicator from "./components/ui/version-indicator";
@@ -55,9 +59,10 @@ function App() {
       <BrowserRouter>
         <TenantProvider>
           <AuthProvider>
-            <ThemeProvider defaultTheme="dark" storageKey="condamind-theme">
-              <TooltipProvider>
-                <NotificationsProvider>
+            <BusinessTypeProvider>
+              <ThemeProvider defaultTheme="dark" storageKey="condamind-theme">
+                <TooltipProvider>
+                  <NotificationsProvider>
                   <div className="min-h-[100dvh] overflow-hidden">
                     <Toaster />
                     <Sonner position="top-center" closeButton />
@@ -123,7 +128,24 @@ function App() {
                           <TiendaNubeProducts />
                         </PrivateRoute>
                       } />
-                      
+
+                      {/* Gym routes */}
+                      <Route path="/gym/members" element={
+                        <PrivateRoute>
+                          <GymMembers />
+                        </PrivateRoute>
+                      } />
+                      <Route path="/gym/classes" element={
+                        <PrivateRoute>
+                          <GymClasses />
+                        </PrivateRoute>
+                      } />
+                      <Route path="/gym/payments" element={
+                        <PrivateRoute>
+                          <GymPayments />
+                        </PrivateRoute>
+                      } />
+
                       {/* MercadoPago payment response routes */}
                       <Route path="/payments/mercadopago/success" element={<Success />} />
                       <Route path="/payments/mercadopago/failure" element={<Failure />} />
@@ -135,8 +157,9 @@ function App() {
                     <VersionIndicator />
                   </div>
                 </NotificationsProvider>
-              </TooltipProvider>
-            </ThemeProvider>
+                </TooltipProvider>
+              </ThemeProvider>
+            </BusinessTypeProvider>
           </AuthProvider>
         </TenantProvider>
       </BrowserRouter>

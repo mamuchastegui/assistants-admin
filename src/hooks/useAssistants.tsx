@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { useAuthApi } from "@/api/client";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface Assistant {
   _id?: string;
@@ -31,6 +32,7 @@ export interface Assistant {
 
 export function useAssistants() {
   const authApiClient = useAuthApi();
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const [assistants, setAssistants] = useState<Assistant[]>([]);
   const [selectedAssistantId, setSelectedAssistantId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -87,13 +89,13 @@ export function useAssistants() {
     localStorage.setItem('selectedAssistantId', assistantId);
   }, []);
 
-  // Fetch assistants on mount only once
+  // Fetch assistants on mount only once, and only if authenticated
   useEffect(() => {
-    // Only fetch if we haven't already loaded assistants and we're not currently loading
-    if (assistants.length === 0 && !loading && fetchAttempts === 0) {
+    // Only fetch if authenticated, not loading auth, haven't already loaded assistants, and not currently loading
+    if (isAuthenticated && !isAuthLoading && assistants.length === 0 && !loading && fetchAttempts === 0) {
       fetchAssistants();
     }
-  }, [fetchAssistants, assistants.length, loading, fetchAttempts]);
+  }, [fetchAssistants, assistants.length, loading, fetchAttempts, isAuthenticated, isAuthLoading]);
 
   return {
     assistants,

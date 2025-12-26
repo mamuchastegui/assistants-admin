@@ -2,7 +2,6 @@
 import React, { ReactNode } from 'react';
 import { Auth0Provider } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router-dom';
-import { useTenant } from '@/context/TenantContext';
 import { DevAuthProvider } from '@/devAuth/DevAuthProvider';
 
 interface AuthProviderProps {
@@ -11,7 +10,6 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const navigate = useNavigate();
-  const { orgId } = useTenant();
 
   const shouldBypass =
     import.meta.env.DEV &&
@@ -46,7 +44,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       authorizationParams={{
         redirect_uri: callbackUrl,
         audience: audience,
-        ...(orgId ? { organization: orgId } : {}),
       }}
       onRedirectCallback={onRedirectCallback}
     >

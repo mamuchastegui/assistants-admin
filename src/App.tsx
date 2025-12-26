@@ -24,6 +24,8 @@ import NotFound from "./pages/NotFound";
 import Callback from "./pages/Callback";
 import AuthError from "./pages/AuthError";
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Onboarding from "./pages/Onboarding";
 import { ThemeProvider } from "./hooks/use-theme";
 import React from "react";
 import VersionIndicator from "./components/ui/version-indicator";
@@ -65,6 +67,12 @@ function App() {
                       <Route path="/callback" element={<Callback />} />
                       <Route path="/auth-error" element={<AuthError />} />
                       <Route path="/login" element={<Login />} />
+                      <Route path="/signup" element={<Signup />} />
+                      <Route path="/onboarding" element={
+                        <PrivateRoute>
+                          <Onboarding />
+                        </PrivateRoute>
+                      } />
                       <Route path="/calendar" element={
                         <PrivateRoute>
                           <Calendar />

@@ -1,10 +1,18 @@
 
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonProps } from '@/components/ui/button';
 import { useTenant } from '@/context/TenantContext';
 
-export const LoginButton: React.FC = () => {
+interface LoginButtonProps extends Omit<ButtonProps, 'onClick'> {
+  children?: React.ReactNode;
+}
+
+export const LoginButton: React.FC<LoginButtonProps> = ({
+  children = 'Iniciar Sesion',
+  variant = 'default',
+  ...props
+}) => {
   const { loginWithRedirect } = useAuth();
   const { orgId } = useTenant();
 
@@ -15,12 +23,12 @@ export const LoginButton: React.FC = () => {
   };
 
   return (
-    <Button 
-      onClick={handleLogin} 
-      variant="default"
-      className="flex items-center gap-2"
+    <Button
+      onClick={handleLogin}
+      variant={variant}
+      {...props}
     >
-      Login
+      {children}
     </Button>
   );
 };

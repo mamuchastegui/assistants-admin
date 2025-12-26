@@ -1,8 +1,9 @@
 
 import React from "react";
-import { Bell, LogOut, Search } from "lucide-react";
+import { Bell, LogOut, Search, Dumbbell, Hotel, Target, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSidebar } from "@/components/ui/sidebar";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,6 +11,7 @@ import { DarkModeToggle } from "@/components/ui/dark-mode-toggle";
 import { useAuth } from "@/hooks/useAuth";
 import { LogoutButton } from "@/components/LogoutButton";
 import NotificationCounter from "@/components/notifications/NotificationCounter";
+import { useBusinessType, BusinessType } from "@/context/BusinessTypeContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,18 +19,30 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 
 interface HeaderProps {
   children?: React.ReactNode;
 }
 
+const businessTypeConfig: Record<Exclude<BusinessType, null>, { label: string; icon: React.ReactNode }> = {
+  gym: { label: 'Gimnasio', icon: <Dumbbell className="h-3 w-3" /> },
+  hotel: { label: 'Hoteleria', icon: <Hotel className="h-3 w-3" /> },
+  habits: { label: 'Habitos', icon: <Target className="h-3 w-3" /> },
+};
+
 const Header: React.FC<HeaderProps> = ({ children }) => {
   const isMobile = useIsMobile();
   const { openMobile } = useSidebar();
   const [showSearch, setShowSearch] = React.useState(false);
   const authContext = useAuth();
-  
+  const { businessType, setBusinessType } = useBusinessType();
+
   // Type guard to check if we have Auth0 context with user
   const isAuth0Context = (ctx: any): ctx is { user: any; isAuthenticated: boolean } => {
     return ctx && 'user' in ctx;
@@ -126,9 +140,38 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">{getUserData().name}</p>
                     <p className="text-xs leading-none text-muted-foreground">{getUserData().email}</p>
+                    {businessType && (
+                      <div className="flex items-center gap-1 mt-1">
+                        {businessTypeConfig[businessType].icon}
+                        <span className="text-xs text-primary">{businessTypeConfig[businessType].label}</span>
+                      </div>
+                    )}
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Building2 className="mr-2 h-4 w-4" />
+                    <span>Tipo de Negocio</span>
+                    {!businessType && <Badge variant="secondary" className="ml-2 text-[10px]">Sin configurar</Badge>}
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuRadioGroup value={businessType || ''} onValueChange={(v) => setBusinessType(v as BusinessType)}>
+                      <DropdownMenuRadioItem value="gym">
+                        <Dumbbell className="mr-2 h-4 w-4" />
+                        Gimnasio
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="hotel">
+                        <Hotel className="mr-2 h-4 w-4" />
+                        Hoteleria
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="habits">
+                        <Target className="mr-2 h-4 w-4" />
+                        Habitos
+                      </DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
                 <DropdownMenuItem asChild>
                   <a href="/auth">
                     Mi Perfil

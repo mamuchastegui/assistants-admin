@@ -8,21 +8,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAssistants } from "@/hooks/useAssistants";
-import { Loader2 } from "lucide-react";
+import { Loader2, Bot, AlertCircle } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 interface AssistantSelectorProps {
   onAssistantChange?: (assistantId: string) => void;
 }
 
-const AssistantSelector: React.FC<AssistantSelectorProps> = ({ 
-  onAssistantChange 
+const AssistantSelector: React.FC<AssistantSelectorProps> = ({
+  onAssistantChange
 }) => {
-  const { 
-    assistants, 
-    selectedAssistantId, 
-    selectAssistant, 
-    loading, 
-    error 
+  const {
+    assistants,
+    selectedAssistantId,
+    selectAssistant,
+    loading,
+    error,
+    isEmpty
   } = useAssistants();
 
   useEffect(() => {
@@ -42,9 +44,26 @@ const AssistantSelector: React.FC<AssistantSelectorProps> = ({
 
   if (error) {
     return (
-      <div className="text-sm text-red-500">
+      <div className="flex items-center gap-2 text-sm text-destructive">
+        <AlertCircle className="h-4 w-4" />
         Error al cargar asistentes
       </div>
+    );
+  }
+
+  if (isEmpty) {
+    return (
+      <Card className="p-4 border-dashed">
+        <div className="flex items-start gap-3">
+          <Bot className="h-5 w-5 text-muted-foreground mt-0.5" />
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Sin asistentes configurados</p>
+            <p className="text-xs text-muted-foreground">
+              Contacta al administrador para configurar un asistente de IA para tu cuenta.
+            </p>
+          </div>
+        </div>
+      </Card>
     );
   }
 
@@ -72,8 +91,8 @@ const AssistantSelector: React.FC<AssistantSelectorProps> = ({
         </SelectTrigger>
         <SelectContent>
           {assistants.map((assistant) => (
-            <SelectItem 
-              key={assistant.assistant_id} 
+            <SelectItem
+              key={assistant.assistant_id}
               value={assistant.assistant_id}
             >
               {assistant.name}

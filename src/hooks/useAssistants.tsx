@@ -37,26 +37,25 @@ export function useAssistants() {
   const [selectedAssistantId, setSelectedAssistantId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fetchAttempts, setFetchAttempts] = useState(0);
+  const [hasFetched, setHasFetched] = useState(false);
 
   const fetchAssistants = useCallback(async () => {
-    // Prevent duplicate fetches or retries after too many attempts
-    if (loading || fetchAttempts > 3) return;
-    
+    // Prevent duplicate fetches
+    if (loading || hasFetched) return;
+
     try {
       setLoading(true);
       setError(null);
-      setFetchAttempts(prev => prev + 1);
 
       console.log("Fetching assistants...");
-      // Use absolute URL to prevent redirect issues
       const { data } = await authApiClient.get("/v1/assistants", {
         baseURL: import.meta.env.VITE_API_URL
       });
-      
+
       console.log("Assistants fetched:", data);
       setAssistants(data || []);
-      
+      setHasFetched(true);
+
       // If there's only one assistant, select it automatically
       if (data && data.length === 1) {
         setSelectedAssistantId(data[0].assistant_id);
@@ -65,7 +64,7 @@ export function useAssistants() {
         // If there are multiple assistants, try to restore from localStorage or use the first one
         const savedAssistantId = localStorage.getItem('selectedAssistantId');
         const assistantExists = data.some(assistant => assistant.assistant_id === savedAssistantId);
-        
+
         if (savedAssistantId && assistantExists) {
           setSelectedAssistantId(savedAssistantId);
         } else {
@@ -75,14 +74,14 @@ export function useAssistants() {
       }
 
       setLoading(false);
-      setFetchAttempts(0); // Reset attempts after successful fetch
     } catch (err) {
       console.error("Error fetching assistants:", err);
       setError("Error fetching assistants");
       setLoading(false);
+      setHasFetched(true); // Mark as fetched even on error to prevent infinite retries
       toast.error("No se pudieron cargar los asistentes");
     }
-  }, [authApiClient, fetchAttempts]);
+  }, [authApiClient, loading, hasFetched]);
 
   const selectAssistant = useCallback((assistantId: string) => {
     setSelectedAssistantId(assistantId);
@@ -91,11 +90,13 @@ export function useAssistants() {
 
   // Fetch assistants on mount only once, and only if authenticated
   useEffect(() => {
-    // Only fetch if authenticated, not loading auth, haven't already loaded assistants, and not currently loading
-    if (isAuthenticated && !isAuthLoading && assistants.length === 0 && !loading && fetchAttempts === 0) {
+    if (isAuthenticated && !isAuthLoading && !hasFetched && !loading) {
       fetchAssistants();
     }
-  }, [fetchAssistants, assistants.length, loading, fetchAttempts, isAuthenticated, isAuthLoading]);
+  }, [fetchAssistants, hasFetched, loading, isAuthenticated, isAuthLoading]);
+
+  // Computed state: no assistants configured
+  const isEmpty = hasFetched && !loading && assistants.length === 0;
 
   return {
     assistants,
@@ -103,6 +104,8 @@ export function useAssistants() {
     selectAssistant,
     loading,
     error,
+    isEmpty,
+    hasFetched,
     fetchAssistants
   };
 }

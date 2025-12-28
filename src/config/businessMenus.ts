@@ -11,6 +11,7 @@ import {
   BedDouble,
   Target,
   TrendingUp,
+  Package,
   LucideIcon
 } from 'lucide-react';
 
@@ -37,6 +38,7 @@ const commonEndItems: MenuItem[] = [
 // Items especificos por tipo de negocio
 const gymItems: MenuItem[] = [
   { id: 'miembros', label: 'Miembros', path: '/gym/members', icon: Users },
+  { id: 'planes', label: 'Planes', path: '/gym/plans', icon: Package },
   { id: 'clases', label: 'Clases', path: '/gym/classes', icon: Dumbbell },
   { id: 'pagos', label: 'Pagos', path: '/gym/payments', icon: CreditCard },
 ];

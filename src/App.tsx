@@ -30,6 +30,7 @@ import Onboarding from "./pages/Onboarding";
 import GymMembers from "./pages/gym/Members";
 import GymClasses from "./pages/gym/Classes";
 import GymPayments from "./pages/gym/Payments";
+import GymPlans from "./pages/gym/Plans";
 import Admin from "./pages/Admin";
 import { ThemeProvider } from "./hooks/use-theme";
 import React from "react";
@@ -144,6 +145,11 @@ function App() {
                       <Route path="/gym/payments" element={
                         <PrivateRoute>
                           <GymPayments />
+                        </PrivateRoute>
+                      } />
+                      <Route path="/gym/plans" element={
+                        <PrivateRoute>
+                          <GymPlans />
                         </PrivateRoute>
                       } />
 

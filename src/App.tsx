@@ -30,6 +30,7 @@ import Onboarding from "./pages/Onboarding";
 import GymMembers from "./pages/gym/Members";
 import GymClasses from "./pages/gym/Classes";
 import GymPayments from "./pages/gym/Payments";
+import Admin from "./pages/Admin";
 import { ThemeProvider } from "./hooks/use-theme";
 import React from "react";
 import VersionIndicator from "./components/ui/version-indicator";
@@ -150,7 +151,14 @@ function App() {
                       <Route path="/payments/mercadopago/success" element={<Success />} />
                       <Route path="/payments/mercadopago/failure" element={<Failure />} />
                       <Route path="/payments/mercadopago/pending" element={<Pending />} />
-                      
+
+                      {/* Admin route (access controlled in component) */}
+                      <Route path="/admin" element={
+                        <PrivateRoute>
+                          <Admin />
+                        </PrivateRoute>
+                      } />
+
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>

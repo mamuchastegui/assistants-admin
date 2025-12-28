@@ -11,6 +11,11 @@ import { motion } from "framer-motion";
 import { useNotifications } from "@/providers/NotificationsProvider";
 import { useBusinessType } from "@/context/BusinessTypeContext";
 import { getMenuItems, MenuItem } from "@/config/businessMenus";
+import { useAuth } from "@/hooks/useAuth";
+import { Shield } from "lucide-react";
+
+// Admin email whitelist
+const ADMIN_EMAILS = ["matias@condamind.com"];
 
 interface SidebarProps {
   className?: string;
@@ -157,8 +162,10 @@ export default function Sidebar({ className }: SidebarProps) {
   const { state, setOpenMobile } = useSidebar();
   const isCollapsed = state === "collapsed";
   const { businessType } = useBusinessType();
+  const { user } = useAuth();
 
   const menuItems = getMenuItems(businessType);
+  const isAdmin = user?.email && ADMIN_EMAILS.includes(user.email);
 
   return (
     <div className={cn("pb-3 w-full h-full flex flex-col bg-card", className)}>
@@ -198,6 +205,18 @@ export default function Sidebar({ className }: SidebarProps) {
                   badge={item.showNotificationBadge ? <NotificationBadge /> : undefined}
                 />
               ))}
+
+              {/* Admin link - only visible to admins */}
+              {isAdmin && (
+                <div className={cn("pt-4 mt-4 border-t border-border", isCollapsed && "pt-2 mt-2")}>
+                  <NavButton
+                    to="/admin"
+                    icon={<Shield />}
+                    collapsed={isCollapsed}
+                    label="Admin"
+                  />
+                </div>
+              )}
             </motion.div>
           </div>
         </ScrollArea>

@@ -27,10 +27,12 @@ import AuthError from "./pages/AuthError";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Onboarding from "./pages/Onboarding";
+import GymDashboard from "./pages/gym/Dashboard";
 import GymMembers from "./pages/gym/Members";
 import GymClasses from "./pages/gym/Classes";
 import GymPayments from "./pages/gym/Payments";
 import GymPlans from "./pages/gym/Plans";
+import GymCheckIns from "./pages/gym/CheckIns";
 import Admin from "./pages/Admin";
 import { ThemeProvider } from "./hooks/use-theme";
 import React from "react";
@@ -132,6 +134,11 @@ function App() {
                       } />
 
                       {/* Gym routes */}
+                      <Route path="/gym/dashboard" element={
+                        <PrivateRoute>
+                          <GymDashboard />
+                        </PrivateRoute>
+                      } />
                       <Route path="/gym/members" element={
                         <PrivateRoute>
                           <GymMembers />
@@ -150,6 +157,11 @@ function App() {
                       <Route path="/gym/plans" element={
                         <PrivateRoute>
                           <GymPlans />
+                        </PrivateRoute>
+                      } />
+                      <Route path="/gym/checkins" element={
+                        <PrivateRoute>
+                          <GymCheckIns />
                         </PrivateRoute>
                       } />
 

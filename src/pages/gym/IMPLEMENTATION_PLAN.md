@@ -25,6 +25,7 @@ Transformar el módulo gym de un prototipo hardcodeado a un sistema completo de 
 #### 1.3 Repositorios y Ports ✅
 - [x] **MemberRepository**: CRUD completo de miembros
 - [x] **PaymentRepository**: gestión de pagos y suscripciones
+- [x] **MembershipPlanRepository**: gestión de planes de membresía
 - [ ] **CheckInRepository**: registro de asistencias
 - [ ] **WorkoutRepository**: planes y rutinas
 
@@ -46,9 +47,9 @@ Transformar el módulo gym de un prototipo hardcodeado a un sistema completo de 
 - [ ] Alertas de cupos disponibles
 
 #### 2.3 Endpoints REST para admin ✅
-- [x] **/api/gym/members**: gestión completa de miembros
-- [x] **/api/gym/payments**: gestión de pagos
-- [ ] **/api/gym/plans**: gestión de planes de membresía
+- [x] **/api/gym/members**: gestión completa de miembros (10 endpoints)
+- [x] **/api/gym/payments**: gestión de pagos (8 endpoints)
+- [x] **/api/gym/plans**: gestión de planes de membresía (10 endpoints)
 - [ ] **/api/gym/checkins**: registro de asistencias
 - [ ] **/api/gym/reports**: reportes y estadísticas
 
@@ -56,18 +57,21 @@ Transformar el módulo gym de un prototipo hardcodeado a un sistema completo de 
 ### Semana 2
 
 #### 3.1 Hooks y servicios ✅
-- [x] **useGymMembers**: hook para gestión de miembros
-- [x] **useGymPayments**: hook para pagos
+- [x] **useGymMembers**: hook para gestión de miembros (10 operaciones)
+- [x] **useGymPayments**: hook para pagos (8 operaciones)
+- [x] **useGymPlans**: hook para planes de membresía (9 operaciones)
 - [ ] **useGymClasses**: hook mejorado con capacidad real
 - [ ] **GymApiService**: cliente API centralizado
 
-#### 3.2 Páginas mejoradas 🔄
-- [ ] **Members**: formularios de alta/edición, historial completo
-- [ ] **Payments**: integración real con MercadoPago, estados detallados
+#### 3.2 Páginas mejoradas ✅
+- [x] **Members**: página con tabla, búsqueda, filtros y acciones
+- [x] **Payments**: página con historial y procesamiento de pagos
+- [x] **Plans**: página completa para gestión de planes de membresía
 - [ ] **Classes**: gestión de capacidad real, lista de espera
 - [ ] **Dashboard**: métricas reales, gráficos de tendencias
 
-#### 3.3 Componentes reutilizables 🔄
+#### 3.3 Componentes reutilizables ⚠️
+- [x] **PlanForm**: formulario completo para crear/editar planes
 - [ ] **MemberForm**: formulario completo con validación
 - [ ] **PaymentHistory**: tabla con filtros avanzados
 - [ ] **ClassBookingCalendar**: calendario interactivo
@@ -164,20 +168,22 @@ Transformar el módulo gym de un prototipo hardcodeado a un sistema completo de 
 
 ## 📊 Estado Actual del Proyecto
 
-### ✅ Completado (40%)
-- Modelos de dominio principales
-- Migración de base de datos
-- Repositorios de Members y Payments
-- Function calling básico para WhatsApp
-- APIs REST para members y payments
-- Hooks de React para admin
+### ✅ Completado (55%)
+- Modelos de dominio principales (Member, Payment, MembershipPlan)
+- Migración completa de base de datos con 6 tablas
+- Repositorios de Members, Payments y MembershipPlans
+- Function calling expandido para WhatsApp (6 funciones)
+- APIs REST completas (28 endpoints totales)
+- Hooks de React para admin (3 hooks, 27 operaciones)
+- Páginas del admin (Members, Payments, Plans)
+- Formulario PlanForm para crear/editar planes
 
-### 🔄 En Progreso (20%)
-- Integración con páginas del admin
+### 🔄 En Progreso (10%)
+- MemberForm component
 - Testing de endpoints
 - Documentación de APIs
 
-### 📅 Pendiente (40%)
+### 📅 Pendiente (35%)
 - Módulo personal-os-console
 - Sistema de check-in con QR
 - Webhooks de MercadoPago
@@ -230,6 +236,6 @@ Transformar el módulo gym de un prototipo hardcodeado a un sistema completo de 
 
 ---
 
-**Última actualización**: 2025-12-28
-**Estado general**: 40% completado
+**Última actualización**: 2025-12-28 23:00
+**Estado general**: 55% completado
 **Próxima revisión**: Después de completar Fase 3

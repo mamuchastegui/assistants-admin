@@ -12,6 +12,8 @@ import {
   Target,
   TrendingUp,
   Package,
+  LayoutDashboard,
+  LogIn,
   LucideIcon
 } from 'lucide-react';
 
@@ -37,6 +39,8 @@ const commonEndItems: MenuItem[] = [
 
 // Items especificos por tipo de negocio
 const gymItems: MenuItem[] = [
+  { id: 'gym-dashboard', label: 'Dashboard Gym', path: '/gym/dashboard', icon: LayoutDashboard },
+  { id: 'checkins', label: 'Check-ins', path: '/gym/checkins', icon: LogIn },
   { id: 'miembros', label: 'Miembros', path: '/gym/members', icon: Users },
   { id: 'planes', label: 'Planes', path: '/gym/plans', icon: Package },
   { id: 'clases', label: 'Clases', path: '/gym/classes', icon: Dumbbell },

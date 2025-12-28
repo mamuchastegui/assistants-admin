@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,6 +39,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { MemberForm } from '@/components/gym/MemberForm';
 import { useToast } from '@/components/ui/use-toast';
 import { useGymMembers } from '@/hooks/gym/useGymMembers';
 import { format } from 'date-fns';
@@ -50,11 +58,15 @@ const Members = () => {
   const [selectedMember, setSelectedMember] = useState<any>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isSuspendDialogOpen, setIsSuspendDialogOpen] = useState(false);
+  const [showMemberForm, setShowMemberForm] = useState(false);
+  const [editingMember, setEditingMember] = useState<any>(null);
   const { toast } = useToast();
 
   const {
     useListMembers,
     useExpiringMemberships,
+    useCreateMember,
+    useUpdateMember,
     useDeleteMember,
     useSuspendMembership,
     useReactivateMembership,
@@ -73,6 +85,8 @@ const Members = () => {
   const { data: expiringMembers } = useExpiringMemberships(7);
 
   // Mutations
+  const createMember = useCreateMember();
+  const updateMember = useUpdateMember();
   const deleteMember = useDeleteMember();
   const suspendMembership = useSuspendMembership();
   const reactivateMembership = useReactivateMembership();
@@ -162,6 +176,50 @@ const Members = () => {
     }
   };
 
+  const handleCreateMember = useCallback(async (data: any) => {
+    try {
+      await createMember.mutateAsync(data);
+      toast({
+        title: 'Miembro creado',
+        description: 'El nuevo miembro ha sido registrado exitosamente.',
+      });
+      setShowMemberForm(false);
+      refetch();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'No se pudo crear el miembro.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  }, [createMember, toast, refetch]);
+
+  const handleUpdateMember = useCallback(async (data: any) => {
+    if (!editingMember) return;
+
+    try {
+      await updateMember.mutateAsync({
+        memberId: editingMember.member_id,
+        data
+      });
+      toast({
+        title: 'Miembro actualizado',
+        description: 'Los datos del miembro han sido actualizados exitosamente.',
+      });
+      setShowMemberForm(false);
+      setEditingMember(null);
+      refetch();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'No se pudo actualizar el miembro.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  }, [editingMember, updateMember, toast, refetch]);
+
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       active: { variant: 'default' as const, label: 'Activo', icon: CheckCircle },
@@ -209,7 +267,12 @@ const Members = () => {
             <h1 className="text-3xl font-bold tracking-tight">Miembros</h1>
             <p className="text-muted-foreground">Gestiona los miembros de tu gimnasio</p>
           </div>
-          <Button>
+          <Button
+            onClick={() => {
+              setEditingMember(null);
+              setShowMemberForm(true);
+            }}
+          >
             <Plus className="mr-2 h-4 w-4" />
             Nuevo Miembro
           </Button>
@@ -463,6 +526,33 @@ const Members = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Member Form Sheet */}
+        <Sheet open={showMemberForm} onOpenChange={setShowMemberForm}>
+          <SheetContent className="sm:max-w-2xl overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle>
+                {editingMember ? 'Editar Miembro' : 'Nuevo Miembro'}
+              </SheetTitle>
+              <SheetDescription>
+                {editingMember
+                  ? 'Actualiza la información del miembro'
+                  : 'Completa el formulario para registrar un nuevo miembro'}
+              </SheetDescription>
+            </SheetHeader>
+            <div className="mt-6">
+              <MemberForm
+                member={editingMember}
+                onSubmit={editingMember ? handleUpdateMember : handleCreateMember}
+                onCancel={() => {
+                  setShowMemberForm(false);
+                  setEditingMember(null);
+                }}
+                isLoading={createMember.isPending || updateMember.isPending}
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     </DashboardLayout>
   );

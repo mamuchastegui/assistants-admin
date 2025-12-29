@@ -14,8 +14,11 @@ Transformar el módulo gym de un prototipo hardcodeado a un sistema completo de 
 - [x] **GymMembershipPlan**: tipos de membresías, precios, duraciones, características
 - [x] **GymPayment**: historial de pagos, métodos, estados, vencimientos
 - [x] **GymCheckIn**: registro de asistencias/entradas al gym
-- [ ] **MemberProgress**: mediciones, peso, métricas de progreso
-- [ ] **WorkoutPlan**: planes de entrenamiento personalizados
+- [x] **MemberProgress**: mediciones, peso, métricas de progreso (tabla creada)
+- [x] **WorkoutPlan**: planes de entrenamiento personalizados
+- [x] **Exercise**: biblioteca de ejercicios con tipos y grupos musculares
+- [x] **WorkoutSession**: sesiones individuales dentro de planes
+- [x] **ExerciseLog**: historial de ejercicios realizados
 
 #### 1.2 Migraciones PostgreSQL ✅
 - [x] Tablas para todos los modelos con relaciones apropiadas
@@ -26,8 +29,9 @@ Transformar el módulo gym de un prototipo hardcodeado a un sistema completo de 
 - [x] **MemberRepository**: CRUD completo de miembros
 - [x] **PaymentRepository**: gestión de pagos y suscripciones
 - [x] **MembershipPlanRepository**: gestión de planes de membresía
-- [ ] **CheckInRepository**: registro de asistencias
-- [ ] **WorkoutRepository**: planes y rutinas
+- [x] **CheckInRepository**: registro de asistencias con estadísticas
+- [x] **WorkoutPlanRepository**: planes y rutinas completos
+- [x] **ExercisePort**: gestión de biblioteca de ejercicios
 
 ## 📅 Fase 2: Backend API - Funciones y Webhooks ⚠️ PARCIALMENTE COMPLETADO
 ### Semana 1-2
@@ -50,7 +54,10 @@ Transformar el módulo gym de un prototipo hardcodeado a un sistema completo de 
 - [x] **/api/gym/members**: gestión completa de miembros (10 endpoints)
 - [x] **/api/gym/payments**: gestión de pagos (8 endpoints)
 - [x] **/api/gym/plans**: gestión de planes de membresía (10 endpoints)
-- [ ] **/api/gym/checkins**: registro de asistencias
+- [x] **/api/gym/checkins**: registro de asistencias (12 endpoints)
+- [ ] **/api/gym/workouts**: gestión de planes de entrenamiento
+- [ ] **/api/gym/exercises**: biblioteca de ejercicios
+- [ ] **/api/gym/progress**: tracking de progreso de miembros
 - [ ] **/api/gym/reports**: reportes y estadísticas
 
 ## 📅 Fase 3: Admin Frontend - Componentes Base ⚠️ PARCIALMENTE COMPLETADO
@@ -60,22 +67,28 @@ Transformar el módulo gym de un prototipo hardcodeado a un sistema completo de 
 - [x] **useGymMembers**: hook para gestión de miembros (10 operaciones)
 - [x] **useGymPayments**: hook para pagos (8 operaciones)
 - [x] **useGymPlans**: hook para planes de membresía (9 operaciones)
+- [x] **useGymCheckIns**: hook para check-ins (12 operaciones)
+- [ ] **useWorkoutPlans**: hook para planes de entrenamiento
 - [ ] **useGymClasses**: hook mejorado con capacidad real
 - [ ] **GymApiService**: cliente API centralizado
 
 #### 3.2 Páginas mejoradas ✅
-- [x] **Members**: página con tabla, búsqueda, filtros y acciones
+- [x] **Dashboard**: dashboard completo con métricas reales y gráficos
+- [x] **Members**: página con tabla, búsqueda, filtros y formulario de registro
 - [x] **Payments**: página con historial y procesamiento de pagos
 - [x] **Plans**: página completa para gestión de planes de membresía
+- [x] **CheckIns**: gestión de check-ins con estadísticas en tiempo real
+- [ ] **Workouts**: gestión de planes de entrenamiento
 - [ ] **Classes**: gestión de capacidad real, lista de espera
-- [ ] **Dashboard**: métricas reales, gráficos de tendencias
 
-#### 3.3 Componentes reutilizables ⚠️
+#### 3.3 Componentes reutilizables ✅
 - [x] **PlanForm**: formulario completo para crear/editar planes
-- [ ] **MemberForm**: formulario completo con validación
-- [ ] **PaymentHistory**: tabla con filtros avanzados
+- [x] **MemberForm**: formulario completo con validación
+- [x] **CheckInDialog**: diálogo rápido para check-ins
+- [ ] **WorkoutPlanBuilder**: constructor visual de planes
+- [ ] **ExerciseSelector**: selector de ejercicios con filtros
+- [ ] **ProgressChart**: gráficos de progreso de miembros
 - [ ] **ClassBookingCalendar**: calendario interactivo
-- [ ] **MembershipCard**: tarjeta visual de membresía
 
 ## 📅 Fase 4: Personal-OS-Console Integration 🔄 PENDIENTE
 ### Semana 3
@@ -168,22 +181,24 @@ Transformar el módulo gym de un prototipo hardcodeado a un sistema completo de 
 
 ## 📊 Estado Actual del Proyecto
 
-### ✅ Completado (55%)
-- Modelos de dominio principales (Member, Payment, MembershipPlan)
-- Migración completa de base de datos con 6 tablas
-- Repositorios de Members, Payments y MembershipPlans
+### ✅ Completado (70%)
+- Modelos de dominio completos (Member, Payment, Plan, CheckIn, Workout, Exercise)
+- Migraciones de base de datos con 13 tablas
+- Repositorios completos para todas las entidades principales
 - Function calling expandido para WhatsApp (6 funciones)
-- APIs REST completas (28 endpoints totales)
-- Hooks de React para admin (3 hooks, 27 operaciones)
-- Páginas del admin (Members, Payments, Plans)
-- Formulario PlanForm para crear/editar planes
+- APIs REST (40 endpoints implementados)
+- Hooks de React para admin (4 hooks principales, 40+ operaciones)
+- 6 páginas del admin funcionales (Dashboard, Members, Plans, Payments, CheckIns)
+- Componentes reutilizables (MemberForm, PlanForm, CheckInDialog)
+- Sistema de check-in completo con estadísticas
+- Dashboard con analytics en tiempo real
 
 ### 🔄 En Progreso (10%)
-- MemberForm component
-- Testing de endpoints
-- Documentación de APIs
+- APIs de workout plans
+- Frontend de workout plans
+- Integración con WhatsApp para notificaciones
 
-### 📅 Pendiente (35%)
+### 📅 Pendiente (20%)
 - Módulo personal-os-console
 - Sistema de check-in con QR
 - Webhooks de MercadoPago
@@ -236,6 +251,6 @@ Transformar el módulo gym de un prototipo hardcodeado a un sistema completo de 
 
 ---
 
-**Última actualización**: 2025-12-28 23:00
-**Estado general**: 55% completado
-**Próxima revisión**: Después de completar Fase 3
+**Última actualización**: 2025-12-29 01:00
+**Estado general**: 70% completado
+**Próxima revisión**: Después de completar Fase 4

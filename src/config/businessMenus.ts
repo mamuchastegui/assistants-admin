@@ -14,6 +14,7 @@ import {
   Package,
   LayoutDashboard,
   LogIn,
+  Send,
   LucideIcon
 } from 'lucide-react';
 
@@ -55,6 +56,7 @@ const hotelItems: MenuItem[] = [
 const habitsItems: MenuItem[] = [
   { id: 'habitos', label: 'Habitos', path: '/habits/list', icon: Target },
   { id: 'progreso', label: 'Progreso', path: '/habits/progress', icon: TrendingUp },
+  { id: 'nudges', label: 'Nudges', path: '/nudges', icon: Send },
 ];
 
 const itemsByBusinessType: Record<Exclude<BusinessType, null>, MenuItem[]> = {

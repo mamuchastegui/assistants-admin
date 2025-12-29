@@ -15,6 +15,7 @@ import {
   LayoutDashboard,
   LogIn,
   Send,
+  BookOpen,
   LucideIcon
 } from 'lucide-react';
 
@@ -46,6 +47,7 @@ const gymItems: MenuItem[] = [
   { id: 'planes', label: 'Planes', path: '/gym/plans', icon: Package },
   { id: 'clases', label: 'Clases', path: '/gym/classes', icon: Dumbbell },
   { id: 'pagos', label: 'Pagos', path: '/gym/payments', icon: CreditCard },
+  { id: 'docs', label: 'Documentacion', path: '/gym/docs', icon: BookOpen },
 ];
 
 const hotelItems: MenuItem[] = [

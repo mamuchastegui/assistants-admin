@@ -33,6 +33,7 @@ import GymClasses from "./pages/gym/Classes";
 import GymPayments from "./pages/gym/Payments";
 import GymPlans from "./pages/gym/Plans";
 import GymCheckIns from "./pages/gym/CheckIns";
+import GymDocumentation from "./pages/gym/Documentation";
 import Nudges from "./pages/Nudges";
 import Admin from "./pages/Admin";
 import { ThemeProvider } from "./hooks/use-theme";
@@ -163,6 +164,11 @@ function App() {
                       <Route path="/gym/checkins" element={
                         <PrivateRoute>
                           <GymCheckIns />
+                        </PrivateRoute>
+                      } />
+                      <Route path="/gym/docs" element={
+                        <PrivateRoute>
+                          <GymDocumentation />
                         </PrivateRoute>
                       } />
 

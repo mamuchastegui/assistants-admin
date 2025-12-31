@@ -34,6 +34,7 @@ import GymPayments from "./pages/gym/Payments";
 import GymPlans from "./pages/gym/Plans";
 import GymCheckIns from "./pages/gym/CheckIns";
 import GymDocumentation from "./pages/gym/Documentation";
+import Settings from "./pages/Settings";
 import Nudges from "./pages/Nudges";
 import Admin from "./pages/Admin";
 import { ThemeProvider } from "./hooks/use-theme";
@@ -169,6 +170,13 @@ function App() {
                       <Route path="/gym/docs" element={
                         <PrivateRoute>
                           <GymDocumentation />
+                        </PrivateRoute>
+                      } />
+
+                      {/* Settings route */}
+                      <Route path="/settings" element={
+                        <PrivateRoute>
+                          <Settings />
                         </PrivateRoute>
                       } />
 

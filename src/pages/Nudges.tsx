@@ -43,6 +43,7 @@ import {
   useNudgeDeliveryStatus,
   useNudgeUserStatus,
   NudgeUserDeliveryResponse,
+  NudgeSystemDeliveryResponse,
   NudgeRecord,
   SlotEligibility,
   EligibilityCheck,
@@ -334,30 +335,53 @@ function DebugPanel({
 export default function Nudges() {
   const [days, setDays] = useState(7);
   const [searchUserId, setSearchUserId] = useState("");
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [slotFilter, setSlotFilter] = useState<string>("all");
   const [debugUserId, setDebugUserId] = useState<string | null>(null);
 
   const { data: systemStatus, isLoading: systemLoading, refetch: refetchSystem } = useNudgeSystemStatus(days);
-  const { data: deliveryStatus, isLoading: deliveryLoading, refetch: refetchDelivery } = useNudgeDeliveryStatus({ days });
+  const { data: systemDelivery, isLoading: systemDeliveryLoading, refetch: refetchSystemDelivery } = useNudgeDeliveryStatus({ days });
+  const { data: userDelivery, isLoading: userDeliveryLoading, refetch: refetchUserDelivery } = useNudgeDeliveryStatus({
+    user_id: selectedUserId || undefined,
+    days
+  });
 
   const handleRefresh = () => {
     refetchSystem();
-    refetchDelivery();
+    refetchSystemDelivery();
+    if (selectedUserId) {
+      refetchUserDelivery();
+    }
+  };
+
+  const handleSearchUser = () => {
+    if (searchUserId.trim()) {
+      setSelectedUserId(searchUserId.trim());
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchUserId("");
+    setSelectedUserId(null);
   };
 
   const systemStats = systemStatus?.data?.system_stats;
   const recentActivity = systemStatus?.data?.recent_activity;
 
-  // Get nudges list from delivery status (user mode returns nudges array)
-  const userDeliveryData = deliveryStatus?.data as NudgeUserDeliveryResponse["data"] | undefined;
-  const nudgesList: NudgeRecord[] = userDeliveryData?.nudges || [];
+  // Get system delivery stats
+  const systemDeliveryData = systemDelivery?.data as NudgeSystemDeliveryResponse["data"] | undefined;
+  const systemDeliveryStats = systemDeliveryData?.system_delivery_stats;
 
-  // Filter nudges
+  // Get nudges list from user delivery status (only available when user is selected)
+  const userDeliveryData = selectedUserId ? (userDelivery?.data as NudgeUserDeliveryResponse["data"] | undefined) : undefined;
+  const nudgesList: NudgeRecord[] = userDeliveryData?.nudges || [];
+  const isLoadingNudges = selectedUserId ? userDeliveryLoading : false;
+
+  // Filter nudges (only filter by status and slot, user is already selected)
   const filteredNudges = nudgesList.filter((nudge) => {
     if (statusFilter !== "all" && nudge.status !== statusFilter) return false;
     if (slotFilter !== "all" && nudge.slot !== slotFilter) return false;
-    if (searchUserId && !nudge.user_id.toLowerCase().includes(searchUserId.toLowerCase())) return false;
     return true;
   });
 
@@ -450,46 +474,75 @@ export default function Nudges() {
         {/* Filters and Table */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Nudges Recientes</CardTitle>
+            <CardTitle className="text-lg">
+              {selectedUserId ? `Nudges de ${selectedUserId}` : "Buscar Nudges por Usuario"}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            {/* Filters */}
+            {/* Search */}
             <div className="flex flex-col sm:flex-row gap-3 mb-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por user_id..."
+                  placeholder="Ingresar user_id para buscar..."
                   value={searchUserId}
                   onChange={(e) => setSearchUserId(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearchUser()}
                   className="pl-9"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="sent">Sent</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="enqueued">Enqueued</SelectItem>
-                  <SelectItem value="failed">Failed</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={slotFilter} onValueChange={setSlotFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Slot" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="morning">Morning</SelectItem>
-                  <SelectItem value="evening">Evening</SelectItem>
-                </SelectContent>
-              </Select>
+              <Button onClick={handleSearchUser} disabled={!searchUserId.trim()}>
+                Buscar
+              </Button>
+              {selectedUserId && (
+                <Button variant="outline" onClick={handleClearSearch}>
+                  Limpiar
+                </Button>
+              )}
             </div>
 
+            {/* Filters (only show when user is selected) */}
+            {selectedUserId && (
+              <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="sent">Sent</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="enqueued">Enqueued</SelectItem>
+                    <SelectItem value="failed">Failed</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={slotFilter} onValueChange={setSlotFilter}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Slot" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="morning">Morning</SelectItem>
+                    <SelectItem value="evening">Evening</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setDebugUserId(selectedUserId)}
+                >
+                  <Bug className="h-4 w-4 mr-1" />
+                  Debug Usuario
+                </Button>
+              </div>
+            )}
+
             {/* Table */}
-            {deliveryLoading ? (
+            {!selectedUserId ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Ingresa un user_id para ver sus nudges
+              </div>
+            ) : isLoadingNudges ? (
               <div className="space-y-2">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <Skeleton key={i} className="h-12 w-full" />
@@ -497,7 +550,7 @@ export default function Nudges() {
               </div>
             ) : filteredNudges.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                No hay nudges para mostrar
+                No hay nudges para este usuario
               </div>
             ) : (
               <div className="rounded-md border">

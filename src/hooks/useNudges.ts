@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useAuthApi } from "./useAuthApi";
+import { useAuthApi } from "@/api/client";
 
 // Types for API responses
 

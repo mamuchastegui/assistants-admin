@@ -14,6 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdminStats } from "@/hooks/useAdminStats";
 import {
@@ -23,7 +24,12 @@ import {
   MessageSquare,
   RefreshCw,
   Shield,
+  Building,
+  Bot,
+  LayoutDashboard,
 } from "lucide-react";
+import TenantsTab from "@/components/admin/TenantsTab";
+import AssistantsTab from "@/components/admin/AssistantsTab";
 
 // Admin email whitelist - must match backend
 const ADMIN_EMAILS = ["matias@condamind.com"];
@@ -114,116 +120,143 @@ const Admin = () => {
           }
         />
 
-        {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            title="Total Usuarios"
-            value={stats?.total_users ?? 0}
-            description="Usuarios registrados"
-            icon={<Users className="h-4 w-4 text-muted-foreground" />}
-            isLoading={isLoadingStats}
-          />
-          <StatCard
-            title="Activos (7 dias)"
-            value={stats?.active_users_7d ?? 0}
-            description="Con actividad reciente"
-            icon={<Activity className="h-4 w-4 text-muted-foreground" />}
-            isLoading={isLoadingStats}
-          />
-          <StatCard
-            title="Linked PersonalOS"
-            value={stats?.linked_personal_os ?? 0}
-            description="Vinculados via WhatsApp"
-            icon={<Link2 className="h-4 w-4 text-muted-foreground" />}
-            isLoading={isLoadingStats}
-          />
-          <StatCard
-            title="Mensajes (7 dias)"
-            value={stats?.messages_7d ?? 0}
-            description={`${stats?.messages_today ?? 0} hoy`}
-            icon={<MessageSquare className="h-4 w-4 text-muted-foreground" />}
-            isLoading={isLoadingStats}
-          />
-        </div>
+        <Tabs defaultValue="dashboard" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="dashboard" className="gap-2">
+              <LayoutDashboard className="h-4 w-4" />
+              Dashboard
+            </TabsTrigger>
+            <TabsTrigger value="tenants" className="gap-2">
+              <Building className="h-4 w-4" />
+              Tenants
+            </TabsTrigger>
+            <TabsTrigger value="assistants" className="gap-2">
+              <Bot className="h-4 w-4" />
+              Assistants
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Users Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Usuarios</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoadingUsers ? (
-              <div className="space-y-2">
-                {[...Array(5)].map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
-                ))}
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Email / User ID</TableHead>
-                    <TableHead>Telefono</TableHead>
-                    <TableHead>PersonalOS</TableHead>
-                    <TableHead className="text-right">Threads</TableHead>
-                    <TableHead>Ultima Actividad</TableHead>
-                    <TableHead>Creado</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {users.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground">
-                        No hay usuarios
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    users.map((user) => (
-                      <TableRow key={user.user_id}>
-                        <TableCell>
-                          <div className="font-medium">
-                            {user.email || (
-                              <span className="text-muted-foreground text-xs">
-                                {user.user_id}
-                              </span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {user.phone_number ? (
-                            <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                              {user.phone_number}
-                            </code>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {user.is_linked_personal_os ? (
-                            <Badge variant="default" className="bg-green-600">
-                              Linked
-                            </Badge>
-                          ) : (
-                            <Badge variant="secondary">No</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {user.thread_count}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground text-sm">
-                          {formatDateTime(user.last_activity)}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground text-sm">
-                          {formatDate(user.created_at)}
-                        </TableCell>
+          <TabsContent value="dashboard" className="space-y-4">
+            {/* Stats Cards */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <StatCard
+                title="Total Usuarios"
+                value={stats?.total_users ?? 0}
+                description="Usuarios registrados"
+                icon={<Users className="h-4 w-4 text-muted-foreground" />}
+                isLoading={isLoadingStats}
+              />
+              <StatCard
+                title="Activos (7 dias)"
+                value={stats?.active_users_7d ?? 0}
+                description="Con actividad reciente"
+                icon={<Activity className="h-4 w-4 text-muted-foreground" />}
+                isLoading={isLoadingStats}
+              />
+              <StatCard
+                title="Linked PersonalOS"
+                value={stats?.linked_personal_os ?? 0}
+                description="Vinculados via WhatsApp"
+                icon={<Link2 className="h-4 w-4 text-muted-foreground" />}
+                isLoading={isLoadingStats}
+              />
+              <StatCard
+                title="Mensajes (7 dias)"
+                value={stats?.messages_7d ?? 0}
+                description={`${stats?.messages_today ?? 0} hoy`}
+                icon={<MessageSquare className="h-4 w-4 text-muted-foreground" />}
+                isLoading={isLoadingStats}
+              />
+            </div>
+
+            {/* Users Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Usuarios</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoadingUsers ? (
+                  <div className="space-y-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Skeleton key={i} className="h-12 w-full" />
+                    ))}
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Email / User ID</TableHead>
+                        <TableHead>Telefono</TableHead>
+                        <TableHead>PersonalOS</TableHead>
+                        <TableHead className="text-right">Threads</TableHead>
+                        <TableHead>Ultima Actividad</TableHead>
+                        <TableHead>Creado</TableHead>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+                    </TableHeader>
+                    <TableBody>
+                      {users.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center text-muted-foreground">
+                            No hay usuarios
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        users.map((user) => (
+                          <TableRow key={user.user_id}>
+                            <TableCell>
+                              <div className="font-medium">
+                                {user.email || (
+                                  <span className="text-muted-foreground text-xs">
+                                    {user.user_id}
+                                  </span>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {user.phone_number ? (
+                                <code className="text-xs bg-muted px-1 py-0.5 rounded">
+                                  {user.phone_number}
+                                </code>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {user.is_linked_personal_os ? (
+                                <Badge variant="default" className="bg-green-600">
+                                  Linked
+                                </Badge>
+                              ) : (
+                                <Badge variant="secondary">No</Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {user.thread_count}
+                            </TableCell>
+                            <TableCell className="text-muted-foreground text-sm">
+                              {formatDateTime(user.last_activity)}
+                            </TableCell>
+                            <TableCell className="text-muted-foreground text-sm">
+                              {formatDate(user.created_at)}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="tenants">
+            <TenantsTab />
+          </TabsContent>
+
+          <TabsContent value="assistants">
+            <AssistantsTab />
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );

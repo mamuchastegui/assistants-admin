@@ -32,6 +32,8 @@ export interface Tenant {
   name: string;
   assistant_id: string;
   welcome_message: string | null;
+  owner_email: string | null;
+  user_count: number;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -44,6 +46,7 @@ export interface TenantCreate {
   openai_api_key: string;
   assistant_id: string;
   welcome_message?: string;
+  owner_email?: string;
 }
 
 export interface TenantUpdate {
@@ -54,10 +57,24 @@ export interface TenantUpdate {
   org_id?: string;
   client_id?: string;
   secret_id?: string;
+  owner_email?: string;
 }
 
 export interface TenantsResponse {
   tenants: Tenant[];
+  total: number;
+}
+
+export interface TenantUser {
+  user_id: string;
+  email: string | null;
+  phone_number: string | null;
+  is_active: boolean;
+  created_at: string | null;
+}
+
+export interface TenantUsersResponse {
+  users: TenantUser[];
   total: number;
 }
 
@@ -146,6 +163,11 @@ export const useAdminService = () => {
     await authApiClient.delete(`/admin/tenants/${id}`);
   };
 
+  const fetchTenantUsers = async (tenantId: string): Promise<TenantUsersResponse> => {
+    const { data } = await authApiClient.get<TenantUsersResponse>(`/admin/tenants/${tenantId}/users`);
+    return data;
+  };
+
   // Assistant methods
   const fetchAssistants = async (): Promise<AssistantConfigsResponse> => {
     const { data } = await authApiClient.get<AssistantConfigsResponse>("/admin/assistants");
@@ -180,6 +202,7 @@ export const useAdminService = () => {
     createTenant,
     updateTenant,
     deleteTenant,
+    fetchTenantUsers,
     // Assistants
     fetchAssistants,
     fetchAssistant,

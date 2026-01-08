@@ -60,6 +60,7 @@ const Members = () => {
   const [isSuspendDialogOpen, setIsSuspendDialogOpen] = useState(false);
   const [showMemberForm, setShowMemberForm] = useState(false);
   const [editingMember, setEditingMember] = useState<any>(null);
+  const [draftFormData, setDraftFormData] = useState<any>(null);
   const { toast } = useToast();
 
   const {
@@ -184,6 +185,7 @@ const Members = () => {
         description: 'El nuevo miembro ha sido registrado exitosamente.',
       });
       setShowMemberForm(false);
+      setDraftFormData(null); // Clear draft on successful creation
       refetch();
     } catch (error) {
       toast({
@@ -543,11 +545,14 @@ const Members = () => {
             <div className="mt-6">
               <MemberForm
                 member={editingMember}
+                initialData={!editingMember ? draftFormData : undefined}
                 onSubmit={editingMember ? handleUpdateMember : handleCreateMember}
                 onCancel={() => {
                   setShowMemberForm(false);
                   setEditingMember(null);
+                  setDraftFormData(null); // Clear draft on explicit cancel
                 }}
+                onFormChange={!editingMember ? setDraftFormData : undefined}
                 isLoading={createMember.isPending || updateMember.isPending}
               />
             </div>

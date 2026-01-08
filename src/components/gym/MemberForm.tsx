@@ -52,70 +52,78 @@ const formSchema = z.object({
   postal_code: z.string().optional(),
   country: z.string().default('Argentina'),
 
-  // Emergency Contact
-  emergency_contact_name: z.string().min(2, 'Emergency contact name is required'),
-  emergency_contact_phone: z.string().min(10, 'Emergency contact phone is required'),
-  emergency_contact_relationship: z.string().optional(),
-
   // Membership
   membership_plan_id: z.string().min(1, 'Please select a membership plan'),
   start_date: z.date({
     required_error: 'Start date is required',
   }),
 
-  // Health Information
-  medical_conditions: z.string().optional(),
-  medications: z.string().optional(),
-  fitness_goals: z.string().optional(),
-
   // Additional
   notes: z.string().optional(),
-  referred_by: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 interface MemberFormProps {
   member?: GymMember;
+  initialData?: Partial<FormValues>;
   onSubmit: (data: CreateMemberInput) => Promise<void>;
   onCancel: () => void;
+  onFormChange?: (data: Partial<FormValues>) => void;
   isLoading?: boolean;
 }
 
-export function MemberForm({ member, onSubmit, onCancel, isLoading }: MemberFormProps) {
+export function MemberForm({ member, initialData, onSubmit, onCancel, onFormChange, isLoading }: MemberFormProps) {
   const [selectedPlanPrice, setSelectedPlanPrice] = useState<number>(0);
   const { useListPlans } = useGymPlans();
   const { data: plans, isLoading: plansLoading } = useListPlans({ is_active: true, is_visible: true });
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: member ? {
-      first_name: member.first_name,
-      last_name: member.last_name,
-      email: member.email,
-      phone: member.phone,
-      birth_date: member.birth_date ? new Date(member.birth_date) : undefined,
-      gender: member.gender,
-      address: member.address,
-      city: member.city,
-      state: member.state,
-      postal_code: member.postal_code,
-      country: member.country || 'Argentina',
-      emergency_contact_name: member.emergency_contact?.name,
-      emergency_contact_phone: member.emergency_contact?.phone,
-      emergency_contact_relationship: member.emergency_contact?.relationship,
-      membership_plan_id: member.membership_plan_id,
-      start_date: member.membership_start_date ? new Date(member.membership_start_date) : new Date(),
-      medical_conditions: member.medical_conditions,
-      medications: member.medications,
-      fitness_goals: member.fitness_goals,
-      notes: member.notes,
-      referred_by: member.referred_by,
-    } : {
+  const getDefaultValues = (): Partial<FormValues> => {
+    if (member) {
+      return {
+        first_name: member.first_name,
+        last_name: member.last_name,
+        email: member.email,
+        phone: member.phone,
+        birth_date: member.birth_date ? new Date(member.birth_date) : undefined,
+        gender: member.gender,
+        address: member.address,
+        city: member.city,
+        state: member.state,
+        postal_code: member.postal_code,
+        country: member.country || 'Argentina',
+        membership_plan_id: member.membership_plan_id,
+        start_date: member.membership_start_date ? new Date(member.membership_start_date) : new Date(),
+        notes: member.notes,
+      };
+    }
+    if (initialData) {
+      return {
+        ...initialData,
+        start_date: initialData.start_date || new Date(),
+        country: initialData.country || 'Argentina',
+      };
+    }
+    return {
       start_date: new Date(),
       country: 'Argentina',
-    },
+    };
+  };
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: getDefaultValues(),
   });
+
+  // Notify parent of form changes for draft preservation
+  useEffect(() => {
+    if (onFormChange && !member) {
+      const subscription = form.watch((values) => {
+        onFormChange(values as Partial<FormValues>);
+      });
+      return () => subscription.unsubscribe();
+    }
+  }, [form, onFormChange, member]);
 
   // Update price when plan changes
   const watchPlanId = form.watch('membership_plan_id');
@@ -141,18 +149,9 @@ export function MemberForm({ member, onSubmit, onCancel, isLoading }: MemberForm
       state: values.state,
       postal_code: values.postal_code,
       country: values.country,
-      emergency_contact: {
-        name: values.emergency_contact_name,
-        phone: values.emergency_contact_phone,
-        relationship: values.emergency_contact_relationship || '',
-      },
       membership_plan_id: values.membership_plan_id,
       membership_start_date: values.start_date.toISOString(),
-      medical_conditions: values.medical_conditions,
-      medications: values.medications,
-      fitness_goals: values.fitness_goals,
       notes: values.notes,
-      referred_by: values.referred_by,
     };
 
     await onSubmit(data);
@@ -371,56 +370,6 @@ export function MemberForm({ member, onSubmit, onCancel, isLoading }: MemberForm
 
         <Separator />
 
-        {/* Emergency Contact */}
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Emergency Contact</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="emergency_contact_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contact Name *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Jane Doe" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="emergency_contact_phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contact Phone *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="+54 9 11 8765-4321" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="emergency_contact_relationship"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Relationship</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Spouse, Parent, etc." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-
-        <Separator />
-
         {/* Membership */}
         <div>
           <h3 className="text-lg font-semibold mb-4">Membership</h3>
@@ -431,23 +380,29 @@ export function MemberForm({ member, onSubmit, onCancel, isLoading }: MemberForm
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Membership Plan *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={plansLoading}>
+                  <Select onValueChange={field.onChange} value={field.value || ""} disabled={plansLoading}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={plansLoading ? "Loading plans..." : "Select a plan"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {plans?.map((plan) => (
-                        <SelectItem key={plan.plan_id} value={plan.plan_id}>
-                          <div className="flex justify-between items-center w-full">
-                            <span>{plan.name}</span>
-                            <span className="ml-2 text-muted-foreground">
-                              ${plan.final_price}/month
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
+                      {plans && plans.length > 0 ? (
+                        plans.map((plan) => (
+                          <SelectItem key={plan.plan_id} value={plan.plan_id}>
+                            <div className="flex justify-between items-center w-full">
+                              <span>{plan.name}</span>
+                              <span className="ml-2 text-muted-foreground">
+                                ${plan.final_price}/month
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <div className="p-2 text-sm text-muted-foreground text-center">
+                          No hay planes disponibles
+                        </div>
+                      )}
                     </SelectContent>
                   </Select>
                   <FormDescription>
@@ -507,84 +462,6 @@ export function MemberForm({ member, onSubmit, onCancel, isLoading }: MemberForm
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="referred_by"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Referred By</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Member name or ID" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    If referred by an existing member
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Health Information */}
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Health Information</h3>
-          <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="medical_conditions"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Medical Conditions</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="List any medical conditions, injuries, or health concerns..."
-                      className="min-h-[80px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="medications"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Current Medications</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="List any medications you are currently taking..."
-                      className="min-h-[80px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="fitness_goals"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Fitness Goals</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="What are your fitness goals? (e.g., weight loss, muscle gain, endurance...)"
-                      className="min-h-[80px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </div>
         </div>
 

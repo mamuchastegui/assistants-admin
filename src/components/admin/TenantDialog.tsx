@@ -35,6 +35,7 @@ export const TenantDialog: React.FC<TenantDialogProps> = ({
     client_id: "",
     secret_id: "",
     name: "",
+    owner_email: "",
     openai_api_key: "",
     assistant_id: "",
     welcome_message: "",
@@ -47,6 +48,7 @@ export const TenantDialog: React.FC<TenantDialogProps> = ({
         client_id: tenant.client_id || "",
         secret_id: "",
         name: tenant.name || "",
+        owner_email: tenant.owner_email || "",
         openai_api_key: "",
         assistant_id: tenant.assistant_id || "",
         welcome_message: tenant.welcome_message || "",
@@ -57,6 +59,7 @@ export const TenantDialog: React.FC<TenantDialogProps> = ({
         client_id: "",
         secret_id: "",
         name: "",
+        owner_email: "",
         openai_api_key: "",
         assistant_id: "",
         welcome_message: "",
@@ -70,6 +73,7 @@ export const TenantDialog: React.FC<TenantDialogProps> = ({
     if (isEditing) {
       const updateData: TenantUpdate = {};
       if (formData.name) updateData.name = formData.name;
+      if (formData.owner_email) updateData.owner_email = formData.owner_email;
       if (formData.openai_api_key) updateData.openai_api_key = formData.openai_api_key;
       if (formData.assistant_id) updateData.assistant_id = formData.assistant_id;
       if (formData.welcome_message !== undefined) updateData.welcome_message = formData.welcome_message;
@@ -83,6 +87,7 @@ export const TenantDialog: React.FC<TenantDialogProps> = ({
         client_id: formData.client_id,
         secret_id: formData.secret_id,
         name: formData.name,
+        owner_email: formData.owner_email || undefined,
         openai_api_key: formData.openai_api_key,
         assistant_id: formData.assistant_id,
         welcome_message: formData.welcome_message || undefined,
@@ -112,6 +117,17 @@ export const TenantDialog: React.FC<TenantDialogProps> = ({
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Nombre del tenant"
               required={!isEditing}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="owner_email">Owner Email</Label>
+            <Input
+              id="owner_email"
+              type="email"
+              value={formData.owner_email}
+              onChange={(e) => setFormData({ ...formData, owner_email: e.target.value })}
+              placeholder="owner@ejemplo.com"
             />
           </div>
 

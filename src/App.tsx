@@ -34,6 +34,8 @@ import GymPayments from "./pages/gym/Payments";
 import GymPlans from "./pages/gym/Plans";
 import GymCheckIns from "./pages/gym/CheckIns";
 import GymDocumentation from "./pages/gym/Documentation";
+import GymTrainerSettings from "./pages/gym/TrainerSettings";
+import GymClients from "./pages/gym/Clients";
 import Settings from "./pages/Settings";
 import Nudges from "./pages/Nudges";
 import Admin from "./pages/Admin";
@@ -170,6 +172,16 @@ function App() {
                       <Route path="/gym/docs" element={
                         <PrivateRoute>
                           <GymDocumentation />
+                        </PrivateRoute>
+                      } />
+                      <Route path="/gym/trainer-settings" element={
+                        <PrivateRoute>
+                          <GymTrainerSettings />
+                        </PrivateRoute>
+                      } />
+                      <Route path="/gym/clients" element={
+                        <PrivateRoute>
+                          <GymClients />
                         </PrivateRoute>
                       } />
 

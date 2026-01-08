@@ -35,19 +35,22 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useGymPlans, GymPlan } from '@/hooks/gym/useGymPlans';
+import { useGymPlans, GymPlan, CreatePlanInput } from '@/hooks/gym/useGymPlans';
+import { PlanForm } from '@/components/gym/PlanForm';
 
 export default function Plans() {
   const [selectedPlan, setSelectedPlan] = useState<GymPlan | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showPriceDialog, setShowPriceDialog] = useState(false);
   const [showDiscountDialog, setShowDiscountDialog] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newPrice, setNewPrice] = useState('');
   const [newDiscount, setNewDiscount] = useState('');
   const [filterVisible, setFilterVisible] = useState<boolean | undefined>(undefined);
 
   const {
     useListPlans,
+    useCreatePlan,
     useDeletePlan,
     useUpdatePrice,
     useUpdateDiscount,
@@ -55,6 +58,7 @@ export default function Plans() {
   } = useGymPlans();
 
   const { data: plans, isLoading } = useListPlans({ is_visible: filterVisible });
+  const createPlan = useCreatePlan();
   const deletePlan = useDeletePlan();
   const updatePrice = useUpdatePrice();
   const updateDiscount = useUpdateDiscount();
@@ -96,6 +100,14 @@ export default function Plans() {
     toggleVisibility.mutate(plan.plan_id);
   };
 
+  const handleCreatePlan = (data: CreatePlanInput) => {
+    createPlan.mutate(data, {
+      onSuccess: () => {
+        setShowCreateDialog(false);
+      }
+    });
+  };
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-AR', {
       style: 'currency',
@@ -133,7 +145,7 @@ export default function Plans() {
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Membership Plans</h1>
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={() => setShowCreateDialog(true)}>
           <Plus className="h-4 w-4" />
           New Plan
         </Button>
@@ -419,6 +431,23 @@ export default function Plans() {
               {newDiscount ? 'Apply Discount' : 'Remove Discount'}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Plan Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Plan</DialogTitle>
+            <DialogDescription>
+              Define a new membership plan for your gym
+            </DialogDescription>
+          </DialogHeader>
+          <PlanForm
+            onSubmit={handleCreatePlan}
+            onCancel={() => setShowCreateDialog(false)}
+            isLoading={createPlan.isPending}
+          />
         </DialogContent>
       </Dialog>
     </div>

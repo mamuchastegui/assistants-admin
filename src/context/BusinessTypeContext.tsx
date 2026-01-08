@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
 export type BusinessType = 'gym' | 'hotel' | 'habits' | null;
@@ -45,6 +46,7 @@ const BUSINESS_TYPE_KEY = 'condamind_business_type';
 
 export const BusinessTypeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isAuthenticated } = useAuth();
+  const location = useLocation();
   const [businessType, setBusinessTypeState] = useState<BusinessType>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -78,6 +80,26 @@ export const BusinessTypeProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
     setBusinessTypeState(type);
   }, [getStorageKey]);
+
+  // Auto-detect business type from route if not set
+  useEffect(() => {
+    if (!businessType && isAuthenticated && !isLoading) {
+      const path = location.pathname;
+      let detectedType: BusinessType = null;
+
+      if (path.startsWith('/gym')) {
+        detectedType = 'gym';
+      } else if (path.startsWith('/hotel')) {
+        detectedType = 'hotel';
+      } else if (path.startsWith('/habits') || path.startsWith('/nudges')) {
+        detectedType = 'habits';
+      }
+
+      if (detectedType) {
+        setBusinessType(detectedType);
+      }
+    }
+  }, [businessType, location.pathname, isAuthenticated, isLoading, setBusinessType]);
 
   const businessConfig = businessType ? businessConfigs[businessType] : null;
 

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Plus, Edit, Trash2, Eye, EyeOff, DollarSign, Percent, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -142,8 +143,9 @@ export default function Plans() {
   };
 
   return (
-    <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-6">
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Planes de Membresia</h1>
         <Button className="gap-2" onClick={() => setShowCreateDialog(true)}>
           <Plus className="h-4 w-4" />
@@ -450,6 +452,7 @@ export default function Plans() {
           />
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }

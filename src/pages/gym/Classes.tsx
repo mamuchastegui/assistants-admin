@@ -125,6 +125,18 @@ const Classes = () => {
   const bookings = bookingsData?.bookings || [];
   const members = membersData?.members || [];
 
+  // Helper to calculate end time based on start time and class duration
+  const calculateEndTime = (startTime: string, durationMinutes: number): string => {
+    const [hours, minutes] = startTime.split(':').map(Number);
+    const totalMinutes = hours * 60 + minutes + durationMinutes;
+    const endHours = Math.floor(totalMinutes / 60) % 24;
+    const endMinutes = totalMinutes % 60;
+    return `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
+  };
+
+  // Get selected class for schedule form
+  const selectedClassForSchedule = classes.find(c => c.id === scheduleForm.class_id);
+
   // Stats
   const totalClasses = classes.length;
   const totalCapacity = schedules.reduce((acc, s) => acc + s.capacity, 0);
@@ -669,7 +681,13 @@ const Classes = () => {
                 <Label htmlFor="class">Clase</Label>
                 <Select
                   value={scheduleForm.class_id}
-                  onValueChange={(value) => setScheduleForm({ ...scheduleForm, class_id: value })}
+                  onValueChange={(value) => {
+                    const selectedClass = classes.find(c => c.id === value);
+                    const newEndTime = selectedClass
+                      ? calculateEndTime(scheduleForm.start_time, selectedClass.duration_minutes)
+                      : scheduleForm.end_time;
+                    setScheduleForm({ ...scheduleForm, class_id: value, end_time: newEndTime });
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona una clase" />
@@ -677,7 +695,7 @@ const Classes = () => {
                   <SelectContent>
                     {classes.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
-                        {c.name} ({c.class_type === 'group' ? 'Grupal' : '1:1'})
+                        {c.name} ({c.class_type === 'group' ? 'Grupal' : '1:1'}) - {c.duration_minutes}min
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -719,11 +737,17 @@ const Classes = () => {
                     id="start_time"
                     type="time"
                     value={scheduleForm.start_time}
-                    onChange={(e) => setScheduleForm({ ...scheduleForm, start_time: e.target.value })}
+                    onChange={(e) => {
+                      const newStartTime = e.target.value;
+                      const newEndTime = selectedClassForSchedule
+                        ? calculateEndTime(newStartTime, selectedClassForSchedule.duration_minutes)
+                        : scheduleForm.end_time;
+                      setScheduleForm({ ...scheduleForm, start_time: newStartTime, end_time: newEndTime });
+                    }}
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="end_time">Hora fin</Label>
+                  <Label htmlFor="end_time">Hora fin {selectedClassForSchedule && <span className="text-muted-foreground">(auto)</span>}</Label>
                   <Input
                     id="end_time"
                     type="time"

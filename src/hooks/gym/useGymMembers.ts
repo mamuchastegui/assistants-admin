@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuthApi } from '@/hooks/useAuthApi';
+import { useAuthApi } from '@/api/client';
 
 export interface GymMember {
   member_id: string;

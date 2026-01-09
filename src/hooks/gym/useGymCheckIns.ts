@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { useAuthApi } from '../useAuthApi';
+import { useAuthApi } from '@/api/client';
 
 // Types
 export interface GymCheckIn {

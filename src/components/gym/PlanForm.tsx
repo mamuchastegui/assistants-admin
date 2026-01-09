@@ -24,6 +24,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
+import { toast } from 'sonner';
 import { CreatePlanInput, UpdatePlanInput, GymPlan } from '@/hooks/gym/useGymPlans';
 
 const formSchema = z.object({
@@ -32,7 +33,10 @@ const formSchema = z.object({
   plan_type: z.enum(['basic', 'standard', 'premium', 'vip', 'student', 'corporate', 'family']),
   duration: z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'semiannual', 'annual', 'custom']),
   duration_days: z.coerce.number().min(1, 'La duracion debe ser al menos 1 dia'),
-  price: z.coerce.number().min(1, 'El precio debe ser mayor a 0'),
+  price: z.preprocess(
+    (val) => (val === '' || val === undefined ? undefined : val),
+    z.coerce.number({ invalid_type_error: 'El precio es requerido' }).min(1, 'El precio debe ser mayor a 0')
+  ),
   enrollment_fee: z.coerce.number().optional(),
   discount_percentage: z.coerce.number().min(0).max(100).optional(),
   max_freezes_allowed: z.coerce.number().min(0).default(0),
@@ -89,7 +93,7 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
       plan_type: 'standard',
       duration: 'monthly',
       duration_days: 30,
-      price: 0,
+      price: '' as unknown as number, // Empty to force user input
       max_freezes_allowed: 0,
       max_freeze_days: 0,
       guest_passes_per_month: 0,
@@ -152,9 +156,19 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
     form.setValue('tags', current.filter((_, i) => i !== index));
   };
 
+  const onInvalid = (errors: any) => {
+    console.error('Form validation errors:', errors);
+    const firstError = Object.values(errors)[0] as any;
+    if (firstError?.message) {
+      toast.error(`Error de validacion: ${firstError.message}`);
+    } else {
+      toast.error('Por favor completa todos los campos requeridos');
+    }
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-6">
         {/* Informacion Basica */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold">Informacion Basica</h3>

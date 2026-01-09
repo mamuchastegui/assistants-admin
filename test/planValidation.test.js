@@ -8,7 +8,10 @@ const formSchema = z.object({
   plan_type: z.enum(['basic', 'standard', 'premium', 'vip', 'student', 'corporate', 'family']),
   duration: z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'semiannual', 'annual', 'custom']),
   duration_days: z.coerce.number().min(1, 'La duracion debe ser al menos 1 dia'),
-  price: z.coerce.number().min(1, 'El precio debe ser mayor a 0'),
+  price: z.preprocess(
+    (val) => (val === '' || val === undefined ? undefined : val),
+    z.coerce.number({ invalid_type_error: 'El precio es requerido' }).min(1, 'El precio debe ser mayor a 0')
+  ),
   enrollment_fee: z.coerce.number().optional(),
   discount_percentage: z.coerce.number().min(0).max(100).optional(),
   max_freezes_allowed: z.coerce.number().min(0).default(0),
@@ -54,7 +57,17 @@ const zeroPricePlan = {
 };
 const result2 = formSchema.safeParse(zeroPricePlan);
 assert.equal(result2.success, false, 'Zero price should fail validation');
-assert.equal(result2.error.issues[0].message, 'El precio debe ser mayor a 0');
+console.log('  PASSED');
+
+// Test 2b: Empty price should fail validation with "required" message
+console.log('Test 2b: Empty price should fail validation');
+const emptyPricePlan = {
+  ...validPlan,
+  price: '',
+};
+const result2b = formSchema.safeParse(emptyPricePlan);
+assert.equal(result2b.success, false, 'Empty price should fail validation');
+assert.equal(result2b.error.issues[0].message, 'El precio es requerido');
 console.log('  PASSED');
 
 // Test 3: Empty name should fail validation

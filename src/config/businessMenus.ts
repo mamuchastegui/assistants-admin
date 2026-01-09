@@ -1,20 +1,14 @@
 import { BusinessType } from '@/context/BusinessTypeContext';
 import {
   Home,
-  Calendar,
   Users,
   Dumbbell,
   CreditCard,
   MessageSquare,
   Bell,
-  Hotel,
-  BedDouble,
-  Target,
-  TrendingUp,
   Package,
   LayoutDashboard,
   LogIn,
-  Send,
   BookOpen,
   Settings,
   LucideIcon
@@ -31,7 +25,6 @@ export interface MenuItem {
 // Items comunes a todos los tipos de negocio
 const commonItems: MenuItem[] = [
   { id: 'inicio', label: 'Inicio', path: '/', icon: Home },
-  { id: 'calendario', label: 'Calendario', path: '/calendar', icon: Calendar },
 ];
 
 // Items comunes al final del menu
@@ -52,16 +45,9 @@ const gymItems: MenuItem[] = [
   { id: 'settings', label: 'Configuracion', path: '/settings', icon: Settings },
 ];
 
-const hotelItems: MenuItem[] = [
-  { id: 'reservas', label: 'Reservas', path: '/hotel/reservations', icon: Calendar },
-  { id: 'habitaciones', label: 'Habitaciones', path: '/hotel/rooms', icon: BedDouble },
-];
-
-const habitsItems: MenuItem[] = [
-  { id: 'habitos', label: 'Habitos', path: '/habits/list', icon: Target },
-  { id: 'progreso', label: 'Progreso', path: '/habits/progress', icon: TrendingUp },
-  { id: 'nudges', label: 'Nudges', path: '/nudges', icon: Send },
-];
+// Hotel and habits disabled - only gym enabled for now
+const hotelItems: MenuItem[] = [];
+const habitsItems: MenuItem[] = [];
 
 const itemsByBusinessType: Record<Exclude<BusinessType, null>, MenuItem[]> = {
   gym: gymItems,

@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Bell, LogOut, Search, Dumbbell, Hotel, Target, Building2 } from "lucide-react";
+import { Bell, LogOut, Search, Dumbbell, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -32,8 +32,9 @@ interface HeaderProps {
 
 const businessTypeConfig: Record<Exclude<BusinessType, null>, { label: string; icon: React.ReactNode }> = {
   gym: { label: 'Gimnasio', icon: <Dumbbell className="h-3 w-3" /> },
-  hotel: { label: 'Hoteleria', icon: <Hotel className="h-3 w-3" /> },
-  habits: { label: 'Habitos', icon: <Target className="h-3 w-3" /> },
+  // hotel and habits disabled - only gym enabled
+  hotel: { label: 'Hoteleria', icon: <Dumbbell className="h-3 w-3" /> },
+  habits: { label: 'Habitos', icon: <Dumbbell className="h-3 w-3" /> },
 };
 
 const Header: React.FC<HeaderProps> = ({ children }) => {
@@ -42,6 +43,9 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
   const [showSearch, setShowSearch] = React.useState(false);
   const authContext = useAuth();
   const { businessType, setBusinessType } = useBusinessType();
+
+  // Admin email that can change business type
+  const ADMIN_EMAIL = 'matias@condamind.com';
 
   // Type guard to check if we have Auth0 context with user
   const isAuth0Context = (ctx: any): ctx is { user: any; isAuthenticated: boolean } => {
@@ -65,6 +69,12 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
       return authContext.user;
     }
     return { name: 'Dev User', email: 'dev@example.com' };
+  };
+
+  // Check if current user is admin
+  const isAdmin = () => {
+    const user = getUserData();
+    return user?.email === ADMIN_EMAIL;
   };
   
   return (
@@ -149,29 +159,23 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
-                    <Building2 className="mr-2 h-4 w-4" />
-                    <span>Tipo de Negocio</span>
-                    {!businessType && <Badge variant="secondary" className="ml-2 text-[10px]">Sin configurar</Badge>}
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    <DropdownMenuRadioGroup value={businessType || ''} onValueChange={(v) => setBusinessType(v as BusinessType)}>
-                      <DropdownMenuRadioItem value="gym">
-                        <Dumbbell className="mr-2 h-4 w-4" />
-                        Gimnasio
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="hotel">
-                        <Hotel className="mr-2 h-4 w-4" />
-                        Hoteleria
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="habits">
-                        <Target className="mr-2 h-4 w-4" />
-                        Habitos
-                      </DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
+                {isAdmin() && (
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                      <Building2 className="mr-2 h-4 w-4" />
+                      <span>Tipo de Negocio</span>
+                      {!businessType && <Badge variant="secondary" className="ml-2 text-[10px]">Sin configurar</Badge>}
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuRadioGroup value={businessType || ''} onValueChange={(v) => setBusinessType(v as BusinessType)}>
+                        <DropdownMenuRadioItem value="gym">
+                          <Dumbbell className="mr-2 h-4 w-4" />
+                          Gimnasio
+                        </DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                )}
                 <DropdownMenuItem asChild>
                   <a href="/auth">
                     Mi Perfil

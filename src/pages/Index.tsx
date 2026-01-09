@@ -7,12 +7,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { LandingPage } from "@/components/landing/LandingPage";
 import { useBusinessType } from "@/context/BusinessTypeContext";
 import { getMenuItems } from "@/config/businessMenus";
-import { Dumbbell, Hotel, Target, Settings } from "lucide-react";
+import { Dumbbell, Settings } from "lucide-react";
 
 const businessTypeLabels = {
   gym: { label: 'Gimnasio', icon: Dumbbell },
-  hotel: { label: 'Hoteleria', icon: Hotel },
-  habits: { label: 'Habitos', icon: Target },
+  // hotel and habits disabled
+  hotel: { label: 'Hoteleria', icon: Dumbbell },
+  habits: { label: 'Habitos', icon: Dumbbell },
 };
 
 const Index = () => {

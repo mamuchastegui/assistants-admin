@@ -29,55 +29,37 @@ interface OnboardingStep {
   content: React.ReactNode;
 }
 
+// Business type selector simplified - only gym enabled
 const BusinessTypeSelector: React.FC<{
   selected: BusinessType;
   onSelect: (type: BusinessType) => void;
 }> = ({ selected, onSelect }) => {
-  const options: { type: Exclude<BusinessType, null>; icon: React.ReactNode; label: string; description: string }[] = [
-    {
-      type: 'gym',
-      icon: <Dumbbell className="h-8 w-8" />,
-      label: 'Gimnasio',
-      description: 'Gestiona miembros, clases y pagos'
-    },
-    {
-      type: 'hotel',
-      icon: <Hotel className="h-8 w-8" />,
-      label: 'Hoteleria',
-      description: 'Gestiona reservas y habitaciones'
-    },
-    {
-      type: 'habits',
-      icon: <Target className="h-8 w-8" />,
-      label: 'Habitos',
-      description: 'Ayuda a tus usuarios a crear habitos'
+  // Auto-select gym since it's the only option
+  React.useEffect(() => {
+    if (!selected) {
+      onSelect('gym');
     }
-  ];
+  }, [selected, onSelect]);
 
   return (
     <div className="grid gap-4">
-      {options.map((option) => (
-        <Card
-          key={option.type}
-          className={`p-4 cursor-pointer transition-all hover:border-primary ${
-            selected === option.type ? 'border-primary bg-primary/5 ring-2 ring-primary' : ''
-          }`}
-          onClick={() => onSelect(option.type)}
-        >
-          <div className="flex items-center gap-4">
-            <div className={`${selected === option.type ? 'text-primary' : 'text-muted-foreground'}`}>
-              {option.icon}
-            </div>
-            <div className="flex-1">
-              <div className="font-semibold">{option.label}</div>
-              <div className="text-sm text-muted-foreground">{option.description}</div>
-            </div>
-            {selected === option.type && (
-              <Check className="h-5 w-5 text-primary" />
-            )}
+      <Card
+        className="p-4 border-primary bg-primary/5 ring-2 ring-primary"
+      >
+        <div className="flex items-center gap-4">
+          <div className="text-primary">
+            <Dumbbell className="h-8 w-8" />
           </div>
-        </Card>
-      ))}
+          <div className="flex-1">
+            <div className="font-semibold">Gimnasio</div>
+            <div className="text-sm text-muted-foreground">Gestiona miembros, clases y pagos</div>
+          </div>
+          <Check className="h-5 w-5 text-primary" />
+        </div>
+      </Card>
+      <p className="text-sm text-muted-foreground text-center">
+        Proximamente: Hoteleria, Habitos y mas
+      </p>
     </div>
   );
 };

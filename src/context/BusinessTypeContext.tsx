@@ -81,25 +81,13 @@ export const BusinessTypeProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setBusinessTypeState(type);
   }, [getStorageKey]);
 
-  // Auto-detect business type from route if not set
+  // Auto-set gym as default business type (only gym is enabled currently)
   useEffect(() => {
     if (!businessType && isAuthenticated && !isLoading) {
-      const path = location.pathname;
-      let detectedType: BusinessType = null;
-
-      if (path.startsWith('/gym')) {
-        detectedType = 'gym';
-      } else if (path.startsWith('/hotel')) {
-        detectedType = 'hotel';
-      } else if (path.startsWith('/habits') || path.startsWith('/nudges')) {
-        detectedType = 'habits';
-      }
-
-      if (detectedType) {
-        setBusinessType(detectedType);
-      }
+      // Default to gym since it's the only enabled business type
+      setBusinessType('gym');
     }
-  }, [businessType, location.pathname, isAuthenticated, isLoading, setBusinessType]);
+  }, [businessType, isAuthenticated, isLoading, setBusinessType]);
 
   const businessConfig = businessType ? businessConfigs[businessType] : null;
 

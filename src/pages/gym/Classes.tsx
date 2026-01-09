@@ -104,9 +104,9 @@ const Classes = () => {
     class_type: 'group',
   });
 
-  const [scheduleForm, setScheduleForm] = useState<CreateScheduleInput>({
+  const [scheduleForm, setScheduleForm] = useState<Omit<CreateScheduleInput, 'day_of_week'> & { days_of_week: number[] }>({
     class_id: '',
-    day_of_week: 0,
+    days_of_week: [],
     start_time: '09:00',
     end_time: '10:00',
     room: '',
@@ -150,12 +150,25 @@ const Classes = () => {
   };
 
   const handleCreateSchedule = async () => {
+    if (scheduleForm.days_of_week.length === 0) return;
+
     try {
-      await createSchedule.mutateAsync(scheduleForm);
+      // Create a schedule for each selected day
+      const promises = scheduleForm.days_of_week.map(day =>
+        createSchedule.mutateAsync({
+          class_id: scheduleForm.class_id,
+          day_of_week: day,
+          start_time: scheduleForm.start_time,
+          end_time: scheduleForm.end_time,
+          room: scheduleForm.room,
+        })
+      );
+
+      await Promise.all(promises);
       setIsScheduleDialogOpen(false);
       setScheduleForm({
         class_id: '',
-        day_of_week: 0,
+        days_of_week: [],
         start_time: '09:00',
         end_time: '10:00',
         room: '',
@@ -671,22 +684,33 @@ const Classes = () => {
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="day">Dia</Label>
-                <Select
-                  value={scheduleForm.day_of_week.toString()}
-                  onValueChange={(value) => setScheduleForm({ ...scheduleForm, day_of_week: parseInt(value) })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {days.map((day) => (
-                      <SelectItem key={day.value} value={day.value.toString()}>
+                <Label>Dias</Label>
+                <div className="flex flex-wrap gap-2">
+                  {days.map((day) => (
+                    <div key={day.value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`day-${day.value}`}
+                        checked={scheduleForm.days_of_week.includes(day.value)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setScheduleForm({
+                              ...scheduleForm,
+                              days_of_week: [...scheduleForm.days_of_week, day.value].sort((a, b) => a - b),
+                            });
+                          } else {
+                            setScheduleForm({
+                              ...scheduleForm,
+                              days_of_week: scheduleForm.days_of_week.filter(d => d !== day.value),
+                            });
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`day-${day.value}`} className="text-sm font-normal cursor-pointer">
                         {day.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                      </Label>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
@@ -722,9 +746,14 @@ const Classes = () => {
               <Button variant="outline" onClick={() => setIsScheduleDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handleCreateSchedule} disabled={createSchedule.isPending || !scheduleForm.class_id}>
+              <Button
+                onClick={handleCreateSchedule}
+                disabled={createSchedule.isPending || !scheduleForm.class_id || scheduleForm.days_of_week.length === 0}
+              >
                 {createSchedule.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Crear Horario
+                {scheduleForm.days_of_week.length > 1
+                  ? `Crear ${scheduleForm.days_of_week.length} Horarios`
+                  : 'Crear Horario'}
               </Button>
             </DialogFooter>
           </DialogContent>

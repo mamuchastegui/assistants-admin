@@ -8,7 +8,7 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "test": "node test/interceptor.test.js && node test/eventSourceSubscriber.test.js",
+    "test": "node test/interceptor.test.js && node test/eventSourceSubscriber.test.js && node test/planValidation.test.js",
     "preview": "vite preview"
   },
   "dependencies": {

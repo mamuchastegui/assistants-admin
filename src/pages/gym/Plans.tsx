@@ -117,13 +117,13 @@ export default function Plans() {
 
   const getDurationLabel = (duration: string, days: number) => {
     const labels: Record<string, string> = {
-      daily: 'Daily',
-      weekly: 'Weekly',
-      monthly: 'Monthly',
-      quarterly: '3 Months',
-      semiannual: '6 Months',
-      annual: 'Annual',
-      custom: `${days} days`,
+      daily: 'Diario',
+      weekly: 'Semanal',
+      monthly: 'Mensual',
+      quarterly: '3 Meses',
+      semiannual: '6 Meses',
+      annual: 'Anual',
+      custom: `${days} dias`,
     };
     return labels[duration] || duration;
   };
@@ -144,43 +144,43 @@ export default function Plans() {
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Membership Plans</h1>
+        <h1 className="text-3xl font-bold">Planes de Membresia</h1>
         <Button className="gap-2" onClick={() => setShowCreateDialog(true)}>
           <Plus className="h-4 w-4" />
-          New Plan
+          Nuevo Plan
         </Button>
       </div>
 
-      {/* Filter tabs */}
+      {/* Filtros */}
       <div className="flex gap-2 mb-6">
         <Button
           variant={filterVisible === undefined ? 'default' : 'outline'}
           onClick={() => setFilterVisible(undefined)}
           size="sm"
         >
-          All Plans
+          Todos
         </Button>
         <Button
           variant={filterVisible === true ? 'default' : 'outline'}
           onClick={() => setFilterVisible(true)}
           size="sm"
         >
-          Visible Only
+          Solo Visibles
         </Button>
         <Button
           variant={filterVisible === false ? 'default' : 'outline'}
           onClick={() => setFilterVisible(false)}
           size="sm"
         >
-          Hidden Only
+          Solo Ocultos
         </Button>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Plans Overview</CardTitle>
+          <CardTitle>Vista General de Planes</CardTitle>
           <CardDescription>
-            Manage your gym membership plans and pricing
+            Gestiona los planes de membresia y precios de tu gimnasio
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -193,14 +193,14 @@ export default function Plans() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Plan</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Duration</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Discount</TableHead>
-                  <TableHead>Final Price</TableHead>
-                  <TableHead>Members</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Duracion</TableHead>
+                  <TableHead>Precio</TableHead>
+                  <TableHead>Descuento</TableHead>
+                  <TableHead>Precio Final</TableHead>
+                  <TableHead>Miembros</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -244,9 +244,9 @@ export default function Plans() {
                     <TableCell>
                       <div className="flex gap-2">
                         {plan.is_active ? (
-                          <Badge variant="default">Active</Badge>
+                          <Badge variant="default">Activo</Badge>
                         ) : (
-                          <Badge variant="secondary">Inactive</Badge>
+                          <Badge variant="secondary">Inactivo</Badge>
                         )}
                         {plan.is_visible ? (
                           <Badge variant="outline">
@@ -256,7 +256,7 @@ export default function Plans() {
                         ) : (
                           <Badge variant="outline">
                             <EyeOff className="h-3 w-3 mr-1" />
-                            Hidden
+                            Oculto
                           </Badge>
                         )}
                       </div>
@@ -269,11 +269,11 @@ export default function Plans() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="gap-2">
                             <Edit className="h-4 w-4" />
-                            Edit Plan
+                            Editar Plan
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="gap-2"
@@ -284,7 +284,7 @@ export default function Plans() {
                             }}
                           >
                             <DollarSign className="h-4 w-4" />
-                            Update Price
+                            Actualizar Precio
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="gap-2"
@@ -295,7 +295,7 @@ export default function Plans() {
                             }}
                           >
                             <Percent className="h-4 w-4" />
-                            Set Discount
+                            Aplicar Descuento
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="gap-2"
@@ -304,12 +304,12 @@ export default function Plans() {
                             {plan.is_visible ? (
                               <>
                                 <EyeOff className="h-4 w-4" />
-                                Hide Plan
+                                Ocultar Plan
                               </>
                             ) : (
                               <>
                                 <Eye className="h-4 w-4" />
-                                Show Plan
+                                Mostrar Plan
                               </>
                             )}
                           </DropdownMenuItem>
@@ -323,7 +323,7 @@ export default function Plans() {
                             }}
                           >
                             <Trash2 className="h-4 w-4" />
-                            Delete Plan
+                            Eliminar Plan
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -336,38 +336,38 @@ export default function Plans() {
         </CardContent>
       </Card>
 
-      {/* Delete Plan Dialog */}
+      {/* Dialog Eliminar Plan */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Plan</DialogTitle>
+            <DialogTitle>Eliminar Plan</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{selectedPlan?.name}"? This action cannot be undone.
+              ¿Estas seguro que deseas eliminar "{selectedPlan?.name}"? Esta accion no se puede deshacer.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-              Cancel
+              Cancelar
             </Button>
             <Button variant="destructive" onClick={handleDeletePlan}>
-              Delete Plan
+              Eliminar Plan
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Update Price Dialog */}
+      {/* Dialog Actualizar Precio */}
       <Dialog open={showPriceDialog} onOpenChange={setShowPriceDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Update Price</DialogTitle>
+            <DialogTitle>Actualizar Precio</DialogTitle>
             <DialogDescription>
-              Set a new price for "{selectedPlan?.name}"
+              Establecer un nuevo precio para "{selectedPlan?.name}"
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="price">New Price (ARS)</Label>
+              <Label htmlFor="price">Nuevo Precio (ARS)</Label>
               <Input
                 id="price"
                 type="number"
@@ -379,33 +379,33 @@ export default function Plans() {
             </div>
             {selectedPlan && (
               <div className="text-sm text-muted-foreground">
-                Current price: {formatPrice(selectedPlan.price)}
+                Precio actual: {formatPrice(selectedPlan.price)}
               </div>
             )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowPriceDialog(false)}>
-              Cancel
+              Cancelar
             </Button>
             <Button onClick={handleUpdatePrice}>
-              Update Price
+              Actualizar Precio
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Update Discount Dialog */}
+      {/* Dialog Descuento */}
       <Dialog open={showDiscountDialog} onOpenChange={setShowDiscountDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Set Discount</DialogTitle>
+            <DialogTitle>Aplicar Descuento</DialogTitle>
             <DialogDescription>
-              Apply a discount percentage to "{selectedPlan?.name}"
+              Aplicar un porcentaje de descuento a "{selectedPlan?.name}"
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="discount">Discount Percentage (%)</Label>
+              <Label htmlFor="discount">Porcentaje de Descuento (%)</Label>
               <Input
                 id="discount"
                 type="number"
@@ -414,33 +414,33 @@ export default function Plans() {
                 max="100"
                 value={newDiscount}
                 onChange={(e) => setNewDiscount(e.target.value)}
-                placeholder="Leave empty to remove discount"
+                placeholder="Dejar vacio para quitar descuento"
               />
             </div>
             {selectedPlan && selectedPlan.discount_percentage && (
               <div className="text-sm text-muted-foreground">
-                Current discount: {selectedPlan.discount_percentage}%
+                Descuento actual: {selectedPlan.discount_percentage}%
               </div>
             )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDiscountDialog(false)}>
-              Cancel
+              Cancelar
             </Button>
             <Button onClick={handleUpdateDiscount}>
-              {newDiscount ? 'Apply Discount' : 'Remove Discount'}
+              {newDiscount ? 'Aplicar Descuento' : 'Quitar Descuento'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Create Plan Dialog */}
+      {/* Dialog Crear Plan */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Create New Plan</DialogTitle>
+            <DialogTitle>Crear Nuevo Plan</DialogTitle>
             <DialogDescription>
-              Define a new membership plan for your gym
+              Define un nuevo plan de membresia para tu gimnasio
             </DialogDescription>
           </DialogHeader>
           <PlanForm

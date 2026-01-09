@@ -27,12 +27,12 @@ import { X } from 'lucide-react';
 import { CreatePlanInput, UpdatePlanInput, GymPlan } from '@/hooks/gym/useGymPlans';
 
 const formSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  description: z.string().min(1, 'Description is required'),
+  name: z.string().min(1, 'El nombre es requerido'),
+  description: z.string().min(1, 'La descripcion es requerida'),
   plan_type: z.enum(['basic', 'standard', 'premium', 'vip', 'student', 'corporate', 'family']),
   duration: z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'semiannual', 'annual', 'custom']),
-  duration_days: z.coerce.number().min(1, 'Duration must be at least 1 day'),
-  price: z.coerce.number().min(0, 'Price must be positive'),
+  duration_days: z.coerce.number().min(1, 'La duracion debe ser al menos 1 dia'),
+  price: z.coerce.number().min(1, 'El precio debe ser mayor a 0'),
   enrollment_fee: z.coerce.number().optional(),
   discount_percentage: z.coerce.number().min(0).max(100).optional(),
   max_freezes_allowed: z.coerce.number().min(0).default(0),
@@ -60,13 +60,13 @@ interface PlanFormProps {
 }
 
 const durationOptions = [
-  { value: 'daily', label: 'Daily', days: 1 },
-  { value: 'weekly', label: 'Weekly', days: 7 },
-  { value: 'monthly', label: 'Monthly', days: 30 },
-  { value: 'quarterly', label: 'Quarterly (3 months)', days: 90 },
-  { value: 'semiannual', label: 'Semi-annual (6 months)', days: 180 },
-  { value: 'annual', label: 'Annual', days: 365 },
-  { value: 'custom', label: 'Custom', days: 0 },
+  { value: 'daily', label: 'Diario', days: 1 },
+  { value: 'weekly', label: 'Semanal', days: 7 },
+  { value: 'monthly', label: 'Mensual', days: 30 },
+  { value: 'quarterly', label: 'Trimestral (3 meses)', days: 90 },
+  { value: 'semiannual', label: 'Semestral (6 meses)', days: 180 },
+  { value: 'annual', label: 'Anual', days: 365 },
+  { value: 'custom', label: 'Personalizado', days: 0 },
 ];
 
 export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps) {
@@ -155,18 +155,18 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Basic Information */}
+        {/* Informacion Basica */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Basic Information</h3>
+          <h3 className="text-lg font-semibold">Informacion Basica</h3>
 
           <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Plan Name</FormLabel>
+                <FormLabel>Nombre del Plan</FormLabel>
                 <FormControl>
-                  <Input placeholder="Premium Monthly" {...field} />
+                  <Input placeholder="Plan Mensual Premium" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -178,10 +178,10 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Description</FormLabel>
+                <FormLabel>Descripcion</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Describe what this plan includes..."
+                    placeholder="Describe que incluye este plan..."
                     {...field}
                   />
                 </FormControl>
@@ -196,21 +196,21 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
               name="plan_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Plan Type</FormLabel>
+                  <FormLabel>Tipo de Plan</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select type" />
+                        <SelectValue placeholder="Seleccionar tipo" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="basic">Basic</SelectItem>
-                      <SelectItem value="standard">Standard</SelectItem>
+                      <SelectItem value="basic">Basico</SelectItem>
+                      <SelectItem value="standard">Estandar</SelectItem>
                       <SelectItem value="premium">Premium</SelectItem>
                       <SelectItem value="vip">VIP</SelectItem>
-                      <SelectItem value="student">Student</SelectItem>
-                      <SelectItem value="corporate">Corporate</SelectItem>
-                      <SelectItem value="family">Family</SelectItem>
+                      <SelectItem value="student">Estudiante</SelectItem>
+                      <SelectItem value="corporate">Corporativo</SelectItem>
+                      <SelectItem value="family">Familiar</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -223,7 +223,7 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
               name="duration"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Duration</FormLabel>
+                  <FormLabel>Duracion</FormLabel>
                   <Select
                     onValueChange={(value) => {
                       field.onChange(value);
@@ -233,7 +233,7 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select duration" />
+                        <SelectValue placeholder="Seleccionar duracion" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -256,7 +256,7 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
               name="duration_days"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Custom Duration (days)</FormLabel>
+                  <FormLabel>Duracion Personalizada (dias)</FormLabel>
                   <FormControl>
                     <Input type="number" min="1" {...field} />
                   </FormControl>
@@ -267,9 +267,9 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
           )}
         </div>
 
-        {/* Pricing */}
+        {/* Precios */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Pricing</h3>
+          <h3 className="text-lg font-semibold">Precios</h3>
 
           <div className="grid grid-cols-2 gap-4">
             <FormField
@@ -277,9 +277,9 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
               name="price"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Monthly Price (ARS)</FormLabel>
+                  <FormLabel>Precio (ARS)</FormLabel>
                   <FormControl>
-                    <Input type="number" step="0.01" min="0" {...field} />
+                    <Input type="number" step="0.01" min="1" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -291,7 +291,7 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
               name="enrollment_fee"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Enrollment Fee (optional)</FormLabel>
+                  <FormLabel>Cuota de Inscripcion (opcional)</FormLabel>
                   <FormControl>
                     <Input type="number" step="0.01" min="0" {...field} />
                   </FormControl>
@@ -307,7 +307,7 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
               name="discount_percentage"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Discount % (optional)</FormLabel>
+                  <FormLabel>Descuento % (opcional)</FormLabel>
                   <FormControl>
                     <Input type="number" min="0" max="100" {...field} />
                   </FormControl>
@@ -321,12 +321,12 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
               name="renewal_discount_percentage"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Renewal Discount % (optional)</FormLabel>
+                  <FormLabel>Descuento Renovacion % (opcional)</FormLabel>
                   <FormControl>
                     <Input type="number" min="0" max="100" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Applied on auto-renewal
+                    Aplicado en renovacion automatica
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -335,15 +335,15 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
           </div>
         </div>
 
-        {/* Features */}
+        {/* Caracteristicas */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Features & Access</h3>
+          <h3 className="text-lg font-semibold">Caracteristicas y Acceso</h3>
 
           <div className="space-y-2">
-            <FormLabel>Plan Features</FormLabel>
+            <FormLabel>Caracteristicas del Plan</FormLabel>
             <div className="flex gap-2">
               <Input
-                placeholder="Add a feature..."
+                placeholder="Agregar caracteristica..."
                 value={newFeature}
                 onChange={(e) => setNewFeature(e.target.value)}
                 onKeyPress={(e) => {
@@ -353,7 +353,7 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
                   }
                 }}
               />
-              <Button type="button" onClick={handleAddFeature}>Add</Button>
+              <Button type="button" onClick={handleAddFeature}>Agregar</Button>
             </div>
             <div className="flex flex-wrap gap-2 mt-2">
               {form.watch('features').map((feature, index) => (
@@ -369,10 +369,10 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
           </div>
 
           <div className="space-y-2">
-            <FormLabel>Class Access</FormLabel>
+            <FormLabel>Acceso a Clases</FormLabel>
             <div className="flex gap-2">
               <Input
-                placeholder="Add a class type..."
+                placeholder="Agregar tipo de clase..."
                 value={newClass}
                 onChange={(e) => setNewClass(e.target.value)}
                 onKeyPress={(e) => {
@@ -382,7 +382,7 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
                   }
                 }}
               />
-              <Button type="button" onClick={handleAddClass}>Add</Button>
+              <Button type="button" onClick={handleAddClass}>Agregar</Button>
             </div>
             <div className="flex flex-wrap gap-2 mt-2">
               {form.watch('class_access').map((cls, index) => (
@@ -403,9 +403,9 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
               name="classes_per_week_limit"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Classes per Week Limit</FormLabel>
+                  <FormLabel>Limite de Clases por Semana</FormLabel>
                   <FormControl>
-                    <Input type="number" min="0" placeholder="Unlimited" {...field} />
+                    <Input type="number" min="0" placeholder="Ilimitado" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -417,7 +417,7 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
               name="guest_passes_per_month"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Guest Passes per Month</FormLabel>
+                  <FormLabel>Pases de Invitado por Mes</FormLabel>
                   <FormControl>
                     <Input type="number" min="0" {...field} />
                   </FormControl>
@@ -433,7 +433,7 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
               name="access_hours_start"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Access Hours Start</FormLabel>
+                  <FormLabel>Horario de Acceso Desde</FormLabel>
                   <FormControl>
                     <Input type="time" {...field} />
                   </FormControl>
@@ -447,7 +447,7 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
               name="access_hours_end"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Access Hours End</FormLabel>
+                  <FormLabel>Horario de Acceso Hasta</FormLabel>
                   <FormControl>
                     <Input type="time" {...field} />
                   </FormControl>
@@ -458,9 +458,9 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
           </div>
         </div>
 
-        {/* Membership Rules */}
+        {/* Reglas de Membresia */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Membership Rules</h3>
+          <h3 className="text-lg font-semibold">Reglas de Membresia</h3>
 
           <div className="grid grid-cols-2 gap-4">
             <FormField
@@ -468,12 +468,12 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
               name="max_freezes_allowed"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Max Freezes Allowed</FormLabel>
+                  <FormLabel>Congelamientos Permitidos</FormLabel>
                   <FormControl>
                     <Input type="number" min="0" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Number of times membership can be frozen
+                    Cantidad de veces que se puede congelar la membresia
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -485,12 +485,12 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
               name="max_freeze_days"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Max Freeze Days</FormLabel>
+                  <FormLabel>Dias de Congelamiento</FormLabel>
                   <FormControl>
                     <Input type="number" min="0" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Total days membership can be frozen
+                    Total de dias que se puede congelar la membresia
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -503,12 +503,12 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
             name="max_members"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Max Members (optional)</FormLabel>
+                <FormLabel>Maximo de Miembros (opcional)</FormLabel>
                 <FormControl>
-                  <Input type="number" min="0" placeholder="Unlimited" {...field} />
+                  <Input type="number" min="0" placeholder="Ilimitado" {...field} />
                 </FormControl>
                 <FormDescription>
-                  Maximum number of members allowed on this plan
+                  Cantidad maxima de miembros permitidos en este plan
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -516,9 +516,9 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
           />
         </div>
 
-        {/* Settings */}
+        {/* Configuracion */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Settings</h3>
+          <h3 className="text-lg font-semibold">Configuracion</h3>
 
           <FormField
             control={form.control}
@@ -526,9 +526,9 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
             render={({ field }) => (
               <FormItem className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
-                  <FormLabel className="text-base">Weekend Access</FormLabel>
+                  <FormLabel className="text-base">Acceso Fin de Semana</FormLabel>
                   <FormDescription>
-                    Members can access the gym on weekends
+                    Los miembros pueden acceder al gimnasio los fines de semana
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -547,9 +547,9 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
             render={({ field }) => (
               <FormItem className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
-                  <FormLabel className="text-base">Auto Renew</FormLabel>
+                  <FormLabel className="text-base">Renovacion Automatica</FormLabel>
                   <FormDescription>
-                    Automatically renew membership at the end of period
+                    Renovar automaticamente la membresia al final del periodo
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -568,9 +568,9 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
             render={({ field }) => (
               <FormItem className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
-                  <FormLabel className="text-base">Active</FormLabel>
+                  <FormLabel className="text-base">Activo</FormLabel>
                   <FormDescription>
-                    Plan is currently active
+                    El plan esta actualmente activo
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -591,7 +591,7 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
                 <div className="space-y-0.5">
                   <FormLabel className="text-base">Visible</FormLabel>
                   <FormDescription>
-                    Show plan to new members during signup
+                    Mostrar plan a nuevos miembros durante el registro
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -605,14 +605,14 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
           />
         </div>
 
-        {/* Tags */}
+        {/* Etiquetas */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Tags</h3>
+          <h3 className="text-lg font-semibold">Etiquetas</h3>
 
           <div className="space-y-2">
             <div className="flex gap-2">
               <Input
-                placeholder="Add a tag..."
+                placeholder="Agregar etiqueta..."
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
                 onKeyPress={(e) => {
@@ -622,7 +622,7 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
                   }
                 }}
               />
-              <Button type="button" onClick={handleAddTag}>Add</Button>
+              <Button type="button" onClick={handleAddTag}>Agregar</Button>
             </div>
             <div className="flex flex-wrap gap-2 mt-2">
               {form.watch('tags').map((tag, index) => (
@@ -640,10 +640,10 @@ export function PlanForm({ plan, onSubmit, onCancel, isLoading }: PlanFormProps)
 
         <div className="flex justify-end gap-4">
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
+            Cancelar
           </Button>
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Saving...' : plan ? 'Update Plan' : 'Create Plan'}
+            {isLoading ? 'Guardando...' : plan ? 'Actualizar Plan' : 'Crear Plan'}
           </Button>
         </div>
       </form>

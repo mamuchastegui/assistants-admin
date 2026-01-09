@@ -138,10 +138,10 @@ export const useGymPlans = () => {
       },
       onSuccess: (data) => {
         queryClient.invalidateQueries({ queryKey: PLANS_QUERY_KEY });
-        toast.success(`Plan "${data.name}" created successfully`);
+        toast.success(`Plan "${data.name}" creado exitosamente`);
       },
       onError: (error: any) => {
-        const message = error.response?.data?.detail || 'Failed to create plan';
+        const message = error.response?.data?.detail || 'Error al crear el plan';
         toast.error(message);
       },
     });
@@ -157,10 +157,10 @@ export const useGymPlans = () => {
       onSuccess: (data) => {
         queryClient.invalidateQueries({ queryKey: [...PLANS_QUERY_KEY, data.plan_id] });
         queryClient.invalidateQueries({ queryKey: [...PLANS_QUERY_KEY, 'list'] });
-        toast.success(`Plan "${data.name}" updated successfully`);
+        toast.success(`Plan "${data.name}" actualizado exitosamente`);
       },
       onError: (error: any) => {
-        const message = error.response?.data?.detail || 'Failed to update plan';
+        const message = error.response?.data?.detail || 'Error al actualizar el plan';
         toast.error(message);
       },
     });
@@ -175,10 +175,10 @@ export const useGymPlans = () => {
       },
       onSuccess: (_, planId) => {
         queryClient.invalidateQueries({ queryKey: PLANS_QUERY_KEY });
-        toast.success('Plan deleted successfully');
+        toast.success('Plan eliminado exitosamente');
       },
       onError: (error: any) => {
-        const message = error.response?.data?.detail || 'Failed to delete plan';
+        const message = error.response?.data?.detail || 'Error al eliminar el plan';
         toast.error(message);
       },
     });
@@ -194,10 +194,10 @@ export const useGymPlans = () => {
       onSuccess: (_, { planId }) => {
         queryClient.invalidateQueries({ queryKey: [...PLANS_QUERY_KEY, planId] });
         queryClient.invalidateQueries({ queryKey: [...PLANS_QUERY_KEY, 'list'] });
-        toast.success('Price updated successfully');
+        toast.success('Precio actualizado exitosamente');
       },
       onError: (error: any) => {
-        const message = error.response?.data?.detail || 'Failed to update price';
+        const message = error.response?.data?.detail || 'Error al actualizar el precio';
         toast.error(message);
       },
     });
@@ -213,10 +213,10 @@ export const useGymPlans = () => {
       onSuccess: (data, { planId }) => {
         queryClient.invalidateQueries({ queryKey: [...PLANS_QUERY_KEY, planId] });
         queryClient.invalidateQueries({ queryKey: [...PLANS_QUERY_KEY, 'list'] });
-        toast.success(data.message);
+        toast.success('Descuento actualizado exitosamente');
       },
       onError: (error: any) => {
-        const message = error.response?.data?.detail || 'Failed to update discount';
+        const message = error.response?.data?.detail || 'Error al actualizar el descuento';
         toast.error(message);
       },
     });
@@ -232,11 +232,11 @@ export const useGymPlans = () => {
       onSuccess: (data, planId) => {
         queryClient.invalidateQueries({ queryKey: [...PLANS_QUERY_KEY, planId] });
         queryClient.invalidateQueries({ queryKey: [...PLANS_QUERY_KEY, 'list'] });
-        const status = data.is_visible ? 'visible' : 'hidden';
-        toast.success(`Plan is now ${status}`);
+        const status = data.is_visible ? 'visible' : 'oculto';
+        toast.success(`El plan ahora esta ${status}`);
       },
       onError: (error: any) => {
-        const message = error.response?.data?.detail || 'Failed to toggle visibility';
+        const message = error.response?.data?.detail || 'Error al cambiar visibilidad';
         toast.error(message);
       },
     });

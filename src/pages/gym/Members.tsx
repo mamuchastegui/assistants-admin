@@ -61,6 +61,7 @@ const Members = () => {
   const [showMemberForm, setShowMemberForm] = useState(false);
   const [editingMember, setEditingMember] = useState<any>(null);
   const [draftFormData, setDraftFormData] = useState<any>(null);
+  const [viewingMember, setViewingMember] = useState<any>(null);
   const { toast } = useToast();
 
   const {
@@ -440,8 +441,15 @@ const Members = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem>Ver detalle</DropdownMenuItem>
-                                <DropdownMenuItem>Editar</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setViewingMember(member)}>
+                                  Ver detalle
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => {
+                                  setEditingMember(member);
+                                  setShowMemberForm(true);
+                                }}>
+                                  Editar
+                                </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem onClick={() => handleCheckIn(member.member_id)}>
                                   Registrar Check-in
@@ -556,6 +564,132 @@ const Members = () => {
                 isLoading={createMember.isPending || updateMember.isPending}
               />
             </div>
+          </SheetContent>
+        </Sheet>
+
+        {/* Member Details Sheet */}
+        <Sheet open={!!viewingMember} onOpenChange={(open) => !open && setViewingMember(null)}>
+          <SheetContent className="sm:max-w-lg overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle>Detalles del Miembro</SheetTitle>
+              <SheetDescription>
+                Informacion completa del miembro
+              </SheetDescription>
+            </SheetHeader>
+            {viewingMember && (
+              <div className="mt-6 space-y-6">
+                {/* Basic Info */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Informacion Personal</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Nombre</p>
+                      <p className="font-medium">{viewingMember.full_name || `${viewingMember.first_name} ${viewingMember.last_name}`}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Estado</p>
+                      {getStatusBadge(viewingMember.status)}
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Email</p>
+                      <p className="font-medium">{viewingMember.email || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Telefono</p>
+                      <p className="font-medium">{viewingMember.phone || '-'}</p>
+                    </div>
+                    {viewingMember.dni && (
+                      <div>
+                        <p className="text-muted-foreground">DNI</p>
+                        <p className="font-medium">{viewingMember.dni}</p>
+                      </div>
+                    )}
+                    {viewingMember.date_of_birth && (
+                      <div>
+                        <p className="text-muted-foreground">Fecha de Nacimiento</p>
+                        <p className="font-medium">{formatDate(viewingMember.date_of_birth)}</p>
+                      </div>
+                    )}
+                    {viewingMember.emergency_contact_name && (
+                      <div className="col-span-2">
+                        <p className="text-muted-foreground">Contacto de Emergencia</p>
+                        <p className="font-medium">
+                          {viewingMember.emergency_contact_name}
+                          {viewingMember.emergency_contact_phone && ` - ${viewingMember.emergency_contact_phone}`}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Membership Info */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Membresia</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Plan</p>
+                      <p className="font-medium">{viewingMember.plan_name || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Fecha de Alta</p>
+                      <p className="font-medium">{formatDate(viewingMember.join_date)}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Inicio Membresia</p>
+                      <p className="font-medium">{formatDate(viewingMember.membership_start_date)}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Vencimiento</p>
+                      <p className="font-medium">{formatDate(viewingMember.membership_end_date)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Check-in Stats */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Actividad</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Total Check-ins</p>
+                      <p className="font-medium">{viewingMember.total_check_ins || 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Ultimo Check-in</p>
+                      <p className="font-medium">{formatDateTime(viewingMember.last_check_in)}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Check-ins este Mes</p>
+                      <p className="font-medium">{viewingMember.check_ins_this_month || 0}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notes */}
+                {viewingMember.notes && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Notas</h3>
+                    <p className="text-sm">{viewingMember.notes}</p>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex gap-2 pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setViewingMember(null);
+                      setEditingMember(viewingMember);
+                      setShowMemberForm(true);
+                    }}
+                  >
+                    Editar
+                  </Button>
+                  <Button onClick={() => handleCheckIn(viewingMember.member_id)}>
+                    Registrar Check-in
+                  </Button>
+                </div>
+              </div>
+            )}
           </SheetContent>
         </Sheet>
       </div>

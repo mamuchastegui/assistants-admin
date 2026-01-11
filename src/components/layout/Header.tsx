@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Bell, LogOut, Search, Dumbbell, Building2 } from "lucide-react";
+import { Bell, LogOut, Search, Dumbbell, Building2, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { LogoutButton } from "@/components/LogoutButton";
 import NotificationCounter from "@/components/notifications/NotificationCounter";
 import { useBusinessType, BusinessType } from "@/context/BusinessTypeContext";
+import { useTenantInfo } from "@/hooks/useTenantInfo";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,8 +42,10 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
   const isMobile = useIsMobile();
   const { openMobile } = useSidebar();
   const [showSearch, setShowSearch] = React.useState(false);
+  const [copiedTenantId, setCopiedTenantId] = React.useState(false);
   const authContext = useAuth();
   const { businessType, setBusinessType } = useBusinessType();
+  const { data: tenantInfo } = useTenantInfo();
 
   // Admin email that can change business type
   const ADMIN_EMAIL = 'matias@condamind.com';
@@ -75,6 +78,15 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
   const isAdmin = () => {
     const user = getUserData();
     return user?.email === ADMIN_EMAIL;
+  };
+
+  // Copy tenant ID to clipboard
+  const copyTenantId = async () => {
+    if (tenantInfo?.id) {
+      await navigator.clipboard.writeText(tenantInfo.id);
+      setCopiedTenantId(true);
+      setTimeout(() => setCopiedTenantId(false), 2000);
+    }
   };
   
   return (
@@ -145,7 +157,7 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
                   {getUserInitials()}
                 </motion.span>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="w-64">
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">{getUserData().name}</p>
@@ -159,6 +171,34 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                {tenantInfo && (
+                  <>
+                    <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                      Tenant
+                    </DropdownMenuLabel>
+                    <div className="px-2 py-1.5">
+                      <p className="text-sm font-medium">{tenantInfo.name}</p>
+                      <div className="flex items-center justify-between mt-1">
+                        <code className="text-[10px] text-muted-foreground font-mono bg-muted px-1 py-0.5 rounded truncate max-w-[180px]">
+                          {tenantInfo.id}
+                        </code>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-5 w-5 ml-1"
+                          onClick={copyTenantId}
+                        >
+                          {copiedTenantId ? (
+                            <Check className="h-3 w-3 text-green-500" />
+                          ) : (
+                            <Copy className="h-3 w-3" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
                 {isAdmin() && (
                   <DropdownMenuSub>
                     <DropdownMenuSubTrigger>

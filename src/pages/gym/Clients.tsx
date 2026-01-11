@@ -63,6 +63,7 @@ import {
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Progress } from '@/components/ui/progress';
+import TrainerRegistrationPrompt from '@/components/gym/TrainerRegistrationPrompt';
 
 const Clients = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -238,15 +239,10 @@ const Clients = () => {
   if (!trainer) {
     return (
       <DashboardLayout>
-        <div className="text-center py-12">
-          <h1 className="text-2xl font-bold mb-2">No eres un trainer registrado</h1>
-          <p className="text-muted-foreground mb-4">
-            Debes registrarte como trainer para ver tus clientes.
-          </p>
-          <Button onClick={() => window.location.href = '/gym/trainer-settings'}>
-            Ir a Configuracion de Trainer
-          </Button>
-        </div>
+        <TrainerRegistrationPrompt
+          title="Accede a tus clientes"
+          description="Registrate como trainer para gestionar tus clientes y hacer seguimiento de su progreso."
+        />
       </DashboardLayout>
     );
   }

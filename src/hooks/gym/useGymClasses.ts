@@ -10,6 +10,8 @@ export interface GymClass {
   duration_minutes: number;
   max_capacity: number;
   instructor?: string;
+  trainer_id?: string;
+  trainer_name?: string;
   category?: string;
   difficulty_level: 'beginner' | 'intermediate' | 'advanced' | 'all_levels';
   class_type: 'group' | 'individual';
@@ -25,6 +27,7 @@ export interface CreateClassInput {
   duration_minutes?: number;
   max_capacity?: number;
   instructor?: string;
+  trainer_id?: string;
   category?: string;
   difficulty_level?: GymClass['difficulty_level'];
   class_type?: GymClass['class_type'];

@@ -49,10 +49,12 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useWorkoutPlans } from '@/hooks/gym/useWorkoutPlans';
 import { useGymMembers } from '@/hooks/gym/useGymMembers';
+import { useGymTrainer } from '@/hooks/gym/useGymTrainer';
 import { PlanCreateDialog } from '@/components/gym/plans/PlanCreateDialog';
 import { PlanDetailsDialog } from '@/components/gym/plans/PlanDetailsDialog';
 import { PlanAssignDialog } from '@/components/gym/plans/PlanAssignDialog';
 import { MemberProgressView } from '@/components/gym/plans/MemberProgressView';
+import TrainerRegistrationPrompt from '@/components/gym/TrainerRegistrationPrompt';
 
 const WorkoutPlans: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -71,6 +73,10 @@ const WorkoutPlans: React.FC = () => {
   } = useWorkoutPlans();
 
   const { useMembers } = useGymMembers();
+  const { useTrainerProfile } = useGymTrainer();
+
+  // Check if user is a trainer
+  const { data: trainer, isLoading: trainerLoading } = useTrainerProfile();
 
   // Queries
   const { data: allPlans = [], isLoading: loadingPlans } = usePlans();
@@ -149,6 +155,27 @@ const WorkoutPlans: React.FC = () => {
     };
     return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-700';
   };
+
+  // Show loading while checking trainer status
+  if (trainerLoading) {
+    return (
+      <div className="p-6 flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Cargando...</p>
+      </div>
+    );
+  }
+
+  // Show registration prompt if not a trainer
+  if (!trainer) {
+    return (
+      <div className="p-6">
+        <TrainerRegistrationPrompt
+          title="Accede a los Planes de Entrenamiento"
+          description="Registrate como trainer para crear y gestionar planes de entrenamiento personalizados."
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">

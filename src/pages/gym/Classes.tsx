@@ -52,6 +52,7 @@ import { useGymClasses, GymClass, CreateClassInput } from '@/hooks/gym/useGymCla
 import { useGymSchedules, GymSchedule, CreateScheduleInput } from '@/hooks/gym/useGymSchedules';
 import { useGymBookings, GymBooking, CreateBookingInput } from '@/hooks/gym/useGymBookings';
 import { useGymMembers } from '@/hooks/gym/useGymMembers';
+import { useGymTrainer } from '@/hooks/gym/useGymTrainer';
 
 const days = [
   { value: 0, label: 'Lunes' },
@@ -76,12 +77,14 @@ const Classes = () => {
   const { useListSchedules, useCreateSchedule, useDeleteSchedule, useScheduleAvailability } = useGymSchedules();
   const { useListBookings, useCreateBooking, useCancelBooking, useMarkAttendance } = useGymBookings();
   const { useListMembers } = useGymMembers();
+  const { useListTrainers } = useGymTrainer();
 
   // Queries
   const { data: classesData, isLoading: classesLoading } = useListClasses();
   const { data: schedulesData, isLoading: schedulesLoading } = useListSchedules({ day_of_week: selectedDay });
   const { data: bookingsData, isLoading: bookingsLoading } = useListBookings({ date_from: bookingDate, date_to: bookingDate });
   const { data: membersData } = useListMembers({ status: 'active' });
+  const { data: trainersData } = useListTrainers();
 
   // Mutations
   const createClass = useCreateClass();
@@ -99,6 +102,7 @@ const Classes = () => {
     duration_minutes: 60,
     max_capacity: 20,
     instructor: '',
+    trainer_id: '',
     category: '',
     difficulty_level: 'all_levels',
     class_type: 'group',
@@ -124,6 +128,7 @@ const Classes = () => {
   const schedules = schedulesData?.schedules || [];
   const bookings = bookingsData?.bookings || [];
   const members = membersData?.members || [];
+  const trainers = trainersData?.trainers || [];
 
   // Helper to calculate end time based on start time and class duration
   const calculateEndTime = (startTime: string, durationMinutes: number): string => {
@@ -144,7 +149,13 @@ const Classes = () => {
 
   const handleCreateClass = async () => {
     try {
-      await createClass.mutateAsync(classForm);
+      // If trainer_id is selected, don't send instructor string
+      const submitData = {
+        ...classForm,
+        trainer_id: classForm.trainer_id || undefined,
+        instructor: classForm.trainer_id ? undefined : classForm.instructor || undefined,
+      };
+      await createClass.mutateAsync(submitData);
       setIsClassDialogOpen(false);
       setClassForm({
         name: '',
@@ -152,6 +163,7 @@ const Classes = () => {
         duration_minutes: 60,
         max_capacity: 20,
         instructor: '',
+        trainer_id: '',
         category: '',
         difficulty_level: 'all_levels',
         class_type: 'group',
@@ -419,7 +431,7 @@ const Classes = () => {
                             </TableCell>
                             <TableCell>{gymClass.duration_minutes} min</TableCell>
                             <TableCell>{gymClass.max_capacity}</TableCell>
-                            <TableCell>{gymClass.instructor || '-'}</TableCell>
+                            <TableCell>{gymClass.trainer_name || gymClass.instructor || '-'}</TableCell>
                             <TableCell>
                               <Badge variant={gymClass.is_active ? 'default' : 'secondary'}>
                                 {gymClass.is_active ? 'Activa' : 'Inactiva'}
@@ -639,13 +651,36 @@ const Classes = () => {
                 </div>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="instructor">Instructor</Label>
-                <Input
-                  id="instructor"
-                  value={classForm.instructor}
-                  onChange={(e) => setClassForm({ ...classForm, instructor: e.target.value })}
-                  placeholder="Nombre del instructor"
-                />
+                <Label htmlFor="trainer">Trainer / Instructor</Label>
+                {trainers.length > 0 ? (
+                  <Select
+                    value={classForm.trainer_id || 'none'}
+                    onValueChange={(value) => setClassForm({
+                      ...classForm,
+                      trainer_id: value === 'none' ? '' : value,
+                      instructor: value === 'none' ? classForm.instructor : ''
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona un trainer" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sin asignar</SelectItem>
+                      {trainers.map((trainer) => (
+                        <SelectItem key={trainer.id} value={trainer.id}>
+                          {trainer.business_name || 'Trainer'} {trainer.specialty ? `(${trainer.specialty})` : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input
+                    id="instructor"
+                    value={classForm.instructor}
+                    onChange={(e) => setClassForm({ ...classForm, instructor: e.target.value })}
+                    placeholder="Nombre del instructor"
+                  />
+                )}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="description">Descripcion</Label>

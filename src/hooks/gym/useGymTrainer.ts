@@ -132,11 +132,33 @@ export interface ClientUpdateData {
   status?: TrainerClientStatus;
 }
 
+export interface TrainerListItem {
+  id: string;
+  business_name?: string;
+  specialty?: string;
+}
+
 // ==================== HOOK ====================
 
 export const useGymTrainer = () => {
   const authApi = useAuthApi();
   const queryClient = useQueryClient();
+
+  // ==================== TRAINER LIST ====================
+
+  // List all trainers (for dropdowns)
+  const useListTrainers = (activeOnly: boolean = true) => {
+    return useQuery({
+      queryKey: ['gym-trainers-list', activeOnly],
+      queryFn: async () => {
+        const response = await authApi.get(`/api/gym/trainers/list?active_only=${activeOnly}`);
+        return response.data as {
+          trainers: TrainerListItem[];
+          total: number;
+        };
+      },
+    });
+  };
 
   // ==================== TRAINER PROFILE ====================
 
@@ -331,6 +353,8 @@ export const useGymTrainer = () => {
   };
 
   return {
+    // Trainer list
+    useListTrainers,
     // Trainer profile
     useTrainerProfile,
     useRegisterTrainer,

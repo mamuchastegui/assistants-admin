@@ -66,6 +66,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useGymWorkoutPlans, GymWorkoutPlan, GymWorkoutDay } from '@/hooks/gym/useGymWorkoutPlans';
 import { useGymTrainer } from '@/hooks/gym/useGymTrainer';
+import TrainerRegistrationPrompt from '@/components/gym/TrainerRegistrationPrompt';
 
 const AIWorkoutPlans: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -178,6 +179,18 @@ const AIWorkoutPlans: React.FC = () => {
         <div className="p-6 flex items-center justify-center h-64">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Show registration prompt if not a trainer
+  if (!trainerProfile) {
+    return (
+      <DashboardLayout>
+        <TrainerRegistrationPrompt
+          title="Accede a los Planes de IA"
+          description="Registrate como trainer para ver y gestionar planes de entrenamiento generados por IA."
+        />
       </DashboardLayout>
     );
   }

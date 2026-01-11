@@ -11,6 +11,7 @@ import {
   LogIn,
   BookOpen,
   Settings,
+  Target,
   LucideIcon
 } from 'lucide-react';
 
@@ -39,6 +40,7 @@ const gymItems: MenuItem[] = [
   { id: 'checkins', label: 'Check-ins', path: '/gym/checkins', icon: LogIn },
   { id: 'miembros', label: 'Miembros', path: '/gym/members', icon: Users },
   { id: 'planes', label: 'Planes', path: '/gym/plans', icon: Package },
+  { id: 'workout-plans', label: 'Entrenamientos', path: '/gym/workout-plans', icon: Target },
   { id: 'clases', label: 'Clases', path: '/gym/classes', icon: Dumbbell },
   { id: 'pagos', label: 'Pagos', path: '/gym/payments', icon: CreditCard },
   { id: 'docs', label: 'Documentacion', path: '/gym/docs', icon: BookOpen },

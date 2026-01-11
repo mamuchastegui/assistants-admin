@@ -185,6 +185,11 @@ function App() {
                           <GymClients />
                         </PrivateRoute>
                       } />
+                      <Route path="/gym/workout-plans" element={
+                        <PrivateRoute>
+                          <AIWorkoutPlans />
+                        </PrivateRoute>
+                      } />
 
                       {/* Settings route */}
                       <Route path="/settings" element={

@@ -3,6 +3,7 @@
  * These plans have a different structure than the assistants-api workout plans
  */
 import React, { useState } from 'react';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -65,7 +66,6 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useGymWorkoutPlans, GymWorkoutPlan, GymWorkoutDay } from '@/hooks/gym/useGymWorkoutPlans';
 import { useGymTrainer } from '@/hooks/gym/useGymTrainer';
-import { useTenantContext } from '@/contexts/TenantContext';
 
 const AIWorkoutPlans: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -76,8 +76,9 @@ const AIWorkoutPlans: React.FC = () => {
   const [selectedClientId, setSelectedClientId] = useState<string>('');
   const [viewTab, setViewTab] = useState<'all' | 'active' | 'archived'>('all');
 
-  const { tenant } = useTenantContext();
-  const tenantId = tenant?.tenant_id;
+  const { useTrainerProfile, useListClients } = useGymTrainer();
+  const { data: trainerProfile, isLoading: loadingTrainer } = useTrainerProfile();
+  const tenantId = trainerProfile?.tenant_id;
 
   const {
     usePlans,
@@ -87,8 +88,6 @@ const AIWorkoutPlans: React.FC = () => {
     useAssignPlan,
     useDuplicatePlan,
   } = useGymWorkoutPlans();
-
-  const { useListClients } = useGymTrainer();
 
   // Queries
   const { data: plansData, isLoading: loadingPlans } = usePlans({
@@ -173,15 +172,18 @@ const AIWorkoutPlans: React.FC = () => {
     return labels[status as keyof typeof labels] || status;
   };
 
-  if (loadingPlans) {
+  if (loadingPlans || loadingTrainer) {
     return (
-      <div className="p-6 flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
+      <DashboardLayout>
+        <div className="p-6 flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
+    <DashboardLayout>
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
@@ -505,6 +507,7 @@ const AIWorkoutPlans: React.FC = () => {
         </DialogContent>
       </Dialog>
     </div>
+    </DashboardLayout>
   );
 };
 

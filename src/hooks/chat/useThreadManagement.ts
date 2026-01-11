@@ -109,7 +109,7 @@ export const useThreadManagement = ({
     if (!assistantId) return false;
     
     try {
-      const { data } = await authApiClient.patch(`/chat/threads/${threadId}/status`, 
+      const { data } = await authApiClient.patch(`/chat/threads/admin/${threadId}/status`, 
         { status },
         { headers: { "assistant-id": assistantId } }
       );

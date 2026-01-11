@@ -32,6 +32,7 @@ import GymMembers from "./pages/gym/Members";
 import GymClasses from "./pages/gym/Classes";
 import GymPayments from "./pages/gym/Payments";
 import GymPlans from "./pages/gym/Plans";
+import AIWorkoutPlans from "./pages/gym/AIWorkoutPlans";
 import GymCheckIns from "./pages/gym/CheckIns";
 import GymDocumentation from "./pages/gym/Documentation";
 import GymTrainerSettings from "./pages/gym/TrainerSettings";

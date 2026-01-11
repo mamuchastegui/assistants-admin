@@ -103,7 +103,7 @@ export const useConversationManagement = ({
     
     try {
       // Call the API to send a message - changing 'content' to 'message' in the request body
-      const { data } = await authApiClient.post(`/chat/threads/${selectedThread}/reply`, 
+      const { data } = await authApiClient.post(`/chat/threads/admin/${selectedThread}/reply`, 
         { message: content },
         { headers: { "assistant-id": assistantId } }
       );

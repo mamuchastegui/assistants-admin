@@ -54,7 +54,7 @@ export const useThreadManagement = ({
         setError(null);
       }
 
-      const { data } = await authApiClient.get("/chat/threads", {
+      const { data } = await authApiClient.get("/chat/threads/by-assistant", {
         headers: {
           "assistant-id": assistantId
         }

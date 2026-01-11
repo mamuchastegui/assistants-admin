@@ -48,7 +48,7 @@ export const useConversationManagement = ({
         threadSwitchedRef.current = true; // Mark that we've switched threads
       }
 
-      const { data } = await authApiClient.get(`/chat/threads/${threadId}`, {
+      const { data } = await authApiClient.get(`/chat/threads/admin/${threadId}`, {
         headers: {
           "assistant-id": assistantId
         }

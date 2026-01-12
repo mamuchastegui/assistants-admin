@@ -21,139 +21,69 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  Plus,
   Search,
   MoreHorizontal,
-  Copy,
-  UserPlus,
-  Edit,
-  Archive,
-  Trash,
+  Eye,
   Dumbbell,
-  Calendar,
-  TrendingUp,
   Users,
-  FileTemplate,
   Activity,
-  BarChart3
+  ExternalLink,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { useWorkoutPlans } from '@/hooks/gym/useWorkoutPlans';
-import { useGymMembers } from '@/hooks/gym/useGymMembers';
+import { useGymWorkoutPlans, type GymWorkoutPlan } from '@/hooks/gym/useGymWorkoutPlans';
 import { useGymTrainer } from '@/hooks/gym/useGymTrainer';
-import { PlanCreateDialog } from '@/components/gym/plans/PlanCreateDialog';
-import { PlanDetailsDialog } from '@/components/gym/plans/PlanDetailsDialog';
-import { PlanAssignDialog } from '@/components/gym/plans/PlanAssignDialog';
-import { MemberProgressView } from '@/components/gym/plans/MemberProgressView';
 import TrainerRegistrationPrompt from '@/components/gym/TrainerRegistrationPrompt';
 
 const WorkoutPlans: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [showAssignDialog, setShowAssignDialog] = useState(false);
-  const [planToAssign, setPlanToAssign] = useState<string | null>(null);
-  const [viewTab, setViewTab] = useState<'all' | 'templates' | 'active' | 'members'>('all');
+  const [viewTab, setViewTab] = useState<'all' | 'by-client'>('all');
 
-  const {
-    usePlans,
-    useDeletePlan,
-    useUpdatePlan,
-    useDuplicatePlan,
-    useWorkoutStats
-  } = useWorkoutPlans();
-
-  const { useMembers } = useGymMembers();
+  const { usePlans, useTrainerClientPlans } = useGymWorkoutPlans();
   const { useTrainerProfile } = useGymTrainer();
 
   // Check if user is a trainer
   const { data: trainer, isLoading: trainerLoading } = useTrainerProfile();
 
-  // Queries
-  const { data: allPlans = [], isLoading: loadingPlans } = usePlans();
-  const { data: templates = [] } = usePlans({ is_template: true });
-  const { data: activePlans = [] } = usePlans({ status: 'active' });
-  const { data: members = [] } = useMembers();
-  const { data: stats } = useWorkoutStats(30);
+  // Queries - get plans from personal-os-console
+  const { data: plansData, isLoading: loadingPlans } = usePlans();
+  const { data: trainerClientData, isLoading: loadingClientPlans } = useTrainerClientPlans(trainer?.id || '');
 
-  // Mutations
-  const deletePlan = useDeletePlan();
-  const updatePlan = useUpdatePlan();
-  const duplicatePlan = useDuplicatePlan();
+  const allPlans = plansData?.plans || [];
+  const activePlans = allPlans.filter(p => p.status === 'active');
 
   // Filter plans based on search
   const filteredPlans = allPlans.filter(plan => {
     const query = searchQuery.toLowerCase();
+    const programName = plan.plan?.programName?.toLowerCase() || '';
+    const userName = plan.user?.name?.toLowerCase() || '';
+    const userEmail = plan.user?.email?.toLowerCase() || '';
     return (
-      plan.name.toLowerCase().includes(query) ||
-      plan.description?.toLowerCase().includes(query) ||
-      plan.member_name?.toLowerCase().includes(query) ||
-      plan.tags.some(tag => tag.toLowerCase().includes(query))
+      programName.includes(query) ||
+      userName.includes(query) ||
+      userEmail.includes(query)
     );
   });
 
-  const getPlansForView = () => {
-    switch (viewTab) {
-      case 'templates':
-        return templates;
-      case 'active':
-        return activePlans;
-      case 'all':
-      default:
-        return filteredPlans;
-    }
-  };
-
-  const handleDuplicatePlan = async (planId: string) => {
-    const plan = allPlans.find(p => p.plan_id === planId);
-    if (plan) {
-      await duplicatePlan.mutateAsync({
-        planId,
-        newName: `${plan.name} (Copia)`,
-      });
-    }
-  };
-
-  const handleArchivePlan = async (planId: string) => {
-    await updatePlan.mutateAsync({
-      planId,
-      updates: { status: 'archived' }
-    });
-  };
-
-  const handleAssignPlan = (planId: string) => {
-    setPlanToAssign(planId);
-    setShowAssignDialog(true);
-  };
-
-  const getDifficultyColor = (difficulty: string) => {
-    const colors = {
-      beginner: 'bg-green-100 text-green-700',
-      intermediate: 'bg-yellow-100 text-yellow-700',
-      advanced: 'bg-orange-100 text-orange-700',
-      expert: 'bg-red-100 text-red-700',
-    };
-    return colors[difficulty as keyof typeof colors] || 'bg-gray-100 text-gray-700';
-  };
-
   const getStatusColor = (status: string) => {
     const colors = {
-      draft: 'bg-gray-100 text-gray-700',
       active: 'bg-green-100 text-green-700',
       completed: 'bg-blue-100 text-blue-700',
-      paused: 'bg-yellow-100 text-yellow-700',
       archived: 'bg-red-100 text-red-700',
     };
     return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-700';
+  };
+
+  const getLevelColor = (level?: string) => {
+    const colors: Record<string, string> = {
+      principiante: 'bg-green-100 text-green-700',
+      intermedio: 'bg-yellow-100 text-yellow-700',
+      avanzado: 'bg-orange-100 text-orange-700',
+      beginner: 'bg-green-100 text-green-700',
+      intermediate: 'bg-yellow-100 text-yellow-700',
+      advanced: 'bg-orange-100 text-orange-700',
+    };
+    return colors[level?.toLowerCase() || ''] || 'bg-gray-100 text-gray-700';
   };
 
   // Show loading while checking trainer status
@@ -184,17 +114,29 @@ const WorkoutPlans: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold">Planes de Entrenamiento</h1>
           <p className="text-muted-foreground mt-1">
-            Gestiona planes de entrenamiento personalizados y plantillas
+            Visualiza los planes de entrenamiento de tus clientes
           </p>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Crear Plan
-        </Button>
+        <p className="text-sm text-muted-foreground">
+          Los planes se crean desde gym.condamind.com
+        </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Planes</CardTitle>
+            <Dumbbell className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{allPlans.length}</div>
+            <p className="text-xs text-muted-foreground">
+              De todos tus clientes
+            </p>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Planes Activos</CardTitle>
@@ -203,48 +145,20 @@ const WorkoutPlans: React.FC = () => {
           <CardContent>
             <div className="text-2xl font-bold">{activePlans.length}</div>
             <p className="text-xs text-muted-foreground">
-              {members.filter(m => m.workout_plan_id).length} miembros entrenando
+              En progreso
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Plantillas</CardTitle>
-            <FileTemplate className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Clientes con Plan</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{templates.length}</div>
+            <div className="text-2xl font-bold">{trainerClientData?.clientCount || 0}</div>
             <p className="text-xs text-muted-foreground">
-              Planes reutilizables
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completamiento Promedio</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {activePlans.reduce((acc, p) => acc + p.completion_percentage, 0) / (activePlans.length || 1)}%
-            </div>
-            <p className="text-xs text-muted-foreground">
-              En planes activos
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sesiones Completadas</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.total_workouts || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              Últimos 30 días
+              Clientes vinculados
             </p>
           </CardContent>
         </Card>
@@ -256,12 +170,12 @@ const WorkoutPlans: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Dumbbell className="h-5 w-5" />
-              <CardTitle>Gestión de Planes</CardTitle>
+              <CardTitle>Planes de Clientes</CardTitle>
             </div>
             <div className="relative w-64">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar planes..."
+                placeholder="Buscar por nombre o email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-8"
@@ -270,114 +184,80 @@ const WorkoutPlans: React.FC = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Tabs value={viewTab} onValueChange={(v) => setViewTab(v as any)}>
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="all">Todos</TabsTrigger>
-              <TabsTrigger value="templates">Plantillas</TabsTrigger>
-              <TabsTrigger value="active">Activos</TabsTrigger>
-              <TabsTrigger value="members">Por Miembro</TabsTrigger>
+          <Tabs value={viewTab} onValueChange={(v) => setViewTab(v as 'all' | 'by-client')}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="all">Todos los Planes</TabsTrigger>
+              <TabsTrigger value="by-client">Por Cliente</TabsTrigger>
             </TabsList>
 
             <TabsContent value="all" className="space-y-4">
-              <PlansList
-                plans={getPlansForView()}
-                onViewDetails={setSelectedPlan}
-                onDuplicate={handleDuplicatePlan}
-                onArchive={handleArchivePlan}
-                onAssign={handleAssignPlan}
-                onDelete={(id) => deletePlan.mutate(id)}
-                getDifficultyColor={getDifficultyColor}
-                getStatusColor={getStatusColor}
-              />
+              {loadingPlans ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Cargando planes...</p>
+                </div>
+              ) : (
+                <PlansList
+                  plans={filteredPlans}
+                  getStatusColor={getStatusColor}
+                  getLevelColor={getLevelColor}
+                />
+              )}
             </TabsContent>
 
-            <TabsContent value="templates" className="space-y-4">
-              <PlansList
-                plans={templates}
-                onViewDetails={setSelectedPlan}
-                onDuplicate={handleDuplicatePlan}
-                onArchive={handleArchivePlan}
-                onAssign={handleAssignPlan}
-                onDelete={(id) => deletePlan.mutate(id)}
-                getDifficultyColor={getDifficultyColor}
-                getStatusColor={getStatusColor}
-                isTemplateView
-              />
-            </TabsContent>
-
-            <TabsContent value="active" className="space-y-4">
-              <PlansList
-                plans={activePlans}
-                onViewDetails={setSelectedPlan}
-                onDuplicate={handleDuplicatePlan}
-                onArchive={handleArchivePlan}
-                onAssign={handleAssignPlan}
-                onDelete={(id) => deletePlan.mutate(id)}
-                getDifficultyColor={getDifficultyColor}
-                getStatusColor={getStatusColor}
-              />
-            </TabsContent>
-
-            <TabsContent value="members" className="space-y-4">
-              <MemberProgressView members={members} />
+            <TabsContent value="by-client" className="space-y-4">
+              {loadingClientPlans ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Cargando planes por cliente...</p>
+                </div>
+              ) : trainerClientData?.plansByClient?.length ? (
+                <div className="space-y-6">
+                  {trainerClientData.plansByClient.map((clientGroup) => (
+                    <Card key={clientGroup.client.id}>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base">
+                          {clientGroup.client.name || clientGroup.client.email}
+                        </CardTitle>
+                        <CardDescription>{clientGroup.client.email}</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <PlansList
+                          plans={clientGroup.plans}
+                          getStatusColor={getStatusColor}
+                          getLevelColor={getLevelColor}
+                          compact
+                        />
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Users className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-lg font-semibold">Sin clientes vinculados</p>
+                  <p className="text-muted-foreground">
+                    Comparte tu código de invitación para que tus clientes se vinculen
+                  </p>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
-
-      {/* Dialogs */}
-      {showCreateDialog && (
-        <PlanCreateDialog
-          open={showCreateDialog}
-          onClose={() => setShowCreateDialog(false)}
-          members={members}
-        />
-      )}
-
-      {selectedPlan && (
-        <PlanDetailsDialog
-          planId={selectedPlan}
-          open={!!selectedPlan}
-          onClose={() => setSelectedPlan(null)}
-        />
-      )}
-
-      {showAssignDialog && planToAssign && (
-        <PlanAssignDialog
-          planId={planToAssign}
-          open={showAssignDialog}
-          onClose={() => {
-            setShowAssignDialog(false);
-            setPlanToAssign(null);
-          }}
-          members={members.filter(m => !m.workout_plan_id)}
-        />
-      )}
     </div>
   );
 };
 
-// Plans List Component
+// Plans List Component - displays plans from personal-os-console
 const PlansList: React.FC<{
-  plans: any[];
-  onViewDetails: (id: string) => void;
-  onDuplicate: (id: string) => void;
-  onArchive: (id: string) => void;
-  onAssign: (id: string) => void;
-  onDelete: (id: string) => void;
-  getDifficultyColor: (difficulty: string) => string;
+  plans: GymWorkoutPlan[];
   getStatusColor: (status: string) => string;
-  isTemplateView?: boolean;
+  getLevelColor: (level?: string) => string;
+  compact?: boolean;
 }> = ({
   plans,
-  onViewDetails,
-  onDuplicate,
-  onArchive,
-  onAssign,
-  onDelete,
-  getDifficultyColor,
   getStatusColor,
-  isTemplateView = false
+  getLevelColor,
+  compact = false,
 }) => {
   if (plans.length === 0) {
     return (
@@ -385,68 +265,78 @@ const PlansList: React.FC<{
         <Dumbbell className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
         <p className="text-lg font-semibold">No hay planes disponibles</p>
         <p className="text-muted-foreground">
-          {isTemplateView
-            ? 'Crea tu primera plantilla de entrenamiento'
-            : 'Comienza creando un nuevo plan de entrenamiento'}
+          Los clientes pueden crear planes desde gym.condamind.com
         </p>
       </div>
     );
   }
 
+  // Get workout days count
+  const getWorkoutDays = (plan: GymWorkoutPlan) => {
+    const weeklyPlan = plan.plan?.weeklyPlan;
+    if (!weeklyPlan) return 0;
+    return Object.keys(weeklyPlan).length;
+  };
+
+  // Get total exercises count
+  const getTotalExercises = (plan: GymWorkoutPlan) => {
+    const weeklyPlan = plan.plan?.weeklyPlan;
+    if (!weeklyPlan) return 0;
+    return Object.values(weeklyPlan).reduce((total, day) => {
+      return total + (day.exercises?.length || 0);
+    }, 0);
+  };
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Nombre</TableHead>
-          <TableHead>Miembro</TableHead>
-          <TableHead>Duración</TableHead>
-          <TableHead>Progreso</TableHead>
-          <TableHead>Dificultad</TableHead>
+          <TableHead>Plan</TableHead>
+          {!compact && <TableHead>Cliente</TableHead>}
+          <TableHead>Días/Semana</TableHead>
+          <TableHead>Ejercicios</TableHead>
+          <TableHead>Nivel</TableHead>
           <TableHead>Estado</TableHead>
           <TableHead className="text-right">Acciones</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {plans.map((plan) => (
-          <TableRow key={plan.plan_id}>
+          <TableRow key={plan.id}>
             <TableCell>
               <div>
-                <p className="font-medium">{plan.name}</p>
-                {plan.description && (
-                  <p className="text-sm text-muted-foreground">{plan.description}</p>
+                <p className="font-medium">
+                  {plan.plan?.programName || 'Plan sin nombre'}
+                </p>
+                {plan.createdAt && (
+                  <p className="text-xs text-muted-foreground">
+                    Creado {format(new Date(plan.createdAt), 'dd/MM/yyyy', { locale: es })}
+                  </p>
                 )}
               </div>
             </TableCell>
-            <TableCell>
-              {plan.member_name || (plan.is_template ?
-                <Badge variant="secondary">Plantilla</Badge> :
-                <span className="text-muted-foreground">Sin asignar</span>
-              )}
-            </TableCell>
+            {!compact && (
+              <TableCell>
+                <div>
+                  <p className="font-medium">{plan.user?.name || 'Sin nombre'}</p>
+                  <p className="text-xs text-muted-foreground">{plan.user?.email}</p>
+                </div>
+              </TableCell>
+            )}
             <TableCell>
               <div className="text-sm">
-                <p>{plan.duration_weeks} semanas</p>
-                <p className="text-muted-foreground">
-                  {plan.sessions_per_week}x/semana
+                <p>{getWorkoutDays(plan)} días</p>
+                <p className="text-muted-foreground text-xs">
+                  {plan.plan?.request?.splitType || 'Rutina completa'}
                 </p>
               </div>
             </TableCell>
             <TableCell>
-              <div className="flex items-center space-x-2">
-                <div className="w-20 bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-primary h-2 rounded-full"
-                    style={{ width: `${plan.completion_percentage}%` }}
-                  />
-                </div>
-                <span className="text-sm font-medium">
-                  {Math.round(plan.completion_percentage)}%
-                </span>
-              </div>
+              <span className="text-sm">{getTotalExercises(plan)} ejercicios</span>
             </TableCell>
             <TableCell>
-              <Badge className={getDifficultyColor(plan.difficulty)}>
-                {plan.difficulty}
+              <Badge className={getLevelColor(plan.plan?.request?.level)}>
+                {plan.plan?.request?.level || 'N/A'}
               </Badge>
             </TableCell>
             <TableCell>
@@ -464,32 +354,17 @@ const PlansList: React.FC<{
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => onViewDetails(plan.plan_id)}>
-                    Ver detalles
-                  </DropdownMenuItem>
-                  {!plan.member_id && (
-                    <DropdownMenuItem onClick={() => onAssign(plan.plan_id)}>
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      Asignar a miembro
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem onClick={() => onDuplicate(plan.plan_id)}>
-                    <Copy className="mr-2 h-4 w-4" />
-                    Duplicar
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  {plan.status !== 'archived' && (
-                    <DropdownMenuItem onClick={() => onArchive(plan.plan_id)}>
-                      <Archive className="mr-2 h-4 w-4" />
-                      Archivar
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem
-                    onClick={() => onDelete(plan.plan_id)}
-                    className="text-red-600"
-                  >
-                    <Trash className="mr-2 h-4 w-4" />
-                    Eliminar
+                  <DropdownMenuItem asChild>
+                    <a
+                      href={`https://gym.condamind.com/plans/${plan.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center"
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      Ver detalles
+                      <ExternalLink className="ml-2 h-3 w-3" />
+                    </a>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

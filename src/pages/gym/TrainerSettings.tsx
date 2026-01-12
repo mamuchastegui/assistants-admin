@@ -29,6 +29,7 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { useGymWorkoutPlans } from '@/hooks/gym/useGymWorkoutPlans';
 import { useTenant } from '@/context/TenantContext';
+import { useTenantInfo } from '@/hooks/useTenantInfo';
 import { useAuth } from '@/hooks/useAuth';
 import { gymConsoleClient } from '@/api/gymConsoleClient';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -45,25 +46,29 @@ const TrainerSettings = () => {
   });
 
   const { orgId } = useTenant();
+  const { data: tenantInfo, isLoading: tenantLoading } = useTenantInfo();
+  const tenantId = tenantInfo?.id; // UUID format (e.g., "2f686ec6-...")
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const { useTrainer } = useGymWorkoutPlans();
-  const { data: trainer, isLoading, error } = useTrainer();
+  const { data: trainer, isLoading: trainerLoading, error } = useTrainer();
+
+  const isLoading = tenantLoading || trainerLoading;
 
   // Debug info
-  console.log('[TrainerSettings] orgId:', orgId, 'trainer:', trainer, 'isLoading:', isLoading, 'error:', error);
+  console.log('[TrainerSettings] orgId:', orgId, 'tenantId (UUID):', tenantId, 'trainer:', trainer, 'isLoading:', isLoading, 'error:', error);
 
   // Mutation for registering trainer
   const registerMutation = useMutation({
     mutationFn: async () => {
-      if (!orgId || !user?.email) throw new Error('Missing orgId or user email');
+      if (!tenantId || !user?.email) throw new Error('Missing tenantId or user email');
 
       // Generate random invite code
       const inviteCode = Math.random().toString(36).substring(2, 10).toUpperCase();
 
       return await gymConsoleClient.createOrSyncTrainer({
-        tenantId: orgId,
+        tenantId: tenantId,
         businessName: registerForm.businessName || undefined,
         specialty: registerForm.specialty || undefined,
         bio: registerForm.bio || undefined,
@@ -114,8 +119,8 @@ const TrainerSettings = () => {
     );
   }
 
-  // No tenant selected
-  if (!orgId) {
+  // No tenant selected (need both Auth0 org_id and mapped UUID tenant_id)
+  if (!orgId || !tenantId) {
     return (
       <DashboardLayout>
         <div className="max-w-2xl mx-auto space-y-6">
@@ -129,11 +134,16 @@ const TrainerSettings = () => {
                 No se detecta un tenant/organizacion asociado a tu cuenta.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-2">
               <p className="text-sm text-muted-foreground">
                 Tu token de Auth0 debe incluir un <code>org_id</code> o <code>tenant_id</code>.
                 Contacta al administrador si crees que esto es un error.
               </p>
+              {orgId && (
+                <p className="text-xs text-muted-foreground">
+                  Auth0 org_id: <code>{orgId}</code> (no se pudo mapear a UUID)
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -156,12 +166,15 @@ const TrainerSettings = () => {
                 No se pudo conectar con el gym app
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-2">
               <pre className="text-xs bg-muted p-2 rounded overflow-auto max-h-40">
                 {JSON.stringify(error, null, 2)}
               </pre>
               <p className="mt-4 text-sm text-muted-foreground">
-                TenantId: <code>{orgId}</code>
+                TenantId (UUID): <code>{tenantId}</code>
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Auth0 org_id: <code>{orgId}</code>
               </p>
             </CardContent>
           </Card>
@@ -188,7 +201,7 @@ const TrainerSettings = () => {
             </CardHeader>
             <CardContent className="text-sm space-y-1">
               <p><strong>Email:</strong> {user?.email || 'No disponible'}</p>
-              <p><strong>Tenant ID:</strong> <code className="text-xs">{orgId}</code></p>
+              <p><strong>Tenant ID:</strong> <code className="text-xs">{tenantId}</code></p>
             </CardContent>
           </Card>
 

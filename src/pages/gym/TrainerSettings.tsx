@@ -14,9 +14,9 @@ import {
   Globe,
   Users,
   QrCode,
-  ExternalLink,
   AlertCircle,
   Loader2,
+  Pencil,
 } from 'lucide-react';
 import {
   Dialog,
@@ -38,11 +38,19 @@ const TrainerSettings = () => {
   const { toast } = useToast();
   const [copiedCode, setCopiedCode] = useState(false);
   const [showRegisterDialog, setShowRegisterDialog] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [registerForm, setRegisterForm] = useState({
     businessName: '',
     specialty: '',
     bio: '',
     instagramHandle: '',
+  });
+  const [editForm, setEditForm] = useState({
+    businessName: '',
+    specialty: '',
+    bio: '',
+    instagramHandle: '',
+    website: '',
   });
 
   const { orgId } = useTenant();
@@ -95,7 +103,55 @@ const TrainerSettings = () => {
     },
   });
 
+  // Mutation for updating trainer profile
+  const updateMutation = useMutation({
+    mutationFn: async () => {
+      if (!tenantId || !user?.email || !trainer) throw new Error('Missing data');
+
+      return await gymConsoleClient.createOrSyncTrainer({
+        tenantId: tenantId,
+        businessName: editForm.businessName || undefined,
+        specialty: editForm.specialty || undefined,
+        bio: editForm.bio || undefined,
+        inviteCode: trainer.inviteCode, // Keep the same invite code
+        userEmail: user.email,
+        userName: user.name,
+        instagramHandle: editForm.instagramHandle || undefined,
+        website: editForm.website || undefined,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Perfil actualizado',
+        description: 'Los cambios han sido guardados.',
+      });
+      setIsEditing(false);
+      queryClient.invalidateQueries({ queryKey: ['gym', 'trainer'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error al actualizar',
+        description: error.response?.data?.error || error.message || 'No se pudo guardar los cambios',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const isTrainer = !!trainer && !error;
+
+  // Start editing with current values
+  const startEditing = () => {
+    if (trainer) {
+      setEditForm({
+        businessName: trainer.businessName || '',
+        specialty: trainer.specialty || '',
+        bio: trainer.bio || '',
+        instagramHandle: trainer.instagramHandle || '',
+        website: trainer.website || '',
+      });
+      setIsEditing(true);
+    }
+  };
 
   const copyInviteCode = () => {
     if (trainer?.inviteCode) {
@@ -315,22 +371,10 @@ const TrainerSettings = () => {
             <h1 className="text-3xl font-bold tracking-tight">Configuracion de Trainer</h1>
             <p className="text-muted-foreground">Tu perfil y codigo de invitacion</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="h-fit">
-              <Users className="h-3 w-3 mr-1" />
-              {trainer.activeClientCount} / {trainer.maxClients || 50} clientes
-            </Badge>
-            <Button asChild variant="outline" size="sm">
-              <a
-                href="https://gym.condamind.com"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <ExternalLink className="h-4 w-4 mr-1" />
-                Abrir Gym App
-              </a>
-            </Button>
-          </div>
+          <Badge variant="secondary" className="h-fit">
+            <Users className="h-3 w-3 mr-1" />
+            {trainer.activeClientCount} / {trainer.maxClients || 50} clientes
+          </Badge>
         </div>
 
         {/* Invite Code Card */}
@@ -371,62 +415,141 @@ const TrainerSettings = () => {
           </CardFooter>
         </Card>
 
-        {/* Profile Card - Read Only */}
+        {/* Profile Card - Editable */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Perfil de Trainer
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                <CardTitle>Perfil de Trainer</CardTitle>
+              </div>
+              {!isEditing && (
+                <Button variant="outline" size="sm" onClick={startEditing}>
+                  <Pencil className="h-4 w-4 mr-1" />
+                  Editar
+                </Button>
+              )}
+            </div>
             <CardDescription>
-              Tu informacion profesional
+              {isEditing ? 'Modifica tu informacion profesional' : 'Tu informacion profesional'}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <p className="text-sm text-muted-foreground">Nombre del negocio</p>
-                <p className="font-medium">{trainer.businessName || '-'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Especialidad</p>
-                <p className="font-medium">{trainer.specialty || '-'}</p>
-              </div>
-            </div>
+            {isEditing ? (
+              // Edit mode
+              <>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="editBusinessName">Nombre del negocio</Label>
+                    <Input
+                      id="editBusinessName"
+                      value={editForm.businessName}
+                      onChange={(e) => setEditForm({ ...editForm, businessName: e.target.value })}
+                      placeholder="Ej: FitCoach Pro"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="editSpecialty">Especialidad</Label>
+                    <Input
+                      id="editSpecialty"
+                      value={editForm.specialty}
+                      onChange={(e) => setEditForm({ ...editForm, specialty: e.target.value })}
+                      placeholder="Ej: Fuerza, CrossFit..."
+                    />
+                  </div>
+                </div>
 
-            {trainer.bio && (
-              <div>
-                <p className="text-sm text-muted-foreground">Bio</p>
-                <p className="font-medium">{trainer.bio}</p>
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editBio">Bio</Label>
+                  <Textarea
+                    id="editBio"
+                    value={editForm.bio}
+                    onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
+                    placeholder="Cuentanos sobre tu experiencia..."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="editInstagram">Instagram</Label>
+                    <Input
+                      id="editInstagram"
+                      value={editForm.instagramHandle}
+                      onChange={(e) => setEditForm({ ...editForm, instagramHandle: e.target.value })}
+                      placeholder="@tuusuario"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="editWebsite">Sitio web</Label>
+                    <Input
+                      id="editWebsite"
+                      value={editForm.website}
+                      onChange={(e) => setEditForm({ ...editForm, website: e.target.value })}
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button variant="outline" onClick={() => setIsEditing(false)}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
+                    {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Guardar cambios
+                  </Button>
+                </div>
+              </>
+            ) : (
+              // View mode
+              <>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Nombre del negocio</p>
+                    <p className="font-medium">{trainer.businessName || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Especialidad</p>
+                    <p className="font-medium">{trainer.specialty || '-'}</p>
+                  </div>
+                </div>
+
+                {trainer.bio && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Bio</p>
+                    <p className="font-medium">{trainer.bio}</p>
+                  </div>
+                )}
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  {trainer.instagramHandle && (
+                    <div className="flex items-center gap-2">
+                      <Instagram className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">{trainer.instagramHandle}</span>
+                    </div>
+                  )}
+                  {trainer.website && (
+                    <div className="flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-muted-foreground" />
+                      <a
+                        href={trainer.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-blue-600 hover:underline"
+                      >
+                        {trainer.website}
+                      </a>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <p className="text-sm text-muted-foreground">Limite de clientes</p>
+                  <p className="font-medium">{trainer.maxClients || 50} clientes</p>
+                </div>
+              </>
             )}
-
-            <div className="grid gap-4 md:grid-cols-2">
-              {trainer.instagramHandle && (
-                <div className="flex items-center gap-2">
-                  <Instagram className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">{trainer.instagramHandle}</span>
-                </div>
-              )}
-              {trainer.website && (
-                <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4 text-muted-foreground" />
-                  <a
-                    href={trainer.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium text-blue-600 hover:underline"
-                  >
-                    {trainer.website}
-                  </a>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <p className="text-sm text-muted-foreground">Limite de clientes</p>
-              <p className="font-medium">{trainer.maxClients || 50} clientes</p>
-            </div>
           </CardContent>
         </Card>
       </div>

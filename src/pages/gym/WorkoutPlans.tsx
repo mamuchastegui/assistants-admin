@@ -37,6 +37,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import {
   Search,
   MoreHorizontal,
   Eye,
@@ -48,17 +54,27 @@ import {
   Archive,
   CheckCircle,
   Loader2,
+  Plus,
+  Trash2,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { useGymWorkoutPlans, type GymWorkoutPlan } from '@/hooks/gym/useGymWorkoutPlans';
+import { useGymWorkoutPlans, type GymWorkoutPlan, type GymWorkoutDay, type GymExercise } from '@/hooks/gym/useGymWorkoutPlans';
 import TrainerRegistrationPrompt from '@/components/gym/TrainerRegistrationPrompt';
 
 const WorkoutPlans: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewTab, setViewTab] = useState<'all' | 'by-client'>('all');
   const [editingPlan, setEditingPlan] = useState<GymWorkoutPlan | null>(null);
-  const [editForm, setEditForm] = useState({ programName: '', status: '' as 'active' | 'completed' | 'archived' | '' });
+  const [editForm, setEditForm] = useState<{
+    programName: string;
+    status: 'active' | 'completed' | 'archived' | '';
+    weeklyPlan: Record<string, GymWorkoutDay>;
+  }>({
+    programName: '',
+    status: '',
+    weeklyPlan: {},
+  });
 
   const { usePlans, useTrainerClientPlans, useTrainer, useUpdatePlan } = useGymWorkoutPlans();
   const updatePlanMutation = useUpdatePlan();
@@ -92,17 +108,86 @@ const WorkoutPlans: React.FC = () => {
     setEditForm({
       programName: plan.plan?.programName || '',
       status: plan.status,
+      weeklyPlan: plan.plan?.weeklyPlan ? JSON.parse(JSON.stringify(plan.plan.weeklyPlan)) : {},
     });
+  };
+
+  // Update a specific exercise in a day
+  const updateExercise = (dayKey: string, exerciseIndex: number, updates: Partial<GymExercise>) => {
+    setEditForm(prev => ({
+      ...prev,
+      weeklyPlan: {
+        ...prev.weeklyPlan,
+        [dayKey]: {
+          ...prev.weeklyPlan[dayKey],
+          exercises: prev.weeklyPlan[dayKey].exercises.map((exercise, idx) =>
+            idx === exerciseIndex ? { ...exercise, ...updates } : exercise
+          ),
+        },
+      },
+    }));
+  };
+
+  // Delete an exercise from a day
+  const deleteExercise = (dayKey: string, exerciseIndex: number) => {
+    setEditForm(prev => ({
+      ...prev,
+      weeklyPlan: {
+        ...prev.weeklyPlan,
+        [dayKey]: {
+          ...prev.weeklyPlan[dayKey],
+          exercises: prev.weeklyPlan[dayKey].exercises.filter((_, idx) => idx !== exerciseIndex),
+        },
+      },
+    }));
+  };
+
+  // Add a new exercise to a day
+  const addExercise = (dayKey: string) => {
+    const newExercise: GymExercise = {
+      name: '',
+      sets: 3,
+      reps: '10',
+      restSeconds: 60,
+      notes: '',
+    };
+    setEditForm(prev => ({
+      ...prev,
+      weeklyPlan: {
+        ...prev.weeklyPlan,
+        [dayKey]: {
+          ...prev.weeklyPlan[dayKey],
+          exercises: [...prev.weeklyPlan[dayKey].exercises, newExercise],
+        },
+      },
+    }));
   };
 
   // Save plan changes
   const handleSavePlan = () => {
     if (!editingPlan) return;
 
-    const updates: { plan?: { programName: string }; status?: 'active' | 'completed' | 'archived' } = {};
+    const updates: {
+      plan?: { programName?: string; weeklyPlan?: Record<string, GymWorkoutDay> };
+      status?: 'active' | 'completed' | 'archived';
+    } = {};
+
+    // Check for plan content changes
+    const planChanges: { programName?: string; weeklyPlan?: Record<string, GymWorkoutDay> } = {};
 
     if (editForm.programName !== editingPlan.plan?.programName) {
-      updates.plan = { programName: editForm.programName };
+      planChanges.programName = editForm.programName;
+    }
+
+    // Compare weeklyPlan (deep comparison via JSON)
+    const originalWeeklyPlan = JSON.stringify(editingPlan.plan?.weeklyPlan || {});
+    const newWeeklyPlan = JSON.stringify(editForm.weeklyPlan);
+    if (originalWeeklyPlan !== newWeeklyPlan) {
+      planChanges.weeklyPlan = editForm.weeklyPlan;
+    }
+
+    if (Object.keys(planChanges).length > 0) {
+      updates.plan = planChanges;
     }
 
     if (editForm.status && editForm.status !== editingPlan.status) {
@@ -307,61 +392,172 @@ const WorkoutPlans: React.FC = () => {
 
       {/* Edit Plan Dialog */}
       <Dialog open={!!editingPlan} onOpenChange={(open) => !open && setEditingPlan(null)}>
-        <DialogContent>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Plan</DialogTitle>
             <DialogDescription>
-              Modifica el nombre o estado del plan de entrenamiento.
+              Modifica el nombre, estado y ejercicios del plan de entrenamiento.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="programName">Nombre del programa</Label>
-              <Input
-                id="programName"
-                value={editForm.programName}
-                onChange={(e) => setEditForm({ ...editForm, programName: e.target.value })}
-                placeholder="Ej: Programa de fuerza 4 días"
-              />
-            </div>
+            {/* Basic Info */}
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="programName">Nombre del programa</Label>
+                <Input
+                  id="programName"
+                  value={editForm.programName}
+                  onChange={(e) => setEditForm({ ...editForm, programName: e.target.value })}
+                  placeholder="Ej: Programa de fuerza 4 días"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="status">Estado</Label>
-              <Select
-                value={editForm.status}
-                onValueChange={(value) => setEditForm({ ...editForm, status: value as 'active' | 'completed' | 'archived' })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">
-                    <span className="flex items-center gap-2">
-                      <Activity className="h-4 w-4 text-green-600" />
-                      Activo
-                    </span>
-                  </SelectItem>
-                  <SelectItem value="completed">
-                    <span className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-blue-600" />
-                      Completado
-                    </span>
-                  </SelectItem>
-                  <SelectItem value="archived">
-                    <span className="flex items-center gap-2">
-                      <Archive className="h-4 w-4 text-red-600" />
-                      Archivado
-                    </span>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="space-y-2">
+                <Label htmlFor="status">Estado</Label>
+                <Select
+                  value={editForm.status}
+                  onValueChange={(value) => setEditForm({ ...editForm, status: value as 'active' | 'completed' | 'archived' })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">
+                      <span className="flex items-center gap-2">
+                        <Activity className="h-4 w-4 text-green-600" />
+                        Activo
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="completed">
+                      <span className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-blue-600" />
+                        Completado
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="archived">
+                      <span className="flex items-center gap-2">
+                        <Archive className="h-4 w-4 text-red-600" />
+                        Archivado
+                      </span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {editingPlan && (
               <div className="text-xs text-muted-foreground bg-muted p-2 rounded">
                 <p><strong>Cliente:</strong> {editingPlan.user?.name || editingPlan.user?.email}</p>
                 <p><strong>Creado:</strong> {editingPlan.createdAt ? format(new Date(editingPlan.createdAt), 'dd/MM/yyyy', { locale: es }) : 'N/A'}</p>
+              </div>
+            )}
+
+            {/* Days and Exercises Accordion */}
+            {Object.keys(editForm.weeklyPlan).length > 0 && (
+              <div className="space-y-2">
+                <Label>Dias de entrenamiento</Label>
+                <Accordion type="single" collapsible className="w-full">
+                  {Object.entries(editForm.weeklyPlan).map(([dayKey, day]) => (
+                    <AccordionItem key={dayKey} value={dayKey}>
+                      <AccordionTrigger className="text-sm">
+                        <span className="flex items-center gap-2">
+                          <Dumbbell className="h-4 w-4" />
+                          {day.dayName || dayKey}
+                          <Badge variant="outline" className="ml-2">
+                            {day.exercises?.length || 0} ejercicios
+                          </Badge>
+                        </span>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <div className="space-y-3 pt-2">
+                          {day.exercises?.map((exercise, exerciseIndex) => (
+                            <div
+                              key={exerciseIndex}
+                              className="border rounded-lg p-3 space-y-3 bg-muted/30"
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-muted-foreground font-medium">
+                                  Ejercicio {exerciseIndex + 1}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 text-destructive hover:text-destructive"
+                                  onClick={() => deleteExercise(dayKey, exerciseIndex)}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+
+                              <div className="space-y-2">
+                                <Input
+                                  value={exercise.name}
+                                  onChange={(e) => updateExercise(dayKey, exerciseIndex, { name: e.target.value })}
+                                  placeholder="Nombre del ejercicio"
+                                  className="font-medium"
+                                />
+                              </div>
+
+                              <div className="grid grid-cols-3 gap-2">
+                                <div className="space-y-1">
+                                  <Label className="text-xs">Series</Label>
+                                  <Input
+                                    type="number"
+                                    min="1"
+                                    value={exercise.sets}
+                                    onChange={(e) => updateExercise(dayKey, exerciseIndex, { sets: parseInt(e.target.value) || 1 })}
+                                    className="h-8"
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <Label className="text-xs">Reps</Label>
+                                  <Input
+                                    value={exercise.reps}
+                                    onChange={(e) => updateExercise(dayKey, exerciseIndex, { reps: e.target.value })}
+                                    placeholder="8-12"
+                                    className="h-8"
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <Label className="text-xs">Descanso (s)</Label>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    value={exercise.restSeconds || ''}
+                                    onChange={(e) => updateExercise(dayKey, exerciseIndex, { restSeconds: parseInt(e.target.value) || undefined })}
+                                    placeholder="60"
+                                    className="h-8"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="space-y-1">
+                                <Label className="text-xs">Notas</Label>
+                                <Input
+                                  value={exercise.notes || ''}
+                                  onChange={(e) => updateExercise(dayKey, exerciseIndex, { notes: e.target.value })}
+                                  placeholder="Notas del ejercicio..."
+                                  className="h-8 text-sm"
+                                />
+                              </div>
+                            </div>
+                          ))}
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            onClick={() => addExercise(dayKey)}
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Agregar ejercicio
+                          </Button>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
               </div>
             )}
           </div>

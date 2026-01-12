@@ -56,7 +56,7 @@ export const useGymWorkoutPlans = () => {
 
   // Get trainer for current tenant from gym app
   const useTrainer = () => {
-    return useQuery({
+    const query = useQuery({
       queryKey: [...GYM_TRAINER_QUERY_KEY, tenantId],
       queryFn: async () => {
         if (!tenantId) return null;
@@ -65,6 +65,13 @@ export const useGymWorkoutPlans = () => {
       },
       enabled: !!tenantId && !tenantLoading,
     });
+
+    // Return isLoading: true while tenant info is still loading
+    // This prevents flash of "not a trainer" content
+    return {
+      ...query,
+      isLoading: tenantLoading || query.isLoading,
+    };
   };
 
   // Get clients for a trainer from gym app

@@ -119,12 +119,12 @@ const Clients = () => {
           </div>
           <Button asChild variant="outline">
             <a
-              href="https://gym.condamind.com/trainer"
+              href="https://gym.condamind.com"
               target="_blank"
               rel="noopener noreferrer"
             >
               <ExternalLink className="mr-2 h-4 w-4" />
-              Gestionar en Gym App
+              Abrir Gym App
             </a>
           </Button>
         </div>

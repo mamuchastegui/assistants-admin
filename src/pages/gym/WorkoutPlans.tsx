@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table,
@@ -21,13 +22,32 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Search,
   MoreHorizontal,
   Eye,
+  Pencil,
   Dumbbell,
   Users,
   Activity,
   ExternalLink,
+  Archive,
+  CheckCircle,
+  Loader2,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -37,8 +57,11 @@ import TrainerRegistrationPrompt from '@/components/gym/TrainerRegistrationPromp
 const WorkoutPlans: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewTab, setViewTab] = useState<'all' | 'by-client'>('all');
+  const [editingPlan, setEditingPlan] = useState<GymWorkoutPlan | null>(null);
+  const [editForm, setEditForm] = useState({ programName: '', status: '' as 'active' | 'completed' | 'archived' | '' });
 
-  const { usePlans, useTrainerClientPlans, useTrainer } = useGymWorkoutPlans();
+  const { usePlans, useTrainerClientPlans, useTrainer, useUpdatePlan } = useGymWorkoutPlans();
+  const updatePlanMutation = useUpdatePlan();
 
   // Check if user is a trainer (now queries gym app directly)
   const { data: trainer, isLoading: trainerLoading } = useTrainer();
@@ -62,6 +85,44 @@ const WorkoutPlans: React.FC = () => {
       userEmail.includes(query)
     );
   });
+
+  // Open edit dialog
+  const openEditDialog = (plan: GymWorkoutPlan) => {
+    setEditingPlan(plan);
+    setEditForm({
+      programName: plan.plan?.programName || '',
+      status: plan.status,
+    });
+  };
+
+  // Save plan changes
+  const handleSavePlan = () => {
+    if (!editingPlan) return;
+
+    const updates: { plan?: { programName: string }; status?: 'active' | 'completed' | 'archived' } = {};
+
+    if (editForm.programName !== editingPlan.plan?.programName) {
+      updates.plan = { programName: editForm.programName };
+    }
+
+    if (editForm.status && editForm.status !== editingPlan.status) {
+      updates.status = editForm.status;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      setEditingPlan(null);
+      return;
+    }
+
+    updatePlanMutation.mutate(
+      { planId: editingPlan.id, updates },
+      {
+        onSuccess: () => {
+          setEditingPlan(null);
+        },
+      }
+    );
+  };
 
   const getStatusColor = (status: string) => {
     const colors = {
@@ -198,6 +259,7 @@ const WorkoutPlans: React.FC = () => {
                   plans={filteredPlans}
                   getStatusColor={getStatusColor}
                   getLevelColor={getLevelColor}
+                  onEdit={openEditDialog}
                 />
               )}
             </TabsContent>
@@ -223,6 +285,7 @@ const WorkoutPlans: React.FC = () => {
                           getStatusColor={getStatusColor}
                           getLevelColor={getLevelColor}
                           compact
+                          onEdit={openEditDialog}
                         />
                       </CardContent>
                     </Card>
@@ -241,6 +304,79 @@ const WorkoutPlans: React.FC = () => {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Edit Plan Dialog */}
+      <Dialog open={!!editingPlan} onOpenChange={(open) => !open && setEditingPlan(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Plan</DialogTitle>
+            <DialogDescription>
+              Modifica el nombre o estado del plan de entrenamiento.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="programName">Nombre del programa</Label>
+              <Input
+                id="programName"
+                value={editForm.programName}
+                onChange={(e) => setEditForm({ ...editForm, programName: e.target.value })}
+                placeholder="Ej: Programa de fuerza 4 días"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="status">Estado</Label>
+              <Select
+                value={editForm.status}
+                onValueChange={(value) => setEditForm({ ...editForm, status: value as 'active' | 'completed' | 'archived' })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">
+                    <span className="flex items-center gap-2">
+                      <Activity className="h-4 w-4 text-green-600" />
+                      Activo
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="completed">
+                    <span className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-blue-600" />
+                      Completado
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="archived">
+                    <span className="flex items-center gap-2">
+                      <Archive className="h-4 w-4 text-red-600" />
+                      Archivado
+                    </span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {editingPlan && (
+              <div className="text-xs text-muted-foreground bg-muted p-2 rounded">
+                <p><strong>Cliente:</strong> {editingPlan.user?.name || editingPlan.user?.email}</p>
+                <p><strong>Creado:</strong> {editingPlan.createdAt ? format(new Date(editingPlan.createdAt), 'dd/MM/yyyy', { locale: es }) : 'N/A'}</p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingPlan(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSavePlan} disabled={updatePlanMutation.isPending}>
+              {updatePlanMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Guardar cambios
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
@@ -251,11 +387,13 @@ const PlansList: React.FC<{
   getStatusColor: (status: string) => string;
   getLevelColor: (level?: string) => string;
   compact?: boolean;
+  onEdit?: (plan: GymWorkoutPlan) => void;
 }> = ({
   plans,
   getStatusColor,
   getLevelColor,
   compact = false,
+  onEdit,
 }) => {
   if (plans.length === 0) {
     return (
@@ -352,6 +490,12 @@ const PlansList: React.FC<{
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                  {onEdit && (
+                    <DropdownMenuItem onClick={() => onEdit(plan)}>
+                      <Pencil className="mr-2 h-4 w-4" />
+                      Editar plan
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem asChild>
                     <a
                       href={`https://gym.condamind.com/plans/${plan.id}`}
@@ -364,6 +508,18 @@ const PlansList: React.FC<{
                       <ExternalLink className="ml-2 h-3 w-3" />
                     </a>
                   </DropdownMenuItem>
+                  {onEdit && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => onEdit({ ...plan, status: 'archived' as const })}
+                        className="text-red-600"
+                      >
+                        <Archive className="mr-2 h-4 w-4" />
+                        Archivar plan
+                      </DropdownMenuItem>
+                    </>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </TableCell>

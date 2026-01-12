@@ -1,48 +1,28 @@
 /**
- * Hook for managing workout plans from gym.condamind.com (personal-os-console)
+ * Hook for managing workout plans from gym.condamind.com
  *
- * Flow (simplified with trainer sync):
- * 1. Get trainer profile from assistants-api (/me)
- * 2. Query plans directly by trainerId from personal-os-console
+ * Flow:
+ * 1. Get trainer by tenantId from gym.condamind.com admin API
+ * 2. Query plans directly by trainerId from the same API
  *
- * Note: Plans are linked to trainers via trainer_id field when user joins
- * a trainer via invite code. This is more reliable than email matching.
+ * Note: The gym app has its own trainers/clients tables (gymTrainers, gymTrainerClients)
+ * which are separate from assistants-api. This hook queries the gym app directly.
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuthApi } from '@/api/client';
-import { gymConsoleClient, type GymWorkoutPlan, type GymPlanUpdate } from '@/api/gymConsoleClient';
+import { useTenant } from '@/context/TenantContext';
+import {
+  gymConsoleClient,
+  type GymWorkoutPlan,
+  type GymPlanUpdate,
+  type GymTrainer,
+  type GymTrainerClient,
+  type GymPlansListResponse,
+} from '@/api/gymConsoleClient';
 import { toast } from 'sonner';
 
-// Re-export types from gymConsoleClient for convenience
-export type { GymWorkoutPlan, GymPlanUpdate };
+// Re-export types for convenience
+export type { GymWorkoutPlan, GymPlanUpdate, GymTrainer, GymTrainerClient };
 export type { GymPlanContent, GymWorkoutDay, GymExercise, GymPlansListResponse } from '@/api/gymConsoleClient';
-
-// Trainer profile response from assistants-api
-interface TrainerProfile {
-  id: string;
-  tenant_id: string;
-  user_id: string;
-  business_name: string | null;
-  specialty: string | null;
-  client_count: number;
-}
-
-// Types for assistants-api client response
-interface TrainerClient {
-  id: string;
-  trainer_id: string;
-  client_user_id: string;
-  status: string;
-  client_name: string | null;
-  client_email: string | null;
-}
-
-interface ClientListResponse {
-  clients: TrainerClient[];
-  total: number;
-  limit: number;
-  offset: number;
-}
 
 export interface GymTrainerClientPlansResponse {
   trainer: {
@@ -64,31 +44,55 @@ export interface GymTrainerClientPlansResponse {
 }
 
 const GYM_PLANS_QUERY_KEY = ['gym', 'gym-workout-plans'];
+const GYM_TRAINER_QUERY_KEY = ['gym', 'trainer'];
+const GYM_CLIENTS_QUERY_KEY = ['gym', 'clients'];
 
 export const useGymWorkoutPlans = () => {
   const queryClient = useQueryClient();
-  const authApi = useAuthApi();
+  const { orgId: tenantId } = useTenant();
 
-  // Get all plans for current trainer directly by trainerId
-  // Much simpler than the old email-matching approach
+  // Get trainer for current tenant from gym app
+  const useTrainer = () => {
+    return useQuery({
+      queryKey: [...GYM_TRAINER_QUERY_KEY, tenantId],
+      queryFn: async () => {
+        if (!tenantId) return null;
+        return await gymConsoleClient.getTrainerByTenant(tenantId);
+      },
+      enabled: !!tenantId,
+    });
+  };
+
+  // Get clients for a trainer from gym app
+  const useClients = (trainerId: string, status: string = 'active') => {
+    return useQuery({
+      queryKey: [...GYM_CLIENTS_QUERY_KEY, trainerId, status],
+      queryFn: async () => {
+        return await gymConsoleClient.getTrainerClients(trainerId, status);
+      },
+      enabled: !!trainerId,
+    });
+  };
+
+  // Get all plans for current trainer's clients
   const usePlans = (filters?: {
-    trainerId?: string;
-    tenantId?: string;
-    clientId?: string;
     status?: string;
     limit?: number;
     offset?: number;
   }) => {
     return useQuery({
-      queryKey: [...GYM_PLANS_QUERY_KEY, 'list', filters],
+      queryKey: [...GYM_PLANS_QUERY_KEY, 'list', tenantId, filters],
       queryFn: async () => {
-        // Step 1: Get trainer profile to get trainerId
-        const { data: trainerData } = await authApi.get<TrainerProfile>('/api/gym/trainers/me');
+        if (!tenantId) throw new Error('No tenant selected');
 
-        // Step 2: Query plans directly by trainerId (no email matching needed!)
-        const plansResponse = await gymConsoleClient.getPlans({
-          trainerId: trainerData.id,
-          trainerTenantId: trainerData.tenant_id,
+        // Step 1: Get trainer for this tenant
+        const trainer = await gymConsoleClient.getTrainerByTenant(tenantId);
+        if (!trainer) {
+          return { plans: [], total: 0, trainer: null, plansByClient: [], clientCount: 0 };
+        }
+
+        // Step 2: Query plans directly from gym app
+        const plansResponse = await gymConsoleClient.getTrainerClientPlans(trainer.id, {
           status: filters?.status,
           limit: filters?.limit,
           offset: filters?.offset,
@@ -96,11 +100,11 @@ export const useGymWorkoutPlans = () => {
 
         return plansResponse;
       },
-      enabled: true,
+      enabled: !!tenantId,
     });
   };
 
-  // Get a single plan by ID from personal-os-console
+  // Get a single plan by ID
   const usePlan = (planId: string) => {
     return useQuery({
       queryKey: [...GYM_PLANS_QUERY_KEY, planId],
@@ -112,75 +116,53 @@ export const useGymWorkoutPlans = () => {
   };
 
   // Get all plans grouped by client for a trainer
-  // Now uses trainerId for direct querying, with client list for grouping
-  const useTrainerClientPlans = (trainerId: string, filters?: {
+  // trainerId parameter is kept for API compatibility but we query by tenantId
+  const useTrainerClientPlans = (_trainerId: string, filters?: {
     status?: string;
     limit?: number;
     offset?: number;
   }) => {
     return useQuery({
-      queryKey: [...GYM_PLANS_QUERY_KEY, 'trainer', trainerId, 'clients', filters],
+      queryKey: [...GYM_PLANS_QUERY_KEY, 'trainer', tenantId, 'clients', filters],
       queryFn: async () => {
-        // Step 1: Get trainer info
-        const { data: trainerData } = await authApi.get<TrainerProfile>('/api/gym/trainers/me');
+        if (!tenantId) throw new Error('No tenant selected');
 
-        // Step 2: Get plans directly by trainerId (simplified!)
-        const plansResponse = await gymConsoleClient.getPlans({
-          trainerId: trainerData.id,
-          trainerTenantId: trainerData.tenant_id,
+        // Step 1: Get trainer for this tenant from gym app
+        const trainer = await gymConsoleClient.getTrainerByTenant(tenantId);
+        if (!trainer) {
+          return {
+            trainer: { id: '', businessName: null, tenantId: '' },
+            plans: [],
+            plansByClient: [],
+            total: 0,
+            clientCount: 0,
+          } as GymTrainerClientPlansResponse;
+        }
+
+        // Step 2: Get plans with grouping from gym app
+        const plansResponse = await gymConsoleClient.getTrainerClientPlans(trainer.id, {
           status: filters?.status,
           limit: filters?.limit || 100,
           offset: filters?.offset,
         });
 
-        // Step 3: Get client list for grouping (still needed for UI)
-        const { data: clientsData } = await authApi.get<ClientListResponse>(
-          '/api/gym/trainers/clients',
-          { params: { status: 'active', limit: 500 } }
-        );
-
-        // Step 4: Group plans by user (using plan.user instead of client email matching)
-        const userPlansMap = new Map<string, GymWorkoutPlan[]>();
-        for (const plan of plansResponse.plans) {
-          const userEmail = plan.user.email;
-          if (!userPlansMap.has(userEmail)) {
-            userPlansMap.set(userEmail, []);
-          }
-          userPlansMap.get(userEmail)!.push(plan);
-        }
-
-        // Map client info to their plans
-        const plansByClient = Array.from(userPlansMap.entries()).map(([email, plans]) => {
-          const client = clientsData.clients.find(
-            c => c.client_email?.toLowerCase() === email.toLowerCase()
-          );
-          return {
-            client: {
-              id: client?.client_user_id || plans[0].user.id,
-              name: client?.client_name || plans[0].user.name,
-              email,
-            },
-            plans,
-          };
-        });
-
         return {
           trainer: {
-            id: trainerData.id,
-            businessName: trainerData.business_name,
-            tenantId: trainerData.tenant_id,
+            id: trainer.id,
+            businessName: trainer.businessName,
+            tenantId: trainer.tenantId,
           },
           plans: plansResponse.plans,
-          plansByClient,
+          plansByClient: plansResponse.plansByClient,
           total: plansResponse.total,
-          clientCount: clientsData.clients.length,
+          clientCount: plansResponse.clientCount,
         } as GymTrainerClientPlansResponse;
       },
-      enabled: !!trainerId,
+      enabled: !!tenantId,
     });
   };
 
-  // Update a plan in personal-os-console
+  // Update a plan
   const useUpdatePlan = () => {
     return useMutation({
       mutationFn: async ({ planId, updates }: { planId: string; updates: GymPlanUpdate }) => {
@@ -198,12 +180,10 @@ export const useGymWorkoutPlans = () => {
     });
   };
 
-  // Note: Assign and Duplicate operations require additional implementation
-  // in personal-os-console to support trainer workflows
+  // Assign and Duplicate operations
   const useAssignPlan = () => {
     return useMutation({
       mutationFn: async ({ planId, assignment }: { planId: string; assignment: { clientUserId: string } }) => {
-        // TODO: Implement plan assignment in personal-os-console
         toast.error('Asignacion de planes aun no implementada');
         throw new Error('Not implemented');
       },
@@ -216,7 +196,6 @@ export const useGymWorkoutPlans = () => {
   const useDuplicatePlan = () => {
     return useMutation({
       mutationFn: async ({ planId, options }: { planId: string; options?: { targetUserId?: string } }) => {
-        // TODO: Implement plan duplication in personal-os-console
         toast.error('Duplicacion de planes aun no implementada');
         throw new Error('Not implemented');
       },
@@ -228,6 +207,8 @@ export const useGymWorkoutPlans = () => {
 
   return {
     // Queries
+    useTrainer,
+    useClients,
     usePlans,
     usePlan,
     useTrainerClientPlans,

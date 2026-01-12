@@ -1,10 +1,10 @@
 /**
- * API client for communicating with personal-os-console (gym.condamind.com)
- * Uses internal API key authentication for service-to-service calls
+ * API client for communicating with gym.condamind.com admin API
+ * Uses Bearer token authentication for admin endpoints
  */
 import axios, { AxiosInstance } from 'axios';
 
-// Types matching personal-os-console schema
+// Types matching gym app schema
 export interface GymPlanUser {
   id: string;
   name: string | null;
@@ -18,12 +18,9 @@ export interface GymWorkoutPlan {
   status: 'active' | 'completed' | 'archived';
   aiModel: string | null;
   createdAt: string | null;
-  startDate: string | null;
-  endDate: string | null;
-  // Trainer fields (synced from assistants-api)
+  archivedAt?: string | null;
   trainerId: string | null;
-  trainerTenantId: string | null;
-  trainerLinkedAt: string | null;
+  assignedAt?: string | null;
 }
 
 export interface GymPlanContent {
@@ -57,13 +54,60 @@ export interface GymExercise {
 }
 
 export interface GymPlansListResponse {
+  trainer: {
+    id: string;
+    businessName: string | null;
+    tenantId?: string;
+  };
   plans: GymWorkoutPlan[];
+  plansByClient: Array<{
+    client: GymPlanUser;
+    plans: GymWorkoutPlan[];
+  }>;
   total: number;
+  clientCount: number;
 }
 
 export interface GymPlanUpdate {
   plan?: Partial<GymPlanContent>;
   status?: 'active' | 'completed' | 'archived';
+}
+
+export interface GymTrainer {
+  id: string;
+  tenantId: string;
+  userId: string | null;
+  businessName: string | null;
+  specialty: string | null;
+  bio: string | null;
+  inviteCode: string;
+  maxClients: number | null;
+  instagramHandle: string | null;
+  website: string | null;
+  isActive: boolean;
+  createdAt: string;
+  userEmail: string | null;
+  userName: string | null;
+  activeClientCount: number;
+}
+
+export interface GymTrainerClient {
+  linkId: string;
+  userId: string;
+  email: string;
+  name: string | null;
+  status: string;
+  linkedVia: string | null;
+  linkedAt: string;
+  endedAt: string | null;
+  notesFromTrainer: string | null;
+  tags: string[] | null;
+  userCreatedAt: string | null;
+  phoneNumbers: Array<{
+    number: string;
+    externalUserId: string | null;
+    externalTenantId: string | null;
+  }>;
 }
 
 class GymConsoleClient {
@@ -77,40 +121,56 @@ class GymConsoleClient {
       baseURL,
       headers: {
         'Content-Type': 'application/json',
-        'x-internal-api-key': apiKey,
+        'Authorization': `Bearer ${apiKey}`,
       },
     });
   }
 
   /**
-   * Get gym plans by trainer ID (preferred) or user emails (legacy)
+   * Get all trainers (optionally filtered by tenantId)
    */
-  async getPlans(params: {
-    emails?: string[];  // Legacy: query by user emails
-    trainerId?: string;  // Preferred: query by trainer ID directly
-    trainerTenantId?: string;  // Optional: filter by trainer's tenant
+  async getTrainers(tenantId?: string): Promise<{ trainers: GymTrainer[]; total: number }> {
+    const params = tenantId ? `?tenantId=${tenantId}` : '';
+    const response = await this.client.get(`/api/admin/trainers${params}`);
+    return response.data;
+  }
+
+  /**
+   * Get trainer by tenantId (finds trainer associated with a specific tenant)
+   */
+  async getTrainerByTenant(tenantId: string): Promise<GymTrainer | null> {
+    const response = await this.getTrainers(tenantId);
+    return response.trainers[0] || null;
+  }
+
+  /**
+   * Get clients for a specific trainer
+   */
+  async getTrainerClients(trainerId: string, status: string = 'active'): Promise<{
+    trainer: { id: string; businessName: string | null; tenantId: string };
+    clients: GymTrainerClient[];
+    total: number;
+  }> {
+    const response = await this.client.get(`/api/admin/trainers/${trainerId}/clients?status=${status}`);
+    return response.data;
+  }
+
+  /**
+   * Get all plans for a trainer's clients
+   */
+  async getTrainerClientPlans(trainerId: string, params?: {
     status?: string;
     limit?: number;
     offset?: number;
   }): Promise<GymPlansListResponse> {
     const queryParams = new URLSearchParams();
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.limit) queryParams.append('limit', String(params.limit));
+    if (params?.offset) queryParams.append('offset', String(params.offset));
 
-    // Prefer trainerId if provided (more reliable than email matching)
-    if (params.trainerId) {
-      queryParams.append('trainerId', params.trainerId);
-      if (params.trainerTenantId) {
-        queryParams.append('trainerTenantId', params.trainerTenantId);
-      }
-    } else if (params.emails && params.emails.length > 0) {
-      // Fall back to email-based query (legacy)
-      queryParams.append('emails', params.emails.join(','));
-    }
-
-    if (params.status) queryParams.append('status', params.status);
-    if (params.limit) queryParams.append('limit', String(params.limit));
-    if (params.offset) queryParams.append('offset', String(params.offset));
-
-    const response = await this.client.get(`/api/internal/gym/plans?${queryParams}`);
+    const queryString = queryParams.toString();
+    const url = `/api/admin/trainers/${trainerId}/clients/plans${queryString ? `?${queryString}` : ''}`;
+    const response = await this.client.get(url);
     return response.data;
   }
 
@@ -118,7 +178,7 @@ class GymConsoleClient {
    * Get a single gym plan by ID
    */
   async getPlan(planId: string): Promise<GymWorkoutPlan> {
-    const response = await this.client.get(`/api/internal/gym/plans/${planId}`);
+    const response = await this.client.get(`/api/admin/plans/${planId}`);
     return response.data;
   }
 
@@ -126,7 +186,27 @@ class GymConsoleClient {
    * Update a gym plan
    */
   async updatePlan(planId: string, updates: GymPlanUpdate): Promise<GymWorkoutPlan> {
-    const response = await this.client.put(`/api/internal/gym/plans/${planId}`, updates);
+    const response = await this.client.put(`/api/admin/plans/${planId}`, updates);
+    return response.data;
+  }
+
+  /**
+   * Create or sync a trainer from assistants-api to the gym app
+   * This is called when a trainer registered in assistants-api needs to access gym app data
+   */
+  async createOrSyncTrainer(data: {
+    tenantId: string;
+    businessName?: string;
+    specialty?: string;
+    bio?: string;
+    inviteCode: string;
+    maxClients?: number;
+    instagramHandle?: string;
+    website?: string;
+    userEmail: string;
+    userName?: string;
+  }): Promise<{ trainer: GymTrainer; created: boolean }> {
+    const response = await this.client.post('/api/admin/trainers', data);
     return response.data;
   }
 }

@@ -110,6 +110,16 @@ export interface GymTrainerClient {
   }>;
 }
 
+export interface GymCatalogExercise {
+  id: string;
+  name: string;
+  category: string | null;
+  youtubeUrl: string | null;
+  movementPattern: string | null;
+  equipment: string | null;
+  bodyPart: string | null;
+}
+
 class GymConsoleClient {
   private client: AxiosInstance;
 
@@ -208,6 +218,16 @@ class GymConsoleClient {
   }): Promise<{ trainer: GymTrainer; created: boolean }> {
     const response = await this.client.post('/api/admin/trainers', data);
     return response.data;
+  }
+
+  /**
+   * Search exercises from the exercise catalog
+   * Uses the smart search endpoint with similarity scoring
+   */
+  async searchExercises(query: string): Promise<GymCatalogExercise[]> {
+    if (!query || query.length < 2) return [];
+    const response = await this.client.get(`/api/gym/exercises/search?q=${encodeURIComponent(query)}`);
+    return response.data.exercises || [];
   }
 }
 

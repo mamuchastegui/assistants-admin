@@ -47,8 +47,11 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { MemberForm } from '@/components/gym/MemberForm';
+import { MemberSubscriptionCard } from '@/components/gym/MemberSubscriptionCard';
+import { SubscriptionStatusBadge } from '@/components/gym/SubscriptionStatusBadge';
 import { useToast } from '@/components/ui/use-toast';
 import { useGymMembers } from '@/hooks/gym/useGymMembers';
+import { useGymSubscriptions, type GymSubscription } from '@/hooks/gym/useGymSubscriptions';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -75,6 +78,12 @@ const Members = () => {
     useRecordCheckIn
   } = useGymMembers();
 
+  const {
+    useSubscriptionStats,
+    usePastDueSubscriptions,
+    useGetMemberActiveSubscription
+  } = useGymSubscriptions();
+
   // Fetch members with filters
   const { data: membersData, isLoading, refetch } = useListMembers({
     status: statusFilter === 'all' ? undefined : statusFilter,
@@ -85,6 +94,17 @@ const Members = () => {
 
   // Fetch expiring memberships
   const { data: expiringMembers } = useExpiringMemberships(7);
+
+  // Fetch subscription stats
+  const { data: subscriptionStats } = useSubscriptionStats();
+
+  // Fetch past due subscriptions
+  const { data: pastDueSubscriptions } = usePastDueSubscriptions();
+
+  // Get active subscription for viewing member
+  const { data: viewingMemberSubscription } = useGetMemberActiveSubscription(
+    viewingMember?.member_id || ''
+  );
 
   // Mutations
   const createMember = useCreateMember();
@@ -321,15 +341,37 @@ const Members = () => {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Vencidos</CardTitle>
+              <CardTitle className="text-sm font-medium">En Mora</CardTitle>
               <AlertCircle className="h-4 w-4 text-red-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">{expiredCount}</div>
-              <p className="text-xs text-muted-foreground">Necesitan renovar</p>
+              <div className="text-2xl font-bold text-red-600">
+                {subscriptionStats?.past_due || 0}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {pastDueSubscriptions?.length || 0} con pago vencido
+              </p>
             </CardContent>
           </Card>
         </div>
+
+        {/* Past Due Alert */}
+        {pastDueSubscriptions && pastDueSubscriptions.length > 0 && (
+          <Card className="border-red-200 bg-red-50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-red-700 flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" />
+                Suscripciones en Mora ({pastDueSubscriptions.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-red-600">
+                Hay {pastDueSubscriptions.length} miembro(s) con pagos vencidos.
+                Su acceso al gimnasio esta bloqueado hasta regularizar el pago.
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Filters and Table */}
         <Card>
@@ -622,28 +664,41 @@ const Members = () => {
                   </div>
                 </div>
 
-                {/* Membership Info */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Membresia</h3>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">Plan</p>
-                      <p className="font-medium">{viewingMember.plan_name || '-'}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Fecha de Alta</p>
-                      <p className="font-medium">{formatDate(viewingMember.join_date)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Inicio Membresia</p>
-                      <p className="font-medium">{formatDate(viewingMember.membership_start_date)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Vencimiento</p>
-                      <p className="font-medium">{formatDate(viewingMember.membership_end_date)}</p>
+                {/* Subscription Info */}
+                <MemberSubscriptionCard
+                  subscription={viewingMemberSubscription || null}
+                  onRenew={() => {
+                    toast({
+                      title: 'Proximamente',
+                      description: 'La funcionalidad de renovacion estara disponible pronto.',
+                    });
+                  }}
+                />
+
+                {/* Legacy Membership Info (for reference) */}
+                {viewingMember.membership_start_date && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Membresia (Legacy)</h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Plan</p>
+                        <p className="font-medium">{viewingMember.plan_name || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Fecha de Alta</p>
+                        <p className="font-medium">{formatDate(viewingMember.join_date)}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Inicio Membresia</p>
+                        <p className="font-medium">{formatDate(viewingMember.membership_start_date)}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Vencimiento</p>
+                        <p className="font-medium">{formatDate(viewingMember.membership_end_date)}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Check-in Stats */}
                 <div className="space-y-4">

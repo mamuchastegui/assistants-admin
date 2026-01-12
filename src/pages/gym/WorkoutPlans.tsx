@@ -61,6 +61,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useGymWorkoutPlans, type GymWorkoutPlan, type GymWorkoutDay, type GymExercise } from '@/hooks/gym/useGymWorkoutPlans';
 import TrainerRegistrationPrompt from '@/components/gym/TrainerRegistrationPrompt';
+import { ExerciseSelector } from '@/components/gym/ExerciseSelector';
 
 const WorkoutPlans: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -491,11 +492,10 @@ const WorkoutPlans: React.FC = () => {
                               </div>
 
                               <div className="space-y-2">
-                                <Input
+                                <ExerciseSelector
                                   value={exercise.name}
-                                  onChange={(e) => updateExercise(dayKey, exerciseIndex, { name: e.target.value })}
-                                  placeholder="Nombre del ejercicio"
-                                  className="font-medium"
+                                  onChange={(name) => updateExercise(dayKey, exerciseIndex, { name })}
+                                  placeholder="Buscar ejercicio..."
                                 />
                               </div>
 

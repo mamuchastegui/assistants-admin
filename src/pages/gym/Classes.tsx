@@ -52,7 +52,7 @@ import { useGymClasses, GymClass, CreateClassInput } from '@/hooks/gym/useGymCla
 import { useGymSchedules, GymSchedule, CreateScheduleInput } from '@/hooks/gym/useGymSchedules';
 import { useGymBookings, GymBooking, CreateBookingInput } from '@/hooks/gym/useGymBookings';
 import { useGymMembers } from '@/hooks/gym/useGymMembers';
-import { useGymTrainer } from '@/hooks/gym/useGymTrainer';
+import { useGymWorkoutPlans } from '@/hooks/gym/useGymWorkoutPlans';
 
 const days = [
   { value: 0, label: 'Lunes' },
@@ -77,7 +77,7 @@ const Classes = () => {
   const { useListSchedules, useCreateSchedule, useDeleteSchedule, useScheduleAvailability } = useGymSchedules();
   const { useListBookings, useCreateBooking, useCancelBooking, useMarkAttendance } = useGymBookings();
   const { useListMembers } = useGymMembers();
-  const { useListTrainers } = useGymTrainer();
+  const { useListTrainers } = useGymWorkoutPlans();
 
   // Queries
   const { data: classesData, isLoading: classesLoading } = useListClasses();

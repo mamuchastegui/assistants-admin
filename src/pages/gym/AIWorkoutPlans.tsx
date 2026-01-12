@@ -64,8 +64,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { useGymWorkoutPlans, GymWorkoutPlan, GymWorkoutDay } from '@/hooks/gym/useGymWorkoutPlans';
-import { useGymTrainer } from '@/hooks/gym/useGymTrainer';
+import { useGymWorkoutPlans, type GymWorkoutPlan } from '@/hooks/gym/useGymWorkoutPlans';
 import TrainerRegistrationPrompt from '@/components/gym/TrainerRegistrationPrompt';
 
 const AIWorkoutPlans: React.FC = () => {
@@ -77,26 +76,24 @@ const AIWorkoutPlans: React.FC = () => {
   const [selectedClientId, setSelectedClientId] = useState<string>('');
   const [viewTab, setViewTab] = useState<'all' | 'active' | 'archived'>('all');
 
-  const { useTrainerProfile, useListClients } = useGymTrainer();
-  const { data: trainerProfile, isLoading: loadingTrainer } = useTrainerProfile();
-  const tenantId = trainerProfile?.tenant_id;
-
   const {
+    useTrainer,
+    useClients,
     usePlans,
-    usePlan,
-    useTrainerClientPlans,
     useUpdatePlan,
     useAssignPlan,
     useDuplicatePlan,
   } = useGymWorkoutPlans();
 
+  // Get trainer from gym app
+  const { data: trainer, isLoading: loadingTrainer } = useTrainer();
+
   // Queries
   const { data: plansData, isLoading: loadingPlans } = usePlans({
-    tenantId,
     status: viewTab === 'all' ? undefined : viewTab,
   });
 
-  const { data: clientsData } = useListClients();
+  const { data: clientsData } = useClients(trainer?.id || '', 'active');
   const clients = clientsData?.clients || [];
 
   // Mutations
@@ -185,7 +182,7 @@ const AIWorkoutPlans: React.FC = () => {
   }
 
   // Show registration prompt if not a trainer
-  if (!trainerProfile) {
+  if (!trainer) {
     return (
       <DashboardLayout>
         <TrainerRegistrationPrompt
@@ -494,7 +491,7 @@ const AIWorkoutPlans: React.FC = () => {
                   <SelectValue placeholder="Seleccionar cliente" />
                 </SelectTrigger>
                 <SelectContent>
-                  {clients.map((client: any) => (
+                  {clients.map((client) => (
                     <SelectItem key={client.userId} value={client.userId}>
                       {client.name || client.email}
                     </SelectItem>

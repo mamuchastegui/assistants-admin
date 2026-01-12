@@ -2,130 +2,39 @@ import { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import {
   User,
   Copy,
-  RefreshCw,
   CheckCircle,
   Instagram,
   Globe,
   Users,
-  Settings,
-  Share2,
   QrCode,
+  ExternalLink,
 } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
-import { useGymTrainer, type TrainerRegisterData, type TrainerUpdateData } from '@/hooks/gym/useGymTrainer';
+import { useGymWorkoutPlans } from '@/hooks/gym/useGymWorkoutPlans';
+import TrainerRegistrationPrompt from '@/components/gym/TrainerRegistrationPrompt';
 
 const TrainerSettings = () => {
   const { toast } = useToast();
-  const [showRegisterDialog, setShowRegisterDialog] = useState(false);
-  const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
-  const [registerData, setRegisterData] = useState<TrainerRegisterData>({
-    business_name: '',
-    specialty: '',
-    bio: '',
-    instagram_handle: '',
-    website: '',
-  });
-  const [updateData, setUpdateData] = useState<TrainerUpdateData>({});
+  const [copiedCode, setCopiedCode] = useState(false);
 
-  const {
-    useTrainerProfile,
-    useRegisterTrainer,
-    useUpdateTrainerProfile,
-    useRegenerateInviteCode,
-  } = useGymTrainer();
-
-  const { data: trainer, isLoading, error } = useTrainerProfile();
-  const registerMutation = useRegisterTrainer();
-  const updateMutation = useUpdateTrainerProfile();
-  const regenerateMutation = useRegenerateInviteCode();
+  const { useTrainer } = useGymWorkoutPlans();
+  const { data: trainer, isLoading, error } = useTrainer();
 
   const isTrainer = !!trainer && !error;
 
   const copyInviteCode = () => {
-    if (trainer?.invite_code) {
-      navigator.clipboard.writeText(trainer.invite_code);
+    if (trainer?.inviteCode) {
+      navigator.clipboard.writeText(trainer.inviteCode);
+      setCopiedCode(true);
       toast({
         title: 'Codigo copiado',
         description: 'El codigo de invitacion ha sido copiado al portapapeles.',
       });
-    }
-  };
-
-  const shareInviteCode = () => {
-    if (trainer?.invite_code && navigator.share) {
-      navigator.share({
-        title: 'Unete a mi entrenamiento',
-        text: `Usa el codigo ${trainer.invite_code} para vincularte conmigo como tu entrenador personal.`,
-      });
-    } else {
-      copyInviteCode();
-    }
-  };
-
-  const handleRegister = async () => {
-    try {
-      await registerMutation.mutateAsync(registerData);
-      toast({
-        title: 'Registro exitoso',
-        description: 'Ahora eres un trainer registrado.',
-      });
-      setShowRegisterDialog(false);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'No se pudo completar el registro.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleUpdate = async () => {
-    try {
-      await updateMutation.mutateAsync(updateData);
-      toast({
-        title: 'Perfil actualizado',
-        description: 'Tus cambios han sido guardados.',
-      });
-      setUpdateData({});
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'No se pudo actualizar el perfil.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleRegenerate = async () => {
-    try {
-      await regenerateMutation.mutateAsync();
-      toast({
-        title: 'Codigo regenerado',
-        description: 'Tu nuevo codigo de invitacion esta listo.',
-      });
-      setShowRegenerateDialog(false);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'No se pudo regenerar el codigo.',
-        variant: 'destructive',
-      });
+      setTimeout(() => setCopiedCode(false), 2000);
     }
   };
 
@@ -144,12 +53,10 @@ const TrainerSettings = () => {
     return (
       <DashboardLayout>
         <div className="max-w-2xl mx-auto space-y-6">
-          <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight">Conviertete en Trainer</h1>
-            <p className="text-muted-foreground">
-              Registrate como entrenador personal para gestionar clientes y asignar planes de entrenamiento.
-            </p>
-          </div>
+          <TrainerRegistrationPrompt
+            title="Conviertete en Trainer"
+            description="Registrate como entrenador personal para gestionar clientes y asignar planes de entrenamiento."
+          />
 
           <Card>
             <CardHeader>
@@ -179,72 +86,18 @@ const TrainerSettings = () => {
               </ul>
             </CardContent>
             <CardFooter>
-              <Button onClick={() => setShowRegisterDialog(true)} className="w-full">
-                Registrarme como Trainer
+              <Button asChild className="w-full">
+                <a
+                  href="https://gym.condamind.com/trainer/register"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Registrarme en Gym App
+                </a>
               </Button>
             </CardFooter>
           </Card>
-
-          {/* Register Dialog */}
-          <Dialog open={showRegisterDialog} onOpenChange={setShowRegisterDialog}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Registro de Trainer</DialogTitle>
-                <DialogDescription>
-                  Completa tu perfil de entrenador personal
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="business_name">Nombre del negocio (opcional)</Label>
-                  <Input
-                    id="business_name"
-                    value={registerData.business_name}
-                    onChange={(e) => setRegisterData({ ...registerData, business_name: e.target.value })}
-                    placeholder="Ej: FitCoach Pro"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="specialty">Especialidad (opcional)</Label>
-                  <Input
-                    id="specialty"
-                    value={registerData.specialty}
-                    onChange={(e) => setRegisterData({ ...registerData, specialty: e.target.value })}
-                    placeholder="Ej: Fuerza, CrossFit, Funcional..."
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="bio">Bio (opcional)</Label>
-                  <Textarea
-                    id="bio"
-                    value={registerData.bio}
-                    onChange={(e) => setRegisterData({ ...registerData, bio: e.target.value })}
-                    placeholder="Cuentanos sobre tu experiencia y estilo de entrenamiento..."
-                    rows={3}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="instagram">Instagram (opcional)</Label>
-                  <Input
-                    id="instagram"
-                    value={registerData.instagram_handle}
-                    onChange={(e) => setRegisterData({ ...registerData, instagram_handle: e.target.value })}
-                    placeholder="@tuusuario"
-                  />
-                </div>
-              </div>
-
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setShowRegisterDialog(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={handleRegister} disabled={registerMutation.isPending}>
-                  {registerMutation.isPending ? 'Registrando...' : 'Completar Registro'}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
         </div>
       </DashboardLayout>
     );
@@ -258,12 +111,24 @@ const TrainerSettings = () => {
         <div className="flex flex-col sm:flex-row justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Configuracion de Trainer</h1>
-            <p className="text-muted-foreground">Gestiona tu perfil y codigo de invitacion</p>
+            <p className="text-muted-foreground">Tu perfil y codigo de invitacion</p>
           </div>
-          <Badge variant="secondary" className="h-fit">
-            <Users className="h-3 w-3 mr-1" />
-            {trainer.client_count} / {trainer.max_clients} clientes
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="h-fit">
+              <Users className="h-3 w-3 mr-1" />
+              {trainer.activeClientCount} / {trainer.maxClients || 50} clientes
+            </Badge>
+            <Button asChild variant="outline" size="sm">
+              <a
+                href="https://gym.condamind.com/trainer/settings"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <ExternalLink className="h-4 w-4 mr-1" />
+                Editar en Gym App
+              </a>
+            </Button>
+          </div>
         </div>
 
         {/* Invite Code Card */}
@@ -281,152 +146,99 @@ const TrainerSettings = () => {
             <div className="flex items-center gap-4">
               <div className="flex-1 bg-muted rounded-lg p-4 text-center">
                 <span className="text-3xl font-mono font-bold tracking-wider">
-                  {trainer.invite_code}
+                  {trainer.inviteCode}
                 </span>
               </div>
-              <div className="flex flex-col gap-2">
-                <Button variant="outline" size="icon" onClick={copyInviteCode}>
+              <Button
+                variant={copiedCode ? 'default' : 'outline'}
+                size="icon"
+                onClick={copyInviteCode}
+              >
+                {copiedCode ? (
+                  <CheckCircle className="h-4 w-4 text-white" />
+                ) : (
                   <Copy className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="icon" onClick={shareInviteCode}>
-                  <Share2 className="h-4 w-4" />
-                </Button>
-              </div>
+                )}
+              </Button>
             </div>
           </CardContent>
-          <CardFooter className="flex justify-between">
+          <CardFooter>
             <p className="text-sm text-muted-foreground">
-              Los clientes ingresan este codigo en su app para vincularse
+              Los clientes ingresan este codigo en gym.condamind.com para vincularse
             </p>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowRegenerateDialog(true)}
-            >
-              <RefreshCw className="h-4 w-4 mr-1" />
-              Regenerar
-            </Button>
           </CardFooter>
         </Card>
 
-        {/* Profile Card */}
+        {/* Profile Card - Read Only */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
+              <User className="h-5 w-5" />
               Perfil de Trainer
             </CardTitle>
             <CardDescription>
-              Actualiza tu informacion profesional
+              Tu informacion profesional
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <Label htmlFor="edit_business_name">Nombre del negocio</Label>
-                <Input
-                  id="edit_business_name"
-                  defaultValue={trainer.business_name || ''}
-                  onChange={(e) => setUpdateData({ ...updateData, business_name: e.target.value })}
-                  placeholder="Nombre de tu marca o negocio"
-                />
+                <p className="text-sm text-muted-foreground">Nombre del negocio</p>
+                <p className="font-medium">{trainer.businessName || '-'}</p>
               </div>
               <div>
-                <Label htmlFor="edit_specialty">Especialidad</Label>
-                <Input
-                  id="edit_specialty"
-                  defaultValue={trainer.specialty || ''}
-                  onChange={(e) => setUpdateData({ ...updateData, specialty: e.target.value })}
-                  placeholder="Ej: Fuerza, CrossFit, Funcional"
-                />
+                <p className="text-sm text-muted-foreground">Especialidad</p>
+                <p className="font-medium">{trainer.specialty || '-'}</p>
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="edit_bio">Bio</Label>
-              <Textarea
-                id="edit_bio"
-                defaultValue={trainer.bio || ''}
-                onChange={(e) => setUpdateData({ ...updateData, bio: e.target.value })}
-                placeholder="Describe tu experiencia y metodologia"
-                rows={4}
-              />
-            </div>
-
-            <Separator />
+            {trainer.bio && (
+              <div>
+                <p className="text-sm text-muted-foreground">Bio</p>
+                <p className="font-medium">{trainer.bio}</p>
+              </div>
+            )}
 
             <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <Label htmlFor="edit_instagram" className="flex items-center gap-1">
-                  <Instagram className="h-4 w-4" />
-                  Instagram
-                </Label>
-                <Input
-                  id="edit_instagram"
-                  defaultValue={trainer.instagram_handle || ''}
-                  onChange={(e) => setUpdateData({ ...updateData, instagram_handle: e.target.value })}
-                  placeholder="@tuusuario"
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit_website" className="flex items-center gap-1">
-                  <Globe className="h-4 w-4" />
-                  Website
-                </Label>
-                <Input
-                  id="edit_website"
-                  defaultValue={trainer.website || ''}
-                  onChange={(e) => setUpdateData({ ...updateData, website: e.target.value })}
-                  placeholder="https://tuwebsite.com"
-                />
-              </div>
+              {trainer.instagramHandle && (
+                <div className="flex items-center gap-2">
+                  <Instagram className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium">{trainer.instagramHandle}</span>
+                </div>
+              )}
+              {trainer.website && (
+                <div className="flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-muted-foreground" />
+                  <a
+                    href={trainer.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-blue-600 hover:underline"
+                  >
+                    {trainer.website}
+                  </a>
+                </div>
+              )}
             </div>
 
             <div>
-              <Label htmlFor="edit_max_clients">Limite de clientes</Label>
-              <Input
-                id="edit_max_clients"
-                type="number"
-                defaultValue={trainer.max_clients}
-                onChange={(e) => setUpdateData({ ...updateData, max_clients: parseInt(e.target.value) })}
-                min={1}
-                max={500}
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Cantidad maxima de clientes que puedes tener vinculados
-              </p>
+              <p className="text-sm text-muted-foreground">Limite de clientes</p>
+              <p className="font-medium">{trainer.maxClients || 50} clientes</p>
             </div>
           </CardContent>
           <CardFooter>
-            <Button
-              onClick={handleUpdate}
-              disabled={updateMutation.isPending || Object.keys(updateData).length === 0}
-            >
-              {updateMutation.isPending ? 'Guardando...' : 'Guardar Cambios'}
+            <Button asChild variant="outline">
+              <a
+                href="https://gym.condamind.com/trainer/settings"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Editar Perfil en Gym App
+              </a>
             </Button>
           </CardFooter>
         </Card>
-
-        {/* Regenerate Dialog */}
-        <Dialog open={showRegenerateDialog} onOpenChange={setShowRegenerateDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Regenerar codigo de invitacion</DialogTitle>
-              <DialogDescription>
-                Al regenerar el codigo, el codigo anterior dejara de funcionar.
-                Los clientes ya vinculados no se veran afectados.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowRegenerateDialog(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={handleRegenerate} disabled={regenerateMutation.isPending}>
-                {regenerateMutation.isPending ? 'Regenerando...' : 'Regenerar Codigo'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </DashboardLayout>
   );

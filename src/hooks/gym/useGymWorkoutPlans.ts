@@ -205,6 +205,24 @@ export const useGymWorkoutPlans = () => {
     });
   };
 
+  // List all trainers (for dropdowns in class creation, etc.)
+  const useListTrainers = () => {
+    return useQuery({
+      queryKey: [...GYM_TRAINER_QUERY_KEY, 'all'],
+      queryFn: async () => {
+        const response = await gymConsoleClient.getTrainers();
+        return {
+          trainers: response.trainers.map(t => ({
+            id: t.id,
+            business_name: t.businessName,
+            specialty: t.specialty,
+          })),
+          total: response.total,
+        };
+      },
+    });
+  };
+
   return {
     // Queries
     useTrainer,
@@ -212,6 +230,7 @@ export const useGymWorkoutPlans = () => {
     usePlans,
     usePlan,
     useTrainerClientPlans,
+    useListTrainers,
 
     // Mutations
     useUpdatePlan,

@@ -32,20 +32,18 @@ import {
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useGymWorkoutPlans, type GymWorkoutPlan } from '@/hooks/gym/useGymWorkoutPlans';
-import { useGymTrainer } from '@/hooks/gym/useGymTrainer';
 import TrainerRegistrationPrompt from '@/components/gym/TrainerRegistrationPrompt';
 
 const WorkoutPlans: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewTab, setViewTab] = useState<'all' | 'by-client'>('all');
 
-  const { usePlans, useTrainerClientPlans } = useGymWorkoutPlans();
-  const { useTrainerProfile } = useGymTrainer();
+  const { usePlans, useTrainerClientPlans, useTrainer } = useGymWorkoutPlans();
 
-  // Check if user is a trainer
-  const { data: trainer, isLoading: trainerLoading } = useTrainerProfile();
+  // Check if user is a trainer (now queries gym app directly)
+  const { data: trainer, isLoading: trainerLoading } = useTrainer();
 
-  // Queries - get plans from personal-os-console
+  // Queries - get plans from gym app
   const { data: plansData, isLoading: loadingPlans } = usePlans();
   const { data: trainerClientData, isLoading: loadingClientPlans } = useTrainerClientPlans(trainer?.id || '');
 

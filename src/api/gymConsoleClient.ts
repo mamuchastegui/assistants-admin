@@ -20,12 +20,10 @@ export interface GymWorkoutPlan {
   createdAt: string | null;
   startDate: string | null;
   endDate: string | null;
-  // These are null in personal-os-console (no trainer concept there)
-  trainer: null;
-  assignedClient: null;
-  assignedAt: null;
-  generationPrompt: null;
-  archivedAt: null;
+  // Trainer fields (synced from assistants-api)
+  trainerId: string | null;
+  trainerTenantId: string | null;
+  trainerLinkedAt: string | null;
 }
 
 export interface GymPlanContent {
@@ -85,16 +83,29 @@ class GymConsoleClient {
   }
 
   /**
-   * Get gym plans for a list of user emails
+   * Get gym plans by trainer ID (preferred) or user emails (legacy)
    */
   async getPlans(params: {
-    emails: string[];
+    emails?: string[];  // Legacy: query by user emails
+    trainerId?: string;  // Preferred: query by trainer ID directly
+    trainerTenantId?: string;  // Optional: filter by trainer's tenant
     status?: string;
     limit?: number;
     offset?: number;
   }): Promise<GymPlansListResponse> {
     const queryParams = new URLSearchParams();
-    queryParams.append('emails', params.emails.join(','));
+
+    // Prefer trainerId if provided (more reliable than email matching)
+    if (params.trainerId) {
+      queryParams.append('trainerId', params.trainerId);
+      if (params.trainerTenantId) {
+        queryParams.append('trainerTenantId', params.trainerTenantId);
+      }
+    } else if (params.emails && params.emails.length > 0) {
+      // Fall back to email-based query (legacy)
+      queryParams.append('emails', params.emails.join(','));
+    }
+
     if (params.status) queryParams.append('status', params.status);
     if (params.limit) queryParams.append('limit', String(params.limit));
     if (params.offset) queryParams.append('offset', String(params.offset));

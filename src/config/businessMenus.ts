@@ -39,11 +39,13 @@ const gymItems: MenuItem[] = [
   { id: 'gym-dashboard', label: 'Dashboard Gym', path: '/gym/dashboard', icon: LayoutDashboard },
   { id: 'checkins', label: 'Check-ins', path: '/gym/checkins', icon: LogIn },
   { id: 'miembros', label: 'Miembros', path: '/gym/members', icon: Users },
+  { id: 'clientes', label: 'Mis Clientes', path: '/gym/clients', icon: Users },
   { id: 'planes', label: 'Planes', path: '/gym/plans', icon: Package },
   { id: 'workout-plans', label: 'Entrenamientos', path: '/gym/workout-plans', icon: Target },
   { id: 'clases', label: 'Clases', path: '/gym/classes', icon: Dumbbell },
   { id: 'pagos', label: 'Pagos', path: '/gym/payments', icon: CreditCard },
   { id: 'docs', label: 'Documentacion', path: '/gym/docs', icon: BookOpen },
+  { id: 'trainer-settings', label: 'Mi Perfil Trainer', path: '/gym/trainer-settings', icon: Settings },
   { id: 'settings', label: 'Configuracion', path: '/settings', icon: Settings },
 ];
 

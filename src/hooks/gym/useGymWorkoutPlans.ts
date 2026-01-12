@@ -9,7 +9,7 @@
  * which are separate from assistants-api. This hook queries the gym app directly.
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useTenant } from '@/context/TenantContext';
+import { useTenantInfo } from '@/hooks/useTenantInfo';
 import {
   gymConsoleClient,
   type GymWorkoutPlan,
@@ -49,7 +49,10 @@ const GYM_CLIENTS_QUERY_KEY = ['gym', 'clients'];
 
 export const useGymWorkoutPlans = () => {
   const queryClient = useQueryClient();
-  const { orgId: tenantId } = useTenant();
+
+  // Get the UUID tenant ID from the tenant info (not Auth0 org_id)
+  const { data: tenantInfo, isLoading: tenantLoading } = useTenantInfo();
+  const tenantId = tenantInfo?.id; // UUID format like "2f686ec6-..."
 
   // Get trainer for current tenant from gym app
   const useTrainer = () => {
@@ -57,9 +60,10 @@ export const useGymWorkoutPlans = () => {
       queryKey: [...GYM_TRAINER_QUERY_KEY, tenantId],
       queryFn: async () => {
         if (!tenantId) return null;
+        console.log('[useGymWorkoutPlans] Fetching trainer for tenantId:', tenantId);
         return await gymConsoleClient.getTrainerByTenant(tenantId);
       },
-      enabled: !!tenantId,
+      enabled: !!tenantId && !tenantLoading,
     });
   };
 

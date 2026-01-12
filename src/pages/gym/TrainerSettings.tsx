@@ -3,6 +3,9 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   User,
   Copy,
@@ -12,17 +15,80 @@ import {
   Users,
   QrCode,
   ExternalLink,
+  AlertCircle,
+  Loader2,
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { useGymWorkoutPlans } from '@/hooks/gym/useGymWorkoutPlans';
-import TrainerRegistrationPrompt from '@/components/gym/TrainerRegistrationPrompt';
+import { useTenant } from '@/context/TenantContext';
+import { useAuth } from '@/hooks/useAuth';
+import { gymConsoleClient } from '@/api/gymConsoleClient';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 const TrainerSettings = () => {
   const { toast } = useToast();
   const [copiedCode, setCopiedCode] = useState(false);
+  const [showRegisterDialog, setShowRegisterDialog] = useState(false);
+  const [registerForm, setRegisterForm] = useState({
+    businessName: '',
+    specialty: '',
+    bio: '',
+    instagramHandle: '',
+  });
+
+  const { orgId } = useTenant();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const { useTrainer } = useGymWorkoutPlans();
   const { data: trainer, isLoading, error } = useTrainer();
+
+  // Debug info
+  console.log('[TrainerSettings] orgId:', orgId, 'trainer:', trainer, 'isLoading:', isLoading, 'error:', error);
+
+  // Mutation for registering trainer
+  const registerMutation = useMutation({
+    mutationFn: async () => {
+      if (!orgId || !user?.email) throw new Error('Missing orgId or user email');
+
+      // Generate random invite code
+      const inviteCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+
+      return await gymConsoleClient.createOrSyncTrainer({
+        tenantId: orgId,
+        businessName: registerForm.businessName || undefined,
+        specialty: registerForm.specialty || undefined,
+        bio: registerForm.bio || undefined,
+        inviteCode,
+        userEmail: user.email,
+        userName: user.name,
+        instagramHandle: registerForm.instagramHandle || undefined,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Registro exitoso',
+        description: 'Ahora eres un trainer registrado.',
+      });
+      setShowRegisterDialog(false);
+      queryClient.invalidateQueries({ queryKey: ['gym', 'trainer'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error al registrar',
+        description: error.response?.data?.error || error.message || 'No se pudo completar el registro',
+        variant: 'destructive',
+      });
+    },
+  });
 
   const isTrainer = !!trainer && !error;
 
@@ -42,7 +108,63 @@ const TrainerSettings = () => {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground">Cargando...</p>
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // No tenant selected
+  if (!orgId) {
+    return (
+      <DashboardLayout>
+        <div className="max-w-2xl mx-auto space-y-6">
+          <Card className="border-yellow-200 bg-yellow-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-yellow-600" />
+                Sin organizacion seleccionada
+              </CardTitle>
+              <CardDescription>
+                No se detecta un tenant/organizacion asociado a tu cuenta.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Tu token de Auth0 debe incluir un <code>org_id</code> o <code>tenant_id</code>.
+                Contacta al administrador si crees que esto es un error.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Error fetching trainer
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="max-w-2xl mx-auto space-y-6">
+          <Card className="border-red-200">
+            <CardHeader>
+              <CardTitle className="text-red-600 flex items-center gap-2">
+                <AlertCircle className="h-5 w-5" />
+                Error al cargar trainer
+              </CardTitle>
+              <CardDescription>
+                No se pudo conectar con el gym app
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <pre className="text-xs bg-muted p-2 rounded overflow-auto max-h-40">
+                {JSON.stringify(error, null, 2)}
+              </pre>
+              <p className="mt-4 text-sm text-muted-foreground">
+                TenantId: <code>{orgId}</code>
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </DashboardLayout>
     );
@@ -53,10 +175,22 @@ const TrainerSettings = () => {
     return (
       <DashboardLayout>
         <div className="max-w-2xl mx-auto space-y-6">
-          <TrainerRegistrationPrompt
-            title="Conviertete en Trainer"
-            description="Registrate como entrenador personal para gestionar clientes y asignar planes de entrenamiento."
-          />
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">Conviertete en Trainer</h1>
+            <p className="text-muted-foreground">
+              Registrate como entrenador personal para gestionar clientes y asignar planes de entrenamiento.
+            </p>
+          </div>
+
+          <Card className="bg-blue-50 border-blue-200">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">Informacion de cuenta</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm space-y-1">
+              <p><strong>Email:</strong> {user?.email || 'No disponible'}</p>
+              <p><strong>Tenant ID:</strong> <code className="text-xs">{orgId}</code></p>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>
@@ -86,18 +220,73 @@ const TrainerSettings = () => {
               </ul>
             </CardContent>
             <CardFooter>
-              <Button asChild className="w-full">
-                <a
-                  href="https://gym.condamind.com/trainer/register"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  Registrarme en Gym App
-                </a>
+              <Button className="w-full" onClick={() => setShowRegisterDialog(true)}>
+                Registrarme como Trainer
               </Button>
             </CardFooter>
           </Card>
+
+          {/* Register Dialog */}
+          <Dialog open={showRegisterDialog} onOpenChange={setShowRegisterDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Registro de Trainer</DialogTitle>
+                <DialogDescription>
+                  Completa tu perfil de entrenador personal. Todos los campos son opcionales.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="businessName">Nombre del negocio</Label>
+                  <Input
+                    id="businessName"
+                    value={registerForm.businessName}
+                    onChange={(e) => setRegisterForm({ ...registerForm, businessName: e.target.value })}
+                    placeholder="Ej: FitCoach Pro"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="specialty">Especialidad</Label>
+                  <Input
+                    id="specialty"
+                    value={registerForm.specialty}
+                    onChange={(e) => setRegisterForm({ ...registerForm, specialty: e.target.value })}
+                    placeholder="Ej: Fuerza, CrossFit, Funcional..."
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="bio">Bio</Label>
+                  <Textarea
+                    id="bio"
+                    value={registerForm.bio}
+                    onChange={(e) => setRegisterForm({ ...registerForm, bio: e.target.value })}
+                    placeholder="Cuentanos sobre tu experiencia..."
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="instagram">Instagram</Label>
+                  <Input
+                    id="instagram"
+                    value={registerForm.instagramHandle}
+                    onChange={(e) => setRegisterForm({ ...registerForm, instagramHandle: e.target.value })}
+                    placeholder="@tuusuario"
+                  />
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowRegisterDialog(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={() => registerMutation.mutate()} disabled={registerMutation.isPending}>
+                  {registerMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Completar Registro
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </DashboardLayout>
     );
@@ -120,12 +309,12 @@ const TrainerSettings = () => {
             </Badge>
             <Button asChild variant="outline" size="sm">
               <a
-                href="https://gym.condamind.com/trainer/settings"
+                href="https://gym.condamind.com"
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 <ExternalLink className="h-4 w-4 mr-1" />
-                Editar en Gym App
+                Abrir Gym App
               </a>
             </Button>
           </div>
@@ -226,18 +415,6 @@ const TrainerSettings = () => {
               <p className="font-medium">{trainer.maxClients || 50} clientes</p>
             </div>
           </CardContent>
-          <CardFooter>
-            <Button asChild variant="outline">
-              <a
-                href="https://gym.condamind.com/trainer/settings"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <ExternalLink className="mr-2 h-4 w-4" />
-                Editar Perfil en Gym App
-              </a>
-            </Button>
-          </CardFooter>
         </Card>
       </div>
     </DashboardLayout>

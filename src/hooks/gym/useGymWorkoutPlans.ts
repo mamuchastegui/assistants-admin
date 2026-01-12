@@ -1,80 +1,33 @@
 /**
- * Hook for managing workout plans from gym.condamind.com via proxy
- * These are AI-generated plans stored in the gym database (Neon)
- * Different from useWorkoutPlans which uses assistants-api's own database
+ * Hook for managing workout plans from gym.condamind.com (personal-os-console)
+ * Uses two APIs:
+ * - assistants-api: Get trainer's clients list (with emails)
+ * - personal-os-console: Get workout plans by user emails
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthApi } from '@/api/client';
+import { gymConsoleClient, type GymWorkoutPlan, type GymPlanUpdate } from '@/api/gymConsoleClient';
 import { toast } from 'sonner';
 
-// Types matching gym.condamind.com schema
-export interface GymWorkoutPlan {
+// Re-export types from gymConsoleClient for convenience
+export type { GymWorkoutPlan, GymPlanUpdate };
+export type { GymPlanContent, GymWorkoutDay, GymExercise, GymPlansListResponse } from '@/api/gymConsoleClient';
+
+// Types for assistants-api client response
+interface TrainerClient {
   id: string;
-  user: {
-    id: string;
-    name: string | null;
-    email: string;
-  };
-  trainer?: {
-    id: string;
-    businessName: string | null;
-    tenantId: string;
-  } | null;
-  assignedClient?: {
-    id: string;
-    name: string | null;
-    email: string;
-  } | null;
-  assignedAt: string | null;
-  plan: GymPlanContent;
-  status: 'active' | 'completed' | 'archived';
-  aiModel: string | null;
-  generationPrompt?: string | null;
-  createdAt: string;
-  archivedAt: string | null;
+  trainer_id: string;
+  client_user_id: string;
+  status: string;
+  client_name: string | null;
+  client_email: string | null;
 }
 
-export interface GymPlanContent {
-  programName?: string;
-  weeklyPlan?: Record<string, GymWorkoutDay>;
-  tips?: string[];
-}
-
-export interface GymWorkoutDay {
-  dayName: string;
-  muscleGroups: string[];
-  warmup?: string[];
-  exercises: GymExercise[];
-  estimatedDuration?: number;
-  notes?: string;
-}
-
-export interface GymExercise {
-  name: string;
-  sets: number;
-  reps: string;
-  restSeconds?: number;
-  notes?: string;
-}
-
-export interface GymPlanUpdate {
-  plan?: Partial<GymPlanContent>;
-  status?: 'active' | 'completed' | 'archived';
-}
-
-export interface GymPlanAssign {
-  clientUserId: string;
-  trainerId?: string;
-}
-
-export interface GymPlanDuplicate {
-  targetUserId?: string;
-  trainerId?: string;
-}
-
-export interface GymPlansListResponse {
-  plans: GymWorkoutPlan[];
+interface ClientListResponse {
+  clients: TrainerClient[];
   total: number;
+  limit: number;
+  offset: number;
 }
 
 export interface GymTrainerClientPlansResponse {
@@ -102,7 +55,8 @@ export const useGymWorkoutPlans = () => {
   const queryClient = useQueryClient();
   const authApi = useAuthApi();
 
-  // Get all plans for a trainer/tenant
+  // Get all plans for current trainer's clients
+  // This fetches clients from assistants-api, then their plans from personal-os-console
   const usePlans = (filters?: {
     trainerId?: string;
     tenantId?: string;
@@ -114,34 +68,51 @@ export const useGymWorkoutPlans = () => {
     return useQuery({
       queryKey: [...GYM_PLANS_QUERY_KEY, 'list', filters],
       queryFn: async () => {
-        const params = new URLSearchParams();
-        if (filters?.trainerId) params.append('trainer_id', filters.trainerId);
-        if (filters?.tenantId) params.append('tenant_id', filters.tenantId);
-        if (filters?.clientId) params.append('client_id', filters.clientId);
-        if (filters?.status) params.append('status', filters.status);
-        if (filters?.limit) params.append('limit', String(filters.limit));
-        if (filters?.offset) params.append('offset', String(filters.offset));
+        // Step 1: Get trainer's clients from assistants-api
+        const { data: clientsData } = await authApi.get<ClientListResponse>(
+          '/api/gym/trainers/clients',
+          {
+            params: {
+              status: 'active',
+              limit: 500,
+            },
+          }
+        );
 
-        const { data } = await authApi.get(`/admin/gym/plans?${params}`);
-        return data as GymPlansListResponse;
+        const clientEmails = clientsData.clients
+          .map(c => c.client_email)
+          .filter((email): email is string => !!email);
+
+        if (clientEmails.length === 0) {
+          return { plans: [], total: 0 };
+        }
+
+        // Step 2: Get plans from personal-os-console by client emails
+        const plansResponse = await gymConsoleClient.getPlans({
+          emails: clientEmails,
+          status: filters?.status,
+          limit: filters?.limit,
+          offset: filters?.offset,
+        });
+
+        return plansResponse;
       },
-      enabled: !!(filters?.trainerId || filters?.tenantId),
+      enabled: true, // Always enabled since we get trainer from /me endpoint
     });
   };
 
-  // Get a single plan by ID
+  // Get a single plan by ID from personal-os-console
   const usePlan = (planId: string) => {
     return useQuery({
       queryKey: [...GYM_PLANS_QUERY_KEY, planId],
       queryFn: async () => {
-        const { data } = await authApi.get(`/admin/gym/plans/${planId}`);
-        return data as GymWorkoutPlan;
+        return await gymConsoleClient.getPlan(planId);
       },
       enabled: !!planId,
     });
   };
 
-  // Get all plans for a trainer's clients
+  // Get all plans grouped by client for a trainer
   const useTrainerClientPlans = (trainerId: string, filters?: {
     status?: string;
     limit?: number;
@@ -150,24 +121,81 @@ export const useGymWorkoutPlans = () => {
     return useQuery({
       queryKey: [...GYM_PLANS_QUERY_KEY, 'trainer', trainerId, 'clients', filters],
       queryFn: async () => {
-        const params = new URLSearchParams();
-        if (filters?.status) params.append('status', filters.status);
-        if (filters?.limit) params.append('limit', String(filters.limit));
-        if (filters?.offset) params.append('offset', String(filters.offset));
+        // Step 1: Get trainer info
+        const { data: trainerData } = await authApi.get('/api/gym/trainers/me');
 
-        const { data } = await authApi.get(`/admin/gym/trainers/${trainerId}/clients/plans?${params}`);
-        return data as GymTrainerClientPlansResponse;
+        // Step 2: Get trainer's clients
+        const { data: clientsData } = await authApi.get<ClientListResponse>(
+          '/api/gym/trainers/clients',
+          {
+            params: {
+              status: 'active',
+              limit: 500,
+            },
+          }
+        );
+
+        const clients = clientsData.clients.filter(c => c.client_email);
+
+        if (clients.length === 0) {
+          return {
+            trainer: {
+              id: trainerData.id,
+              businessName: trainerData.business_name,
+              tenantId: trainerData.tenant_id,
+            },
+            plans: [],
+            plansByClient: [],
+            total: 0,
+            clientCount: 0,
+          };
+        }
+
+        // Step 3: Get plans from personal-os-console
+        const clientEmails = clients.map(c => c.client_email!);
+        const plansResponse = await gymConsoleClient.getPlans({
+          emails: clientEmails,
+          status: filters?.status,
+          limit: filters?.limit || 100,
+          offset: filters?.offset,
+        });
+
+        // Step 4: Group plans by client
+        const plansByClient = clients.map(client => {
+          const clientPlans = plansResponse.plans.filter(
+            p => p.user.email.toLowerCase() === client.client_email?.toLowerCase()
+          );
+          return {
+            client: {
+              id: client.client_user_id,
+              name: client.client_name,
+              email: client.client_email!,
+            },
+            plans: clientPlans,
+          };
+        }).filter(group => group.plans.length > 0);
+
+        return {
+          trainer: {
+            id: trainerData.id,
+            businessName: trainerData.business_name,
+            tenantId: trainerData.tenant_id,
+          },
+          plans: plansResponse.plans,
+          plansByClient,
+          total: plansResponse.total,
+          clientCount: clients.length,
+        } as GymTrainerClientPlansResponse;
       },
       enabled: !!trainerId,
     });
   };
 
-  // Update a plan
+  // Update a plan in personal-os-console
   const useUpdatePlan = () => {
     return useMutation({
       mutationFn: async ({ planId, updates }: { planId: string; updates: GymPlanUpdate }) => {
-        const { data } = await authApi.put(`/admin/gym/plans/${planId}`, updates);
-        return data;
+        return await gymConsoleClient.updatePlan(planId, updates);
       },
       onSuccess: (_, variables) => {
         queryClient.invalidateQueries({ queryKey: [...GYM_PLANS_QUERY_KEY, variables.planId] });
@@ -176,44 +204,35 @@ export const useGymWorkoutPlans = () => {
         toast.success('Plan actualizado');
       },
       onError: (error: any) => {
-        toast.error(error.response?.data?.detail || error.response?.data?.error || 'Error al actualizar plan');
+        toast.error(error.response?.data?.error || error.message || 'Error al actualizar plan');
       },
     });
   };
 
-  // Assign a plan to a client
+  // Note: Assign and Duplicate operations require additional implementation
+  // in personal-os-console to support trainer workflows
   const useAssignPlan = () => {
     return useMutation({
-      mutationFn: async ({ planId, assignment }: { planId: string; assignment: GymPlanAssign }) => {
-        const { data } = await authApi.post(`/admin/gym/plans/${planId}/assign`, assignment);
-        return data;
-      },
-      onSuccess: (_, variables) => {
-        queryClient.invalidateQueries({ queryKey: [...GYM_PLANS_QUERY_KEY, variables.planId] });
-        queryClient.invalidateQueries({ queryKey: [...GYM_PLANS_QUERY_KEY, 'list'] });
-        queryClient.invalidateQueries({ queryKey: [...GYM_PLANS_QUERY_KEY, 'trainer'] });
-        toast.success('Plan asignado al cliente');
+      mutationFn: async ({ planId, assignment }: { planId: string; assignment: { clientUserId: string } }) => {
+        // TODO: Implement plan assignment in personal-os-console
+        toast.error('Asignacion de planes aun no implementada');
+        throw new Error('Not implemented');
       },
       onError: (error: any) => {
-        toast.error(error.response?.data?.detail || error.response?.data?.error || 'Error al asignar plan');
+        toast.error(error.message || 'Error al asignar plan');
       },
     });
   };
 
-  // Duplicate a plan
   const useDuplicatePlan = () => {
     return useMutation({
-      mutationFn: async ({ planId, options }: { planId: string; options?: GymPlanDuplicate }) => {
-        const { data } = await authApi.post(`/admin/gym/plans/${planId}/duplicate`, options || {});
-        return data;
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: [...GYM_PLANS_QUERY_KEY, 'list'] });
-        queryClient.invalidateQueries({ queryKey: [...GYM_PLANS_QUERY_KEY, 'trainer'] });
-        toast.success('Plan duplicado');
+      mutationFn: async ({ planId, options }: { planId: string; options?: { targetUserId?: string } }) => {
+        // TODO: Implement plan duplication in personal-os-console
+        toast.error('Duplicacion de planes aun no implementada');
+        throw new Error('Not implemented');
       },
       onError: (error: any) => {
-        toast.error(error.response?.data?.detail || error.response?.data?.error || 'Error al duplicar plan');
+        toast.error(error.message || 'Error al duplicar plan');
       },
     });
   };

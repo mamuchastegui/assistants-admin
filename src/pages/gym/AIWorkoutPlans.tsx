@@ -96,7 +96,8 @@ const AIWorkoutPlans: React.FC = () => {
     status: viewTab === 'all' ? undefined : viewTab,
   });
 
-  const { data: clients = [] } = useListClients();
+  const { data: clientsData } = useListClients();
+  const clients = clientsData?.clients || [];
 
   // Mutations
   const updatePlan = useUpdatePlan();

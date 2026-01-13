@@ -251,9 +251,11 @@ class GymConsoleClient {
    * Delete a workout plan
    */
   async deletePlan(planId: string): Promise<void> {
-    // Must include Content-Type header to bypass Vercel's CSRF protection
-    // Axios strips Content-Type from DELETE requests without body
+    // Must include Content-Type: application/json AND a body to bypass Vercel's CSRF protection
+    // Vercel blocks cross-site DELETE requests that look like form submissions
+    // Axios strips Content-Type from DELETE requests without body, so we send empty object
     await this.client.delete(`/api/admin/plans/${planId}`, {
+      data: {},
       headers: { 'Content-Type': 'application/json' },
     });
   }

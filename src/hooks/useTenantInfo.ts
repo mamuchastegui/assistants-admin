@@ -18,17 +18,16 @@ export const useTenantInfo = () => {
   const { orgId } = useTenant();
 
   return useQuery({
-    queryKey: ['tenant-info', orgId],
+    queryKey: ['tenantInfo', orgId],
     queryFn: async () => {
       if (!orgId) return null;
 
-      // Fetch all tenants and find the one matching orgId
-      const { data } = await authApi.get<{ tenants: TenantInfo[]; total: number }>('/admin/tenants');
-      const tenant = data.tenants.find(t => t.org_id === orgId);
+      // Use the /me endpoint which doesn't require admin
+      const { data: tenant } = await authApi.get<TenantInfo | null>('/admin/tenants/me');
 
       if (!tenant) return null;
 
-      // Fetch phone IDs for this tenant
+      // Fetch phone IDs for this tenant (optional, may fail for non-admins)
       try {
         const { data: phones } = await authApi.get<TenantPhones>(`/admin/tenants/${tenant.id}/phones`);
         return { ...tenant, phones };

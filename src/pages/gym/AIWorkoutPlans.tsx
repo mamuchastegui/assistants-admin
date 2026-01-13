@@ -688,15 +688,15 @@ const AIWorkoutPlans: React.FC = () => {
                             {isWarmupBlock(day.warmup) ? (
                               <div className="space-y-3">
                                 {day.warmup.cardio && (
-                                  <div className="p-2 bg-orange-50 rounded-lg border border-orange-100">
-                                    <p className="text-xs font-medium text-orange-700 mb-1">Cardio</p>
+                                  <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded-lg border border-orange-100 dark:border-orange-800">
+                                    <p className="text-xs font-medium text-orange-700 dark:text-orange-300 mb-1">Cardio</p>
                                     <p className="text-sm">{day.warmup.cardio.duration} min - {day.warmup.cardio.description}</p>
                                   </div>
                                 )}
 
                                 {day.warmup.mobility.length > 0 && (
-                                  <div className="p-2 bg-blue-50 rounded-lg border border-blue-100">
-                                    <p className="text-xs font-medium text-blue-700 mb-1">Movilidad</p>
+                                  <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-100 dark:border-blue-800">
+                                    <p className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">Movilidad</p>
                                     <ul className="text-sm space-y-1">
                                       {day.warmup.mobility.map((ex, i) => (
                                         <li key={i}>
@@ -713,8 +713,8 @@ const AIWorkoutPlans: React.FC = () => {
                                 )}
 
                                 {day.warmup.activation.length > 0 && (
-                                  <div className="p-2 bg-yellow-50 rounded-lg border border-yellow-100">
-                                    <p className="text-xs font-medium text-yellow-700 mb-1">Activacion</p>
+                                  <div className="p-2 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg border border-yellow-100 dark:border-yellow-800">
+                                    <p className="text-xs font-medium text-yellow-700 dark:text-yellow-300 mb-1">Activacion</p>
                                     <ul className="text-sm space-y-1">
                                       {day.warmup.activation.map((ex, i) => (
                                         <li key={i}>
@@ -768,8 +768,8 @@ const AIWorkoutPlans: React.FC = () => {
                         </div>
 
                         {day.notes && (
-                          <div className="p-3 bg-blue-50 rounded-lg">
-                            <p className="text-sm text-blue-800">{day.notes}</p>
+                          <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                            <p className="text-sm text-blue-800 dark:text-blue-200">{day.notes}</p>
                           </div>
                         )}
                       </div>
@@ -1313,13 +1313,13 @@ const AIWorkoutPlans: React.FC = () => {
 
                           {/* Warmup - Structured format */}
                           {workout.warmup && typeof workout.warmup === 'object' && !Array.isArray(workout.warmup) && (
-                            <div className="space-y-2 p-3 bg-orange-50 rounded-lg border border-orange-100">
-                              <div className="text-xs font-semibold text-orange-700 uppercase">Entrada en Calor</div>
+                            <div className="space-y-2 p-3 bg-orange-50 dark:bg-orange-950/30 rounded-lg border border-orange-100 dark:border-orange-800">
+                              <div className="text-xs font-semibold text-orange-700 dark:text-orange-300 uppercase">Entrada en Calor</div>
 
                               {/* Cardio */}
                               {workout.warmup.cardio && (
                                 <div className="text-sm">
-                                  <span className="text-orange-600">Cardio:</span>{' '}
+                                  <span className="text-orange-600 dark:text-orange-400">Cardio:</span>{' '}
                                   {workout.warmup.cardio.duration} min - {workout.warmup.cardio.description}
                                 </div>
                               )}
@@ -1327,7 +1327,7 @@ const AIWorkoutPlans: React.FC = () => {
                               {/* Mobility */}
                               {workout.warmup.mobility && workout.warmup.mobility.length > 0 && (
                                 <div className="text-sm">
-                                  <span className="text-blue-600">Movilidad:</span>{' '}
+                                  <span className="text-blue-600 dark:text-blue-400">Movilidad:</span>{' '}
                                   {workout.warmup.mobility.map((ex: any) => ex.name).join(', ')}
                                 </div>
                               )}
@@ -1335,7 +1335,7 @@ const AIWorkoutPlans: React.FC = () => {
                               {/* Activation */}
                               {workout.warmup.activation && workout.warmup.activation.length > 0 && (
                                 <div className="text-sm">
-                                  <span className="text-yellow-600">Activacion:</span>{' '}
+                                  <span className="text-yellow-600 dark:text-yellow-400">Activacion:</span>{' '}
                                   {workout.warmup.activation.map((ex: any) => ex.name).join(', ')}
                                 </div>
                               )}

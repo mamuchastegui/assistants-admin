@@ -169,6 +169,7 @@ class GymConsoleClient {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
+        'X-Requested-With': 'XMLHttpRequest', // Required for Vercel CSRF bypass
       },
     });
   }

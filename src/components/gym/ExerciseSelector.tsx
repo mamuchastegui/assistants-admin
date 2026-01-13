@@ -34,6 +34,7 @@ export function ExerciseSelector({
   const [searchQuery, setSearchQuery] = useState('');
   const [exercises, setExercises] = useState<GymCatalogExercise[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasUserTyped, setHasUserTyped] = useState(false);
 
   // Debounced search
   const searchExercises = useCallback(async (query: string) => {
@@ -63,12 +64,21 @@ export function ExerciseSelector({
     return () => clearTimeout(timer);
   }, [searchQuery, searchExercises]);
 
-  // Initialize search with current value when opening
+  // Reset state when popover closes
   useEffect(() => {
-    if (open && value && exercises.length === 0) {
+    if (!open) {
+      setHasUserTyped(false);
+      setSearchQuery('');
+      setExercises([]);
+    }
+  }, [open]);
+
+  // Initialize search with current value ONLY when opening and user hasn't typed yet
+  useEffect(() => {
+    if (open && value && !hasUserTyped && exercises.length === 0 && searchQuery === '') {
       setSearchQuery(value);
     }
-  }, [open, value, exercises.length]);
+  }, [open, value, exercises.length, hasUserTyped, searchQuery]);
 
   const handleSelect = (exerciseName: string) => {
     onChange(exerciseName);
@@ -97,7 +107,10 @@ export function ExerciseSelector({
           <CommandInput
             placeholder="Buscar ejercicio..."
             value={searchQuery}
-            onValueChange={setSearchQuery}
+            onValueChange={(val) => {
+              setHasUserTyped(true);
+              setSearchQuery(val);
+            }}
           />
           <CommandList
             className="max-h-[300px] overflow-y-auto"

@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is the **assistants-admin** frontend - a React admin dashboard for managing AI assistants, WhatsApp conversations, orders, products, and appointments. It's part of the CondaMind ecosystem and connects to the `assistants-api` backend.
 
+**Production URL**: admin.condamind.com
+
 ## Development Commands
 
 ```bash
@@ -36,10 +38,45 @@ The app wraps components in this order:
 - `useAuth()` hook abstracts both providers with identical interface
 - `useAuthApi()` hook returns an axios client with auto-injected Bearer token
 
-### API Client Pattern (src/api/client.ts)
-- `apiClient` - Basic axios instance (no auth)
-- `useAuthApi()` - Hook returning authenticated axios with token interceptor
-- Base URL from `VITE_API_URL` env var
+### Two API Backends
+
+This admin panel communicates with two different backends:
+
+| API | URL | Auth | Client | Use |
+|-----|-----|------|--------|-----|
+| assistants-api | api.condamind.com | Auth0 token | `useAuthApi()` | Members, payments, check-ins, classes, general features |
+| gym console | gym.condamind.com | Internal API key | `gymConsoleClient` | Trainers, clients, workout plans |
+
+**API Client Files:**
+- `src/api/client.ts` - Auth0-authenticated client for assistants-api
+- `src/api/gymConsoleClient.ts` - API-key client for gym console (singleton)
+
+### Gym Module Architecture
+
+The gym feature uses data from both backends:
+
+```
+TenantContext (orgId)
+      │
+      ▼
+useGymWorkoutPlans.useTrainer()
+      │
+      ▼
+gymConsoleClient.getTrainerByTenant(tenantId)
+      │
+      ▼
+gym.condamind.com/api/admin/trainers?tenantId=...
+      │
+      ▼
+gymConsoleClient.getTrainerClients(trainerId)
+gymConsoleClient.getTrainerClientPlans(trainerId)
+```
+
+**Key hooks:**
+- `useGymWorkoutPlans()` - Trainers, clients, plans (uses gymConsoleClient)
+- `useGymMembers()`, `useGymPlans()`, `useGymCheckIns()` - Uses assistants-api
+
+**DO NOT** duplicate gym_trainers or workout_plans data - these live in the gym console (personal-os-console).
 
 ### Real-time Notifications (src/hooks/notifications/)
 - SSE connection to `/notifications/sse/human-needed`
@@ -49,7 +86,7 @@ The app wraps components in this order:
 
 ### Route Organization
 - Main routes: `/`, `/calendar`, `/orders`, `/products`, `/assistant`, `/settings`, etc.
-- Gym-specific routes: `/gym/dashboard`, `/gym/members`, `/gym/classes`, `/gym/payments`, `/gym/plans`, `/gym/checkins`
+- Gym-specific routes: `/gym/dashboard`, `/gym/members`, `/gym/classes`, `/gym/payments`, `/gym/plans`, `/gym/checkins`, `/gym/clients`, `/gym/workout-plans`, `/gym/trainer-settings`
 - Payment callbacks: `/payments/mercadopago/{success,failure,pending}`
 - Auth routes: `/login`, `/signup`, `/callback`, `/auth-error`, `/onboarding`
 
@@ -71,8 +108,16 @@ VITE_AUTH0_AUDIENCE=
 VITE_AUTH0_CALLBACK_URL=
 VITE_API_URL=https://api.condamind.com
 VITE_SKIP_AUTH=true  # Optional: bypass Auth0 in development
+
+# For gym trainer/client features
+VITE_GYM_CONSOLE_URL=https://gym.condamind.com
+VITE_GYM_INTERNAL_API_KEY=<same as INTERNAL_API_KEY in gym app>
 ```
 
 ## Path Alias
 
 `@/` resolves to `./src/` (configured in vite.config.ts and tsconfig)
+
+## UI Components
+
+Uses shadcn/ui component library. Components are in `src/components/ui/` and can be customized directly. Form handling uses react-hook-form + zod validation.

@@ -331,13 +331,13 @@ const TrainerSettings = () => {
             </p>
           </div>
 
-          <Card className="bg-blue-50 border-blue-200">
+          <Card className="bg-muted/50 border-border">
             <CardHeader>
               <CardTitle className="text-sm font-medium">Informacion de cuenta</CardTitle>
             </CardHeader>
             <CardContent className="text-sm space-y-1">
               <p><strong>Email:</strong> {user?.email || 'No disponible'}</p>
-              <p><strong>Tenant ID:</strong> <code className="text-xs">{tenantId}</code></p>
+              <p><strong>Tenant ID:</strong> <code className="text-xs bg-muted px-1 rounded">{tenantId}</code></p>
             </CardContent>
           </Card>
 

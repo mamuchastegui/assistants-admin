@@ -191,6 +191,51 @@ export const useGymWorkoutPlans = () => {
     });
   };
 
+  // Create a new plan
+  const useCreatePlan = () => {
+    return useMutation({
+      mutationFn: async (data: { userId: string; plan: { programName: string; weeklyPlan: Record<string, any> } }) => {
+        if (!tenantId) throw new Error('No tenant selected');
+
+        // Get trainer for this tenant
+        const trainer = await gymConsoleClient.getTrainerByTenant(tenantId);
+        if (!trainer) throw new Error('No eres un trainer registrado');
+
+        return await gymConsoleClient.createPlan({
+          userId: data.userId,
+          trainerId: trainer.id,
+          plan: data.plan,
+          status: 'active',
+        });
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: [...GYM_PLANS_QUERY_KEY, 'list'] });
+        queryClient.invalidateQueries({ queryKey: [...GYM_PLANS_QUERY_KEY, 'trainer'] });
+        toast.success('Plan creado exitosamente');
+      },
+      onError: (error: any) => {
+        toast.error(error.response?.data?.error || error.message || 'Error al crear plan');
+      },
+    });
+  };
+
+  // Delete a plan
+  const useDeletePlan = () => {
+    return useMutation({
+      mutationFn: async (planId: string) => {
+        await gymConsoleClient.deletePlan(planId);
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: [...GYM_PLANS_QUERY_KEY, 'list'] });
+        queryClient.invalidateQueries({ queryKey: [...GYM_PLANS_QUERY_KEY, 'trainer'] });
+        toast.success('Plan eliminado');
+      },
+      onError: (error: any) => {
+        toast.error(error.response?.data?.error || error.message || 'Error al eliminar plan');
+      },
+    });
+  };
+
   // Assign and Duplicate operations
   const useAssignPlan = () => {
     return useMutation({
@@ -216,12 +261,13 @@ export const useGymWorkoutPlans = () => {
     });
   };
 
-  // List all trainers (for dropdowns in class creation, etc.)
+  // List trainers for current tenant (for dropdowns in class creation, etc.)
   const useListTrainers = () => {
     return useQuery({
-      queryKey: [...GYM_TRAINER_QUERY_KEY, 'all'],
+      queryKey: [...GYM_TRAINER_QUERY_KEY, 'list', tenantId],
       queryFn: async () => {
-        const response = await gymConsoleClient.getTrainers();
+        if (!tenantId) return { trainers: [], total: 0 };
+        const response = await gymConsoleClient.getTrainers(tenantId);
         return {
           trainers: response.trainers.map(t => ({
             id: t.id,
@@ -231,6 +277,7 @@ export const useGymWorkoutPlans = () => {
           total: response.total,
         };
       },
+      enabled: !!tenantId,
     });
   };
 
@@ -245,6 +292,8 @@ export const useGymWorkoutPlans = () => {
 
     // Mutations
     useUpdatePlan,
+    useCreatePlan,
+    useDeletePlan,
     useAssignPlan,
     useDuplicatePlan,
   };

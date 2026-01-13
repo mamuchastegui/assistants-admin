@@ -95,6 +95,8 @@ const AIWorkoutPlans: React.FC = () => {
     useClients,
     usePlans,
     useUpdatePlan,
+    useCreatePlan,
+    useDeletePlan,
     useAssignPlan,
     useDuplicatePlan,
   } = useGymWorkoutPlans();
@@ -112,8 +114,27 @@ const AIWorkoutPlans: React.FC = () => {
 
   // Mutations
   const updatePlan = useUpdatePlan();
+  const createPlan = useCreatePlan();
+  const deletePlan = useDeletePlan();
   const assignPlan = useAssignPlan();
   const duplicatePlan = useDuplicatePlan();
+
+  // Create plan state
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [createForm, setCreateForm] = useState<{
+    clientId: string;
+    programName: string;
+    selectedDays: string[];
+    weeklyPlan: Record<string, GymWorkoutDay>;
+  }>({
+    clientId: '',
+    programName: '',
+    selectedDays: [],
+    weeklyPlan: {},
+  });
+
+  // Delete plan state
+  const [planToDelete, setPlanToDelete] = useState<GymWorkoutPlan | null>(null);
 
   const plans = plansData?.plans || [];
 
@@ -165,6 +186,127 @@ const AIWorkoutPlans: React.FC = () => {
       planId,
       options: targetUserId ? { targetUserId } : undefined
     });
+  };
+
+  // Delete plan handlers
+  const handleDeletePlan = (plan: GymWorkoutPlan) => {
+    setPlanToDelete(plan);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!planToDelete) return;
+    await deletePlan.mutateAsync(planToDelete.id);
+    setPlanToDelete(null);
+  };
+
+  // Create plan handlers
+  const DAYS_OF_WEEK = [
+    { key: 'day1', label: 'Lunes' },
+    { key: 'day2', label: 'Martes' },
+    { key: 'day3', label: 'Miércoles' },
+    { key: 'day4', label: 'Jueves' },
+    { key: 'day5', label: 'Viernes' },
+    { key: 'day6', label: 'Sábado' },
+    { key: 'day7', label: 'Domingo' },
+  ];
+
+  const handleOpenCreateDialog = () => {
+    setCreateForm({
+      clientId: '',
+      programName: '',
+      selectedDays: [],
+      weeklyPlan: {},
+    });
+    setShowCreateDialog(true);
+  };
+
+  const toggleDay = (dayKey: string, dayLabel: string) => {
+    setCreateForm(prev => {
+      const isSelected = prev.selectedDays.includes(dayKey);
+      if (isSelected) {
+        // Remove day
+        const newSelectedDays = prev.selectedDays.filter(d => d !== dayKey);
+        const newWeeklyPlan = { ...prev.weeklyPlan };
+        delete newWeeklyPlan[dayKey];
+        return { ...prev, selectedDays: newSelectedDays, weeklyPlan: newWeeklyPlan };
+      } else {
+        // Add day with empty exercises
+        return {
+          ...prev,
+          selectedDays: [...prev.selectedDays, dayKey],
+          weeklyPlan: {
+            ...prev.weeklyPlan,
+            [dayKey]: {
+              dayName: dayLabel,
+              muscleGroups: [],
+              exercises: [],
+            },
+          },
+        };
+      }
+    });
+  };
+
+  const addExerciseToNewPlan = (dayKey: string) => {
+    const newExercise: GymExercise = {
+      name: '',
+      sets: 3,
+      reps: '10',
+      restSeconds: 60,
+      notes: '',
+    };
+    setCreateForm(prev => ({
+      ...prev,
+      weeklyPlan: {
+        ...prev.weeklyPlan,
+        [dayKey]: {
+          ...prev.weeklyPlan[dayKey],
+          exercises: [...(prev.weeklyPlan[dayKey]?.exercises || []), newExercise],
+        },
+      },
+    }));
+  };
+
+  const updateExerciseInNewPlan = (dayKey: string, exerciseIndex: number, updates: Partial<GymExercise>) => {
+    setCreateForm(prev => ({
+      ...prev,
+      weeklyPlan: {
+        ...prev.weeklyPlan,
+        [dayKey]: {
+          ...prev.weeklyPlan[dayKey],
+          exercises: prev.weeklyPlan[dayKey].exercises.map((ex, idx) =>
+            idx === exerciseIndex ? { ...ex, ...updates } : ex
+          ),
+        },
+      },
+    }));
+  };
+
+  const deleteExerciseFromNewPlan = (dayKey: string, exerciseIndex: number) => {
+    setCreateForm(prev => ({
+      ...prev,
+      weeklyPlan: {
+        ...prev.weeklyPlan,
+        [dayKey]: {
+          ...prev.weeklyPlan[dayKey],
+          exercises: prev.weeklyPlan[dayKey].exercises.filter((_, idx) => idx !== exerciseIndex),
+        },
+      },
+    }));
+  };
+
+  const handleCreatePlan = async () => {
+    if (!createForm.clientId || !createForm.programName) return;
+
+    await createPlan.mutateAsync({
+      userId: createForm.clientId,
+      plan: {
+        programName: createForm.programName,
+        weeklyPlan: createForm.weeklyPlan,
+      },
+    });
+
+    setShowCreateDialog(false);
   };
 
   // Edit plan handlers
@@ -320,6 +462,10 @@ const AIWorkoutPlans: React.FC = () => {
             Planes generados por IA para tus clientes
           </p>
         </div>
+        <Button onClick={handleOpenCreateDialog}>
+          <Plus className="mr-2 h-4 w-4" />
+          Crear Plan
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -481,6 +627,13 @@ const AIWorkoutPlans: React.FC = () => {
                                   Archivar
                                 </DropdownMenuItem>
                               )}
+                              <DropdownMenuItem
+                                onClick={() => handleDeletePlan(plan)}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Eliminar
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
@@ -816,6 +969,229 @@ const AIWorkoutPlans: React.FC = () => {
             <Button onClick={handleSaveEdit} disabled={updatePlan.isPending}>
               {updatePlan.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Guardar cambios
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Plan Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Crear Nuevo Plan</DialogTitle>
+            <DialogDescription>
+              Crea un plan de entrenamiento personalizado para un cliente.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Client Selection */}
+            <div className="space-y-2">
+              <Label>Cliente</Label>
+              <Select
+                value={createForm.clientId}
+                onValueChange={(value) => setCreateForm(prev => ({ ...prev, clientId: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar cliente" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clients.map((client) => (
+                    <SelectItem key={client.userId} value={client.userId}>
+                      {client.name || client.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Program Name */}
+            <div className="space-y-2">
+              <Label>Nombre del programa</Label>
+              <Input
+                value={createForm.programName}
+                onChange={(e) => setCreateForm(prev => ({ ...prev, programName: e.target.value }))}
+                placeholder="Ej: Programa de fuerza 4 días"
+              />
+            </div>
+
+            {/* Day Selection */}
+            <div className="space-y-2">
+              <Label>Días de entrenamiento</Label>
+              <div className="flex flex-wrap gap-2">
+                {DAYS_OF_WEEK.map(({ key, label }) => (
+                  <Button
+                    key={key}
+                    type="button"
+                    variant={createForm.selectedDays.includes(key) ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => toggleDay(key, label)}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Days Configuration */}
+            {createForm.selectedDays.length > 0 && (
+              <div className="space-y-2">
+                <Label>Configurar ejercicios por día</Label>
+                <Accordion type="single" collapsible className="w-full">
+                  {createForm.selectedDays.map((dayKey) => {
+                    const dayData = createForm.weeklyPlan[dayKey];
+                    if (!dayData) return null;
+                    return (
+                      <AccordionItem key={dayKey} value={dayKey}>
+                        <AccordionTrigger className="text-sm">
+                          <span className="flex items-center gap-2">
+                            <Dumbbell className="h-4 w-4" />
+                            {dayData.dayName}
+                            <Badge variant="outline" className="ml-2">
+                              {dayData.exercises?.length || 0} ejercicios
+                            </Badge>
+                          </span>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <div className="space-y-3 pt-2">
+                            {dayData.exercises?.map((exercise, exerciseIndex) => (
+                              <div
+                                key={exerciseIndex}
+                                className="border rounded-lg p-3 space-y-3 bg-muted/30"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-muted-foreground font-medium">
+                                    Ejercicio {exerciseIndex + 1}
+                                  </span>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 text-destructive hover:text-destructive"
+                                    onClick={() => deleteExerciseFromNewPlan(dayKey, exerciseIndex)}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <ExerciseSelector
+                                    value={exercise.name}
+                                    onChange={(name) => updateExerciseInNewPlan(dayKey, exerciseIndex, { name })}
+                                    placeholder="Buscar ejercicio..."
+                                  />
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-2">
+                                  <div className="space-y-1">
+                                    <Label className="text-xs">Series</Label>
+                                    <Input
+                                      type="number"
+                                      min="1"
+                                      value={exercise.sets}
+                                      onChange={(e) => updateExerciseInNewPlan(dayKey, exerciseIndex, { sets: parseInt(e.target.value) || 1 })}
+                                      className="h-8"
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <Label className="text-xs">Reps</Label>
+                                    <Input
+                                      value={exercise.reps}
+                                      onChange={(e) => updateExerciseInNewPlan(dayKey, exerciseIndex, { reps: e.target.value })}
+                                      placeholder="8-12"
+                                      className="h-8"
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <Label className="text-xs">Descanso (s)</Label>
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      value={exercise.restSeconds || ''}
+                                      onChange={(e) => updateExerciseInNewPlan(dayKey, exerciseIndex, { restSeconds: parseInt(e.target.value) || undefined })}
+                                      placeholder="60"
+                                      className="h-8"
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="space-y-1">
+                                  <Label className="text-xs">Notas</Label>
+                                  <Input
+                                    value={exercise.notes || ''}
+                                    onChange={(e) => updateExerciseInNewPlan(dayKey, exerciseIndex, { notes: e.target.value })}
+                                    placeholder="Notas del ejercicio..."
+                                    className="h-8 text-sm"
+                                  />
+                                </div>
+                              </div>
+                            ))}
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full"
+                              onClick={() => addExerciseToNewPlan(dayKey)}
+                            >
+                              <Plus className="h-4 w-4 mr-1" />
+                              Agregar ejercicio
+                            </Button>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    );
+                  })}
+                </Accordion>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleCreatePlan}
+              disabled={!createForm.clientId || !createForm.programName || createPlan.isPending}
+            >
+              {createPlan.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Crear Plan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!planToDelete} onOpenChange={(open) => !open && setPlanToDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Eliminar Plan</DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro de que deseas eliminar este plan? Esta acción no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+
+          {planToDelete && (
+            <div className="py-4 space-y-2">
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="font-medium">{planToDelete.plan?.programName || 'Plan sin nombre'}</p>
+                <p className="text-sm text-muted-foreground">
+                  Cliente: {planToDelete.user?.name || planToDelete.user?.email}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPlanToDelete(null)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmDelete}
+              disabled={deletePlan.isPending}
+            >
+              {deletePlan.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Eliminar
             </Button>
           </DialogFooter>
         </DialogContent>

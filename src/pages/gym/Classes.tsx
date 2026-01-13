@@ -601,7 +601,11 @@ const Classes = () => {
                   <Label htmlFor="class_type">Tipo</Label>
                   <Select
                     value={classForm.class_type}
-                    onValueChange={(value: 'group' | 'individual') => setClassForm({ ...classForm, class_type: value })}
+                    onValueChange={(value: 'group' | 'individual') => setClassForm({
+                      ...classForm,
+                      class_type: value,
+                      max_capacity: value === 'individual' ? 1 : classForm.max_capacity
+                    })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -640,15 +644,17 @@ const Classes = () => {
                     onChange={(e) => setClassForm({ ...classForm, duration_minutes: parseInt(e.target.value) })}
                   />
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="capacity">Capacidad</Label>
-                  <Input
-                    id="capacity"
-                    type="number"
-                    value={classForm.max_capacity}
-                    onChange={(e) => setClassForm({ ...classForm, max_capacity: parseInt(e.target.value) })}
-                  />
-                </div>
+                {classForm.class_type === 'group' && (
+                  <div className="grid gap-2">
+                    <Label htmlFor="capacity">Capacidad</Label>
+                    <Input
+                      id="capacity"
+                      type="number"
+                      value={classForm.max_capacity}
+                      onChange={(e) => setClassForm({ ...classForm, max_capacity: parseInt(e.target.value) })}
+                    />
+                  </div>
+                )}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="trainer">Trainer / Instructor</Label>

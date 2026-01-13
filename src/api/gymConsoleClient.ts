@@ -201,6 +201,26 @@ class GymConsoleClient {
   }
 
   /**
+   * Create a new workout plan for a client
+   */
+  async createPlan(data: {
+    userId: string;
+    trainerId: string;
+    plan: GymPlanContent;
+    status?: 'active' | 'completed' | 'archived';
+  }): Promise<GymWorkoutPlan> {
+    const response = await this.client.post('/api/admin/plans', data);
+    return response.data;
+  }
+
+  /**
+   * Delete a workout plan
+   */
+  async deletePlan(planId: string): Promise<void> {
+    await this.client.delete(`/api/admin/plans/${planId}`);
+  }
+
+  /**
    * Create or sync a trainer from assistants-api to the gym app
    * This is called when a trainer registered in assistants-api needs to access gym app data
    */

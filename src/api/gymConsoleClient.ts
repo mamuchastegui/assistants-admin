@@ -39,7 +39,7 @@ export interface GymPlanContent {
 export interface GymWorkoutDay {
   dayName: string;
   muscleGroups: string[];
-  warmup?: string[];
+  warmup?: string[] | WarmupBlock; // Supports legacy string[] and new WarmupBlock
   exercises: GymExercise[];
   estimatedDuration?: number;
   notes?: string;
@@ -52,6 +52,28 @@ export interface GymExercise {
   restSeconds?: number;
   notes?: string;
 }
+
+// Warmup exercise (for mobility/activation blocks)
+export interface WarmupExercise {
+  name: string;
+  sets?: number;
+  reps?: string;
+  duration?: number; // seconds
+  notes?: string;
+}
+
+// Structured warmup block
+export interface WarmupBlock {
+  cardio?: {
+    duration: number; // minutes
+    description: string;
+  };
+  mobility: WarmupExercise[];
+  activation: WarmupExercise[];
+}
+
+// Exercise type for filtering
+export type ExerciseType = 'mobility' | 'activation' | 'strength' | 'power' | 'cardio' | 'core';
 
 export interface GymPlansListResponse {
   trainer: {
@@ -118,6 +140,7 @@ export interface GymCatalogExercise {
   movementPattern: string | null;
   equipment: string | null;
   bodyPart: string | null;
+  exerciseType: ExerciseType | null;
 }
 
 class GymConsoleClient {
@@ -243,10 +266,16 @@ class GymConsoleClient {
   /**
    * Search exercises from the exercise catalog
    * Uses the smart search endpoint with similarity scoring
+   * @param query - Search query (min 2 characters)
+   * @param exerciseType - Optional filter by exercise type (mobility, activation, strength, etc.)
    */
-  async searchExercises(query: string): Promise<GymCatalogExercise[]> {
+  async searchExercises(query: string, exerciseType?: ExerciseType): Promise<GymCatalogExercise[]> {
     if (!query || query.length < 2) return [];
-    const response = await this.client.get(`/api/gym/exercises/search?q=${encodeURIComponent(query)}`);
+    const params = new URLSearchParams({ q: query });
+    if (exerciseType) {
+      params.append('type', exerciseType);
+    }
+    const response = await this.client.get(`/api/gym/exercises/search?${params.toString()}`);
     return response.data.exercises || [];
   }
 }

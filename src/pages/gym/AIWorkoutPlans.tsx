@@ -68,8 +68,10 @@ import {
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useGymWorkoutPlans, type GymWorkoutPlan, type GymWorkoutDay, type GymExercise } from '@/hooks/gym/useGymWorkoutPlans';
+import type { WarmupBlock } from '@/api/gymConsoleClient';
 import TrainerRegistrationPrompt from '@/components/gym/TrainerRegistrationPrompt';
 import { ExerciseSelector } from '@/components/gym/ExerciseSelector';
+import { WarmupEditor, createEmptyWarmupBlock, isWarmupBlock } from '@/components/gym/WarmupEditor';
 
 const AIWorkoutPlans: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -230,7 +232,7 @@ const AIWorkoutPlans: React.FC = () => {
         delete newWeeklyPlan[dayKey];
         return { ...prev, selectedDays: newSelectedDays, weeklyPlan: newWeeklyPlan };
       } else {
-        // Add day with empty exercises
+        // Add day with empty exercises and warmup block
         return {
           ...prev,
           selectedDays: [...prev.selectedDays, dayKey],
@@ -239,6 +241,7 @@ const AIWorkoutPlans: React.FC = () => {
             [dayKey]: {
               dayName: dayLabel,
               muscleGroups: [],
+              warmup: createEmptyWarmupBlock(),
               exercises: [],
             },
           },
@@ -290,6 +293,19 @@ const AIWorkoutPlans: React.FC = () => {
         [dayKey]: {
           ...prev.weeklyPlan[dayKey],
           exercises: prev.weeklyPlan[dayKey].exercises.filter((_, idx) => idx !== exerciseIndex),
+        },
+      },
+    }));
+  };
+
+  const updateWarmupInNewPlan = (dayKey: string, warmup: WarmupBlock) => {
+    setCreateForm(prev => ({
+      ...prev,
+      weeklyPlan: {
+        ...prev.weeklyPlan,
+        [dayKey]: {
+          ...prev.weeklyPlan[dayKey],
+          warmup,
         },
       },
     }));
@@ -365,6 +381,20 @@ const AIWorkoutPlans: React.FC = () => {
         [dayKey]: {
           ...prev.weeklyPlan[dayKey],
           exercises: [...prev.weeklyPlan[dayKey].exercises, newExercise],
+        },
+      },
+    }));
+  };
+
+  // Update warmup block for a day
+  const updateWarmup = (dayKey: string, warmup: WarmupBlock) => {
+    setEditForm(prev => ({
+      ...prev,
+      weeklyPlan: {
+        ...prev.weeklyPlan,
+        [dayKey]: {
+          ...prev.weeklyPlan[dayKey],
+          warmup,
         },
       },
     }));
@@ -684,14 +714,67 @@ const AIWorkoutPlans: React.FC = () => {
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="space-y-4 pt-2">
-                        {day.warmup && day.warmup.length > 0 && (
-                          <div>
-                            <h4 className="text-sm font-medium text-muted-foreground mb-2">Calentamiento</h4>
-                            <ul className="list-disc list-inside text-sm space-y-1">
-                              {day.warmup.map((w, i) => (
-                                <li key={i}>{w}</li>
-                              ))}
-                            </ul>
+                        {/* Warmup - handles both legacy string[] and new WarmupBlock format */}
+                        {day.warmup && (
+                          <div className="space-y-3">
+                            <h4 className="text-sm font-medium text-muted-foreground">Entrada en Calor</h4>
+
+                            {/* New WarmupBlock format */}
+                            {isWarmupBlock(day.warmup) ? (
+                              <div className="space-y-3">
+                                {day.warmup.cardio && (
+                                  <div className="p-2 bg-orange-50 rounded-lg border border-orange-100">
+                                    <p className="text-xs font-medium text-orange-700 mb-1">Cardio</p>
+                                    <p className="text-sm">{day.warmup.cardio.duration} min - {day.warmup.cardio.description}</p>
+                                  </div>
+                                )}
+
+                                {day.warmup.mobility.length > 0 && (
+                                  <div className="p-2 bg-blue-50 rounded-lg border border-blue-100">
+                                    <p className="text-xs font-medium text-blue-700 mb-1">Movilidad</p>
+                                    <ul className="text-sm space-y-1">
+                                      {day.warmup.mobility.map((ex, i) => (
+                                        <li key={i}>
+                                          {ex.name}
+                                          {(ex.sets || ex.reps || ex.duration) && (
+                                            <span className="text-muted-foreground ml-1">
+                                              ({ex.sets && `${ex.sets}x`}{ex.reps || (ex.duration && `${ex.duration}s`)})
+                                            </span>
+                                          )}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+
+                                {day.warmup.activation.length > 0 && (
+                                  <div className="p-2 bg-yellow-50 rounded-lg border border-yellow-100">
+                                    <p className="text-xs font-medium text-yellow-700 mb-1">Activacion</p>
+                                    <ul className="text-sm space-y-1">
+                                      {day.warmup.activation.map((ex, i) => (
+                                        <li key={i}>
+                                          {ex.name}
+                                          {(ex.sets || ex.reps || ex.duration) && (
+                                            <span className="text-muted-foreground ml-1">
+                                              ({ex.sets && `${ex.sets}x`}{ex.reps || (ex.duration && `${ex.duration}s`)})
+                                            </span>
+                                          )}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              /* Legacy string[] format */
+                              Array.isArray(day.warmup) && day.warmup.length > 0 && (
+                                <ul className="list-disc list-inside text-sm space-y-1">
+                                  {day.warmup.map((w, i) => (
+                                    <li key={i}>{w}</li>
+                                  ))}
+                                </ul>
+                              )
+                            )}
                           </div>
                         )}
 
@@ -871,88 +954,118 @@ const AIWorkoutPlans: React.FC = () => {
                         </span>
                       </AccordionTrigger>
                       <AccordionContent>
-                        <div className="space-y-3 pt-2">
-                          {day.exercises?.map((exercise, exerciseIndex) => (
-                            <div
-                              key={exerciseIndex}
-                              className="border rounded-lg p-3 space-y-3 bg-muted/30"
-                            >
-                              <div className="flex items-center justify-between">
-                                <span className="text-xs text-muted-foreground font-medium">
-                                  Ejercicio {exerciseIndex + 1}
-                                </span>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6 text-destructive hover:text-destructive"
-                                  onClick={() => deleteExercise(dayKey, exerciseIndex)}
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              </div>
-
-                              <div className="space-y-2">
-                                <ExerciseSelector
-                                  value={exercise.name}
-                                  onChange={(name) => updateExercise(dayKey, exerciseIndex, { name })}
-                                  placeholder="Buscar ejercicio..."
-                                />
-                              </div>
-
-                              <div className="grid grid-cols-3 gap-2">
-                                <div className="space-y-1">
-                                  <Label className="text-xs">Series</Label>
-                                  <Input
-                                    type="number"
-                                    min="1"
-                                    value={exercise.sets}
-                                    onChange={(e) => updateExercise(dayKey, exerciseIndex, { sets: parseInt(e.target.value) || 1 })}
-                                    className="h-8"
-                                  />
-                                </div>
-                                <div className="space-y-1">
-                                  <Label className="text-xs">Reps</Label>
-                                  <Input
-                                    value={exercise.reps}
-                                    onChange={(e) => updateExercise(dayKey, exerciseIndex, { reps: e.target.value })}
-                                    placeholder="8-12"
-                                    className="h-8"
-                                  />
-                                </div>
-                                <div className="space-y-1">
-                                  <Label className="text-xs">Descanso (s)</Label>
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    value={exercise.restSeconds || ''}
-                                    onChange={(e) => updateExercise(dayKey, exerciseIndex, { restSeconds: parseInt(e.target.value) || undefined })}
-                                    placeholder="60"
-                                    className="h-8"
-                                  />
-                                </div>
-                              </div>
-
-                              <div className="space-y-1">
-                                <Label className="text-xs">Notas</Label>
-                                <Input
-                                  value={exercise.notes || ''}
-                                  onChange={(e) => updateExercise(dayKey, exerciseIndex, { notes: e.target.value })}
-                                  placeholder="Notas del ejercicio..."
-                                  className="h-8 text-sm"
-                                />
-                              </div>
+                        <div className="space-y-4 pt-2">
+                          {/* Warmup Section */}
+                          {isWarmupBlock(day.warmup) ? (
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium">Entrada en Calor</Label>
+                              <WarmupEditor
+                                value={day.warmup}
+                                onChange={(warmup) => updateWarmup(dayKey, warmup)}
+                              />
                             </div>
-                          ))}
+                          ) : (
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium">Entrada en Calor</Label>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full"
+                                onClick={() => updateWarmup(dayKey, createEmptyWarmupBlock())}
+                              >
+                                <Plus className="h-4 w-4 mr-1" />
+                                Agregar entrada en calor
+                              </Button>
+                            </div>
+                          )}
 
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full"
-                            onClick={() => addExercise(dayKey)}
-                          >
-                            <Plus className="h-4 w-4 mr-1" />
-                            Agregar ejercicio
-                          </Button>
+                          {/* Exercises Section */}
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">Ejercicios Principales</Label>
+                            <div className="space-y-3">
+                              {day.exercises?.map((exercise, exerciseIndex) => (
+                                <div
+                                  key={exerciseIndex}
+                                  className="border rounded-lg p-3 space-y-3 bg-muted/30"
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs text-muted-foreground font-medium">
+                                      Ejercicio {exerciseIndex + 1}
+                                    </span>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6 text-destructive hover:text-destructive"
+                                      onClick={() => deleteExercise(dayKey, exerciseIndex)}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <ExerciseSelector
+                                      value={exercise.name}
+                                      onChange={(name) => updateExercise(dayKey, exerciseIndex, { name })}
+                                      placeholder="Buscar ejercicio..."
+                                    />
+                                  </div>
+
+                                  <div className="grid grid-cols-3 gap-2">
+                                    <div className="space-y-1">
+                                      <Label className="text-xs">Series</Label>
+                                      <Input
+                                        type="number"
+                                        min="1"
+                                        value={exercise.sets}
+                                        onChange={(e) => updateExercise(dayKey, exerciseIndex, { sets: parseInt(e.target.value) || 1 })}
+                                        className="h-8"
+                                      />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <Label className="text-xs">Reps</Label>
+                                      <Input
+                                        value={exercise.reps}
+                                        onChange={(e) => updateExercise(dayKey, exerciseIndex, { reps: e.target.value })}
+                                        placeholder="8-12"
+                                        className="h-8"
+                                      />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <Label className="text-xs">Descanso (s)</Label>
+                                      <Input
+                                        type="number"
+                                        min="0"
+                                        value={exercise.restSeconds || ''}
+                                        onChange={(e) => updateExercise(dayKey, exerciseIndex, { restSeconds: parseInt(e.target.value) || undefined })}
+                                        placeholder="60"
+                                        className="h-8"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div className="space-y-1">
+                                    <Label className="text-xs">Notas</Label>
+                                    <Input
+                                      value={exercise.notes || ''}
+                                      onChange={(e) => updateExercise(dayKey, exerciseIndex, { notes: e.target.value })}
+                                      placeholder="Notas del ejercicio..."
+                                      className="h-8 text-sm"
+                                    />
+                                  </div>
+                                </div>
+                              ))}
+
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full"
+                                onClick={() => addExercise(dayKey)}
+                              >
+                                <Plus className="h-4 w-4 mr-1" />
+                                Agregar ejercicio
+                              </Button>
+                            </div>
+                          </div>
                         </div>
                       </AccordionContent>
                     </AccordionItem>
@@ -1053,88 +1166,105 @@ const AIWorkoutPlans: React.FC = () => {
                           </span>
                         </AccordionTrigger>
                         <AccordionContent>
-                          <div className="space-y-3 pt-2">
-                            {dayData.exercises?.map((exercise, exerciseIndex) => (
-                              <div
-                                key={exerciseIndex}
-                                className="border rounded-lg p-3 space-y-3 bg-muted/30"
-                              >
-                                <div className="flex items-center justify-between">
-                                  <span className="text-xs text-muted-foreground font-medium">
-                                    Ejercicio {exerciseIndex + 1}
-                                  </span>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-6 w-6 text-destructive hover:text-destructive"
-                                    onClick={() => deleteExerciseFromNewPlan(dayKey, exerciseIndex)}
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                </div>
-
-                                <div className="space-y-2">
-                                  <ExerciseSelector
-                                    value={exercise.name}
-                                    onChange={(name) => updateExerciseInNewPlan(dayKey, exerciseIndex, { name })}
-                                    placeholder="Buscar ejercicio..."
-                                  />
-                                </div>
-
-                                <div className="grid grid-cols-3 gap-2">
-                                  <div className="space-y-1">
-                                    <Label className="text-xs">Series</Label>
-                                    <Input
-                                      type="number"
-                                      min="1"
-                                      value={exercise.sets}
-                                      onChange={(e) => updateExerciseInNewPlan(dayKey, exerciseIndex, { sets: parseInt(e.target.value) || 1 })}
-                                      className="h-8"
-                                    />
-                                  </div>
-                                  <div className="space-y-1">
-                                    <Label className="text-xs">Reps</Label>
-                                    <Input
-                                      value={exercise.reps}
-                                      onChange={(e) => updateExerciseInNewPlan(dayKey, exerciseIndex, { reps: e.target.value })}
-                                      placeholder="8-12"
-                                      className="h-8"
-                                    />
-                                  </div>
-                                  <div className="space-y-1">
-                                    <Label className="text-xs">Descanso (s)</Label>
-                                    <Input
-                                      type="number"
-                                      min="0"
-                                      value={exercise.restSeconds || ''}
-                                      onChange={(e) => updateExerciseInNewPlan(dayKey, exerciseIndex, { restSeconds: parseInt(e.target.value) || undefined })}
-                                      placeholder="60"
-                                      className="h-8"
-                                    />
-                                  </div>
-                                </div>
-
-                                <div className="space-y-1">
-                                  <Label className="text-xs">Notas</Label>
-                                  <Input
-                                    value={exercise.notes || ''}
-                                    onChange={(e) => updateExerciseInNewPlan(dayKey, exerciseIndex, { notes: e.target.value })}
-                                    placeholder="Notas del ejercicio..."
-                                    className="h-8 text-sm"
-                                  />
-                                </div>
+                          <div className="space-y-4 pt-2">
+                            {/* Warmup Section */}
+                            {isWarmupBlock(dayData.warmup) && (
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium">Entrada en Calor</Label>
+                                <WarmupEditor
+                                  value={dayData.warmup}
+                                  onChange={(warmup) => updateWarmupInNewPlan(dayKey, warmup)}
+                                />
                               </div>
-                            ))}
+                            )}
 
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full"
-                              onClick={() => addExerciseToNewPlan(dayKey)}
-                            >
-                              <Plus className="h-4 w-4 mr-1" />
-                              Agregar ejercicio
-                            </Button>
+                            {/* Exercises Section */}
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium">Ejercicios Principales</Label>
+                              <div className="space-y-3">
+                                {dayData.exercises?.map((exercise, exerciseIndex) => (
+                                  <div
+                                    key={exerciseIndex}
+                                    className="border rounded-lg p-3 space-y-3 bg-muted/30"
+                                  >
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs text-muted-foreground font-medium">
+                                        Ejercicio {exerciseIndex + 1}
+                                      </span>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6 text-destructive hover:text-destructive"
+                                        onClick={() => deleteExerciseFromNewPlan(dayKey, exerciseIndex)}
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                      <ExerciseSelector
+                                        value={exercise.name}
+                                        onChange={(name) => updateExerciseInNewPlan(dayKey, exerciseIndex, { name })}
+                                        placeholder="Buscar ejercicio..."
+                                      />
+                                    </div>
+
+                                    <div className="grid grid-cols-3 gap-2">
+                                      <div className="space-y-1">
+                                        <Label className="text-xs">Series</Label>
+                                        <Input
+                                          type="number"
+                                          min="1"
+                                          value={exercise.sets}
+                                          onChange={(e) => updateExerciseInNewPlan(dayKey, exerciseIndex, { sets: parseInt(e.target.value) || 1 })}
+                                          className="h-8"
+                                        />
+                                      </div>
+                                      <div className="space-y-1">
+                                        <Label className="text-xs">Reps</Label>
+                                        <Input
+                                          value={exercise.reps}
+                                          onChange={(e) => updateExerciseInNewPlan(dayKey, exerciseIndex, { reps: e.target.value })}
+                                          placeholder="8-12"
+                                          className="h-8"
+                                        />
+                                      </div>
+                                      <div className="space-y-1">
+                                        <Label className="text-xs">Descanso (s)</Label>
+                                        <Input
+                                          type="number"
+                                          min="0"
+                                          value={exercise.restSeconds || ''}
+                                          onChange={(e) => updateExerciseInNewPlan(dayKey, exerciseIndex, { restSeconds: parseInt(e.target.value) || undefined })}
+                                          placeholder="60"
+                                          className="h-8"
+                                        />
+                                      </div>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                      <Label className="text-xs">Notas</Label>
+                                      <Input
+                                        value={exercise.notes || ''}
+                                        onChange={(e) => updateExerciseInNewPlan(dayKey, exerciseIndex, { notes: e.target.value })}
+                                        placeholder="Notas del ejercicio..."
+                                        className="h-8 text-sm"
+                                      />
+                                    </div>
+                                  </div>
+                                ))}
+
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full"
+                                  onClick={() => addExerciseToNewPlan(dayKey)}
+                                >
+                                  <Plus className="h-4 w-4 mr-1" />
+                                  Agregar ejercicio
+                                </Button>
+                              </div>
+                            </div>
                           </div>
                         </AccordionContent>
                       </AccordionItem>

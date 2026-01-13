@@ -15,13 +15,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { gymConsoleClient, type GymCatalogExercise } from '@/api/gymConsoleClient';
+import { gymConsoleClient, type GymCatalogExercise, type ExerciseType } from '@/api/gymConsoleClient';
 
 interface ExerciseSelectorProps {
   value: string;
   onChange: (exerciseName: string) => void;
   placeholder?: string;
   className?: string;
+  /** Filter exercises by type (mobility, activation, strength, power, cardio, core) */
+  exerciseType?: ExerciseType;
 }
 
 export function ExerciseSelector({
@@ -29,6 +31,7 @@ export function ExerciseSelector({
   onChange,
   placeholder = 'Buscar ejercicio...',
   className,
+  exerciseType,
 }: ExerciseSelectorProps) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -45,7 +48,7 @@ export function ExerciseSelector({
 
     setIsLoading(true);
     try {
-      const results = await gymConsoleClient.searchExercises(query);
+      const results = await gymConsoleClient.searchExercises(query, exerciseType);
       setExercises(results);
     } catch (error) {
       console.error('Error searching exercises:', error);
@@ -53,7 +56,7 @@ export function ExerciseSelector({
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [exerciseType]);
 
   // Debounce effect
   useEffect(() => {

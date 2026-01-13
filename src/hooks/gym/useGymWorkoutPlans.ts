@@ -17,11 +17,12 @@ import {
   type GymTrainer,
   type GymTrainerClient,
   type GymPlansListResponse,
+  type GeneratePlanParams,
 } from '@/api/gymConsoleClient';
 import { toast } from 'sonner';
 
 // Re-export types for convenience
-export type { GymWorkoutPlan, GymPlanUpdate, GymTrainer, GymTrainerClient };
+export type { GymWorkoutPlan, GymPlanUpdate, GymTrainer, GymTrainerClient, GeneratePlanParams };
 export type { GymPlanContent, GymWorkoutDay, GymExercise, GymPlansListResponse } from '@/api/gymConsoleClient';
 
 export interface GymTrainerClientPlansResponse {
@@ -191,30 +192,28 @@ export const useGymWorkoutPlans = () => {
     });
   };
 
-  // Create a new plan
-  const useCreatePlan = () => {
+  // Generate a new plan with AI
+  const useGeneratePlan = () => {
     return useMutation({
-      mutationFn: async (data: { userId: string; plan: { programName: string; weeklyPlan: Record<string, any> } }) => {
+      mutationFn: async (params: Omit<GeneratePlanParams, 'trainerId'>) => {
         if (!tenantId) throw new Error('No tenant selected');
 
         // Get trainer for this tenant
         const trainer = await gymConsoleClient.getTrainerByTenant(tenantId);
         if (!trainer) throw new Error('No eres un trainer registrado');
 
-        return await gymConsoleClient.createPlan({
-          userId: data.userId,
+        return await gymConsoleClient.generatePlan({
+          ...params,
           trainerId: trainer.id,
-          plan: data.plan,
-          status: 'active',
         });
       },
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [...GYM_PLANS_QUERY_KEY, 'list'] });
         queryClient.invalidateQueries({ queryKey: [...GYM_PLANS_QUERY_KEY, 'trainer'] });
-        toast.success('Plan creado exitosamente');
+        toast.success('Plan generado exitosamente');
       },
       onError: (error: any) => {
-        toast.error(error.response?.data?.error || error.message || 'Error al crear plan');
+        toast.error(error.response?.data?.error || error.message || 'Error al generar plan con IA');
       },
     });
   };
@@ -292,7 +291,7 @@ export const useGymWorkoutPlans = () => {
 
     // Mutations
     useUpdatePlan,
-    useCreatePlan,
+    useGeneratePlan,
     useDeletePlan,
     useAssignPlan,
     useDuplicatePlan,

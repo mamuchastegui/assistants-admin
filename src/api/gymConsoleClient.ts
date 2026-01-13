@@ -95,6 +95,20 @@ export interface GymPlanUpdate {
   status?: 'active' | 'completed' | 'archived';
 }
 
+// Parameters for AI plan generation
+export interface GeneratePlanParams {
+  userId: string;
+  trainerId?: string;
+  level?: 'beginner' | 'intermediate' | 'advanced';
+  daysPerWeek?: number;
+  sessionDuration?: number;
+  splitType?: 'full_body' | 'upper_lower' | 'push_pull_legs' | 'bro_split';
+  focusAreas?: string[];
+  equipmentAvailable?: string[];
+  preferredDays?: string[];
+  notes?: string;
+}
+
 export interface GymTrainer {
   id: string;
   tenantId: string;
@@ -224,15 +238,11 @@ class GymConsoleClient {
   }
 
   /**
-   * Create a new workout plan for a client
+   * Generate a new workout plan using AI
+   * The endpoint uses GPT-4o-mini with the GYM_PLANNING_PROMPT
    */
-  async createPlan(data: {
-    userId: string;
-    trainerId: string;
-    plan: GymPlanContent;
-    status?: 'active' | 'completed' | 'archived';
-  }): Promise<GymWorkoutPlan> {
-    const response = await this.client.post('/api/admin/plans', data);
+  async generatePlan(params: GeneratePlanParams): Promise<GymWorkoutPlan> {
+    const response = await this.client.post('/api/admin/plans/generate', params);
     return response.data;
   }
 

@@ -64,7 +64,12 @@ import {
   Loader2,
   Plus,
   Trash2,
+  Sparkles,
+  RotateCcw,
+  Check,
 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useGymWorkoutPlans, type GymWorkoutPlan, type GymWorkoutDay, type GymExercise } from '@/hooks/gym/useGymWorkoutPlans';
@@ -97,7 +102,7 @@ const AIWorkoutPlans: React.FC = () => {
     useClients,
     usePlans,
     useUpdatePlan,
-    useCreatePlan,
+    useGeneratePlan,
     useDeletePlan,
     useAssignPlan,
     useDuplicatePlan,
@@ -116,23 +121,33 @@ const AIWorkoutPlans: React.FC = () => {
 
   // Mutations
   const updatePlan = useUpdatePlan();
-  const createPlan = useCreatePlan();
+  const generatePlan = useGeneratePlan();
   const deletePlan = useDeletePlan();
   const assignPlan = useAssignPlan();
   const duplicatePlan = useDuplicatePlan();
 
-  // Create plan state
+  // Create plan state (AI generation)
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [createDialogState, setCreateDialogState] = useState<'config' | 'generating' | 'preview'>('config');
+  const [generatedPlan, setGeneratedPlan] = useState<GymWorkoutPlan | null>(null);
   const [createForm, setCreateForm] = useState<{
     clientId: string;
-    programName: string;
-    selectedDays: string[];
-    weeklyPlan: Record<string, GymWorkoutDay>;
+    level: 'beginner' | 'intermediate' | 'advanced';
+    daysPerWeek: number;
+    sessionDuration: number;
+    splitType: 'full_body' | 'upper_lower' | 'push_pull_legs' | 'bro_split';
+    focusAreas: string[];
+    equipmentAvailable: string[];
+    notes: string;
   }>({
     clientId: '',
-    programName: '',
-    selectedDays: [],
-    weeklyPlan: {},
+    level: 'intermediate',
+    daysPerWeek: 3,
+    sessionDuration: 60,
+    splitType: 'push_pull_legs',
+    focusAreas: ['hypertrophy'],
+    equipmentAvailable: ['dumbbells', 'barbell', 'machines'],
+    notes: '',
   });
 
   // Delete plan state
@@ -201,128 +216,78 @@ const AIWorkoutPlans: React.FC = () => {
     setPlanToDelete(null);
   };
 
-  // Create plan handlers
-  const DAYS_OF_WEEK = [
-    { key: 'day1', label: 'Lunes' },
-    { key: 'day2', label: 'Martes' },
-    { key: 'day3', label: 'Miércoles' },
-    { key: 'day4', label: 'Jueves' },
-    { key: 'day5', label: 'Viernes' },
-    { key: 'day6', label: 'Sábado' },
-    { key: 'day7', label: 'Domingo' },
-  ];
-
+  // Create plan handlers (AI generation)
   const handleOpenCreateDialog = () => {
     setCreateForm({
       clientId: '',
-      programName: '',
-      selectedDays: [],
-      weeklyPlan: {},
+      level: 'intermediate',
+      daysPerWeek: 3,
+      sessionDuration: 60,
+      splitType: 'push_pull_legs',
+      focusAreas: ['hypertrophy'],
+      equipmentAvailable: ['dumbbells', 'barbell', 'machines'],
+      notes: '',
     });
+    setCreateDialogState('config');
+    setGeneratedPlan(null);
     setShowCreateDialog(true);
   };
 
-  const toggleDay = (dayKey: string, dayLabel: string) => {
-    setCreateForm(prev => {
-      const isSelected = prev.selectedDays.includes(dayKey);
-      if (isSelected) {
-        // Remove day
-        const newSelectedDays = prev.selectedDays.filter(d => d !== dayKey);
-        const newWeeklyPlan = { ...prev.weeklyPlan };
-        delete newWeeklyPlan[dayKey];
-        return { ...prev, selectedDays: newSelectedDays, weeklyPlan: newWeeklyPlan };
-      } else {
-        // Add day with empty exercises and warmup block
-        return {
-          ...prev,
-          selectedDays: [...prev.selectedDays, dayKey],
-          weeklyPlan: {
-            ...prev.weeklyPlan,
-            [dayKey]: {
-              dayName: dayLabel,
-              muscleGroups: [],
-              warmup: createEmptyWarmupBlock(),
-              exercises: [],
-            },
-          },
-        };
-      }
-    });
+  const handleGeneratePlan = async () => {
+    if (!createForm.clientId) return;
+
+    setCreateDialogState('generating');
+
+    try {
+      const plan = await generatePlan.mutateAsync({
+        userId: createForm.clientId,
+        level: createForm.level,
+        daysPerWeek: createForm.daysPerWeek,
+        sessionDuration: createForm.sessionDuration,
+        splitType: createForm.splitType,
+        focusAreas: createForm.focusAreas,
+        equipmentAvailable: createForm.equipmentAvailable,
+        notes: createForm.notes || undefined,
+      });
+
+      setGeneratedPlan(plan);
+      setCreateDialogState('preview');
+    } catch (error) {
+      setCreateDialogState('config');
+    }
   };
 
-  const addExerciseToNewPlan = (dayKey: string) => {
-    const newExercise: GymExercise = {
-      name: '',
-      sets: 3,
-      reps: '10',
-      restSeconds: 60,
-      notes: '',
-    };
-    setCreateForm(prev => ({
-      ...prev,
-      weeklyPlan: {
-        ...prev.weeklyPlan,
-        [dayKey]: {
-          ...prev.weeklyPlan[dayKey],
-          exercises: [...(prev.weeklyPlan[dayKey]?.exercises || []), newExercise],
-        },
-      },
-    }));
-  };
-
-  const updateExerciseInNewPlan = (dayKey: string, exerciseIndex: number, updates: Partial<GymExercise>) => {
-    setCreateForm(prev => ({
-      ...prev,
-      weeklyPlan: {
-        ...prev.weeklyPlan,
-        [dayKey]: {
-          ...prev.weeklyPlan[dayKey],
-          exercises: prev.weeklyPlan[dayKey].exercises.map((ex, idx) =>
-            idx === exerciseIndex ? { ...ex, ...updates } : ex
-          ),
-        },
-      },
-    }));
-  };
-
-  const deleteExerciseFromNewPlan = (dayKey: string, exerciseIndex: number) => {
-    setCreateForm(prev => ({
-      ...prev,
-      weeklyPlan: {
-        ...prev.weeklyPlan,
-        [dayKey]: {
-          ...prev.weeklyPlan[dayKey],
-          exercises: prev.weeklyPlan[dayKey].exercises.filter((_, idx) => idx !== exerciseIndex),
-        },
-      },
-    }));
-  };
-
-  const updateWarmupInNewPlan = (dayKey: string, warmup: WarmupBlock) => {
-    setCreateForm(prev => ({
-      ...prev,
-      weeklyPlan: {
-        ...prev.weeklyPlan,
-        [dayKey]: {
-          ...prev.weeklyPlan[dayKey],
-          warmup,
-        },
-      },
-    }));
-  };
-
-  const handleCreatePlan = async () => {
-    if (!createForm.clientId || !createForm.programName) return;
-
-    await createPlan.mutateAsync({
-      userId: createForm.clientId,
-      plan: {
-        programName: createForm.programName,
-        weeklyPlan: createForm.weeklyPlan,
-      },
-    });
-
+  const handleSaveGeneratedPlan = () => {
+    // Plan is already saved by the generate endpoint
+    // Just close the dialog
     setShowCreateDialog(false);
+    setGeneratedPlan(null);
+    setCreateDialogState('config');
+  };
+
+  const handleRegeneratePlan = () => {
+    setCreateDialogState('config');
+    setGeneratedPlan(null);
+  };
+
+  // Toggle focus area in create form
+  const toggleFocusArea = (area: string) => {
+    setCreateForm(prev => ({
+      ...prev,
+      focusAreas: prev.focusAreas.includes(area)
+        ? prev.focusAreas.filter(a => a !== area)
+        : [...prev.focusAreas, area],
+    }));
+  };
+
+  // Toggle equipment in create form
+  const toggleEquipment = (equipment: string) => {
+    setCreateForm(prev => ({
+      ...prev,
+      equipmentAvailable: prev.equipmentAvailable.includes(equipment)
+        ? prev.equipmentAvailable.filter(e => e !== equipment)
+        : [...prev.equipmentAvailable, equipment],
+    }));
   };
 
   // Edit plan handlers
@@ -1087,206 +1052,295 @@ const AIWorkoutPlans: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Create Plan Dialog */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Crear Nuevo Plan</DialogTitle>
-            <DialogDescription>
-              Crea un plan de entrenamiento personalizado para un cliente.
-            </DialogDescription>
-          </DialogHeader>
+      {/* Create Plan Dialog - AI Generation */}
+      <Dialog open={showCreateDialog} onOpenChange={(open) => {
+        if (!open) {
+          setShowCreateDialog(false);
+          setCreateDialogState('config');
+          setGeneratedPlan(null);
+        }
+      }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          {/* Config State - Form to configure AI generation */}
+          {createDialogState === 'config' && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  Crear Plan con IA
+                </DialogTitle>
+                <DialogDescription>
+                  Configura los parámetros y la IA generará un plan personalizado.
+                </DialogDescription>
+              </DialogHeader>
 
-          <div className="space-y-4 py-4">
-            {/* Client Selection */}
-            <div className="space-y-2">
-              <Label>Cliente</Label>
-              <Select
-                value={createForm.clientId}
-                onValueChange={(value) => setCreateForm(prev => ({ ...prev, clientId: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar cliente" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map((client) => (
-                    <SelectItem key={client.userId} value={client.userId}>
-                      {client.name || client.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Program Name */}
-            <div className="space-y-2">
-              <Label>Nombre del programa</Label>
-              <Input
-                value={createForm.programName}
-                onChange={(e) => setCreateForm(prev => ({ ...prev, programName: e.target.value }))}
-                placeholder="Ej: Programa de fuerza 4 días"
-              />
-            </div>
-
-            {/* Day Selection */}
-            <div className="space-y-2">
-              <Label>Días de entrenamiento</Label>
-              <div className="flex flex-wrap gap-2">
-                {DAYS_OF_WEEK.map(({ key, label }) => (
-                  <Button
-                    key={key}
-                    type="button"
-                    variant={createForm.selectedDays.includes(key) ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => toggleDay(key, label)}
+              <div className="space-y-4 py-4">
+                {/* Client Selection - Required */}
+                <div className="space-y-2">
+                  <Label>Cliente <span className="text-destructive">*</span></Label>
+                  <Select
+                    value={createForm.clientId}
+                    onValueChange={(value) => setCreateForm(prev => ({ ...prev, clientId: value }))}
                   >
-                    {label}
-                  </Button>
-                ))}
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clients.map((client) => (
+                        <SelectItem key={client.userId} value={client.userId}>
+                          {client.name || client.email}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Level */}
+                <div className="space-y-2">
+                  <Label>Nivel</Label>
+                  <Select
+                    value={createForm.level}
+                    onValueChange={(value: 'beginner' | 'intermediate' | 'advanced') => setCreateForm(prev => ({ ...prev, level: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="beginner">Principiante</SelectItem>
+                      <SelectItem value="intermediate">Intermedio</SelectItem>
+                      <SelectItem value="advanced">Avanzado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Days per week */}
+                <div className="space-y-2">
+                  <Label>Días por semana</Label>
+                  <div className="flex gap-2">
+                    {[2, 3, 4, 5, 6].map(n => (
+                      <Button
+                        key={n}
+                        type="button"
+                        variant={createForm.daysPerWeek === n ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setCreateForm(prev => ({ ...prev, daysPerWeek: n }))}
+                      >
+                        {n} días
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Session Duration */}
+                <div className="space-y-2">
+                  <Label>Duración por sesión</Label>
+                  <Select
+                    value={String(createForm.sessionDuration)}
+                    onValueChange={(value) => setCreateForm(prev => ({ ...prev, sessionDuration: parseInt(value) }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="30">30 min</SelectItem>
+                      <SelectItem value="45">45 min</SelectItem>
+                      <SelectItem value="60">60 min</SelectItem>
+                      <SelectItem value="90">90 min</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Split Type */}
+                <div className="space-y-2">
+                  <Label>Tipo de rutina</Label>
+                  <Select
+                    value={createForm.splitType}
+                    onValueChange={(value: 'full_body' | 'upper_lower' | 'push_pull_legs' | 'bro_split') => setCreateForm(prev => ({ ...prev, splitType: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="full_body">Full Body</SelectItem>
+                      <SelectItem value="upper_lower">Upper/Lower</SelectItem>
+                      <SelectItem value="push_pull_legs">Push/Pull/Legs</SelectItem>
+                      <SelectItem value="bro_split">Bro Split</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Focus Areas */}
+                <div className="space-y-2">
+                  <Label>Áreas de enfoque</Label>
+                  <div className="flex flex-wrap gap-3">
+                    {[
+                      { value: 'strength', label: 'Fuerza' },
+                      { value: 'hypertrophy', label: 'Hipertrofia' },
+                      { value: 'endurance', label: 'Resistencia' },
+                      { value: 'flexibility', label: 'Movilidad' },
+                    ].map(({ value, label }) => (
+                      <div key={value} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`focus-${value}`}
+                          checked={createForm.focusAreas.includes(value)}
+                          onCheckedChange={() => toggleFocusArea(value)}
+                        />
+                        <label htmlFor={`focus-${value}`} className="text-sm cursor-pointer">
+                          {label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Equipment Available */}
+                <div className="space-y-2">
+                  <Label>Equipamiento disponible</Label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { value: 'dumbbells', label: 'Mancuernas' },
+                      { value: 'barbell', label: 'Barra' },
+                      { value: 'machines', label: 'Máquinas' },
+                      { value: 'cables', label: 'Poleas' },
+                      { value: 'bands', label: 'Bandas' },
+                      { value: 'trx', label: 'TRX' },
+                    ].map(({ value, label }) => (
+                      <div key={value} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`equip-${value}`}
+                          checked={createForm.equipmentAvailable.includes(value)}
+                          onCheckedChange={() => toggleEquipment(value)}
+                        />
+                        <label htmlFor={`equip-${value}`} className="text-sm cursor-pointer">
+                          {label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Notes */}
+                <div className="space-y-2">
+                  <Label>Notas adicionales</Label>
+                  <Textarea
+                    value={createForm.notes}
+                    onChange={(e) => setCreateForm(prev => ({ ...prev, notes: e.target.value }))}
+                    placeholder="Ej: Evitar ejercicios de impacto, preferir superseries..."
+                    rows={3}
+                  />
+                </div>
               </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleGeneratePlan}
+                  disabled={!createForm.clientId}
+                >
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Generar Plan
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+
+          {/* Generating State - Loading spinner */}
+          {createDialogState === 'generating' && (
+            <div className="flex flex-col items-center justify-center py-16">
+              <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+              <p className="text-lg font-medium">Generando plan...</p>
+              <p className="text-sm text-muted-foreground">Esto puede tomar unos segundos</p>
             </div>
+          )}
 
-            {/* Days Configuration */}
-            {createForm.selectedDays.length > 0 && (
-              <div className="space-y-2">
-                <Label>Configurar ejercicios por día</Label>
+          {/* Preview State - Show generated plan */}
+          {createDialogState === 'preview' && generatedPlan && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Check className="h-5 w-5 text-green-500" />
+                  Plan Generado
+                </DialogTitle>
+                <DialogDescription>
+                  {generatedPlan.plan?.programName || 'Plan personalizado'}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="py-4">
+                {/* Plan summary */}
+                <div className="grid grid-cols-3 gap-2 mb-4">
+                  <div className="bg-muted rounded-lg px-3 py-2 text-sm text-center">
+                    <div className="text-muted-foreground text-xs">Nivel</div>
+                    <div className="font-medium capitalize">{createForm.level}</div>
+                  </div>
+                  <div className="bg-muted rounded-lg px-3 py-2 text-sm text-center">
+                    <div className="text-muted-foreground text-xs">Frecuencia</div>
+                    <div className="font-medium">{createForm.daysPerWeek}x semana</div>
+                  </div>
+                  <div className="bg-muted rounded-lg px-3 py-2 text-sm text-center">
+                    <div className="text-muted-foreground text-xs">Sesión</div>
+                    <div className="font-medium">{createForm.sessionDuration} min</div>
+                  </div>
+                </div>
+
+                {/* Days accordion */}
                 <Accordion type="single" collapsible className="w-full">
-                  {createForm.selectedDays.map((dayKey) => {
-                    const dayData = createForm.weeklyPlan[dayKey];
-                    if (!dayData) return null;
-                    return (
-                      <AccordionItem key={dayKey} value={dayKey}>
-                        <AccordionTrigger className="text-sm">
-                          <span className="flex items-center gap-2">
-                            <Dumbbell className="h-4 w-4" />
-                            {dayData.dayName}
-                            <Badge variant="outline" className="ml-2">
-                              {dayData.exercises?.length || 0} ejercicios
-                            </Badge>
-                          </span>
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <div className="space-y-4 pt-2">
-                            {/* Warmup Section */}
-                            {isWarmupBlock(dayData.warmup) && (
-                              <div className="space-y-2">
-                                <Label className="text-sm font-medium">Entrada en Calor</Label>
-                                <WarmupEditor
-                                  value={dayData.warmup}
-                                  onChange={(warmup) => updateWarmupInNewPlan(dayKey, warmup)}
-                                />
-                              </div>
-                            )}
-
-                            {/* Exercises Section */}
-                            <div className="space-y-2">
-                              <Label className="text-sm font-medium">Ejercicios Principales</Label>
-                              <div className="space-y-3">
-                                {dayData.exercises?.map((exercise, exerciseIndex) => (
-                                  <div
-                                    key={exerciseIndex}
-                                    className="border rounded-lg p-3 space-y-3 bg-muted/30"
-                                  >
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-xs text-muted-foreground font-medium">
-                                        Ejercicio {exerciseIndex + 1}
-                                      </span>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-6 w-6 text-destructive hover:text-destructive"
-                                        onClick={() => deleteExerciseFromNewPlan(dayKey, exerciseIndex)}
-                                      >
-                                        <Trash2 className="h-3 w-3" />
-                                      </Button>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                      <ExerciseSelector
-                                        value={exercise.name}
-                                        onChange={(name) => updateExerciseInNewPlan(dayKey, exerciseIndex, { name })}
-                                        placeholder="Buscar ejercicio..."
-                                      />
-                                    </div>
-
-                                    <div className="grid grid-cols-3 gap-2">
-                                      <div className="space-y-1">
-                                        <Label className="text-xs">Series</Label>
-                                        <Input
-                                          type="number"
-                                          min="1"
-                                          value={exercise.sets}
-                                          onChange={(e) => updateExerciseInNewPlan(dayKey, exerciseIndex, { sets: parseInt(e.target.value) || 1 })}
-                                          className="h-8"
-                                        />
-                                      </div>
-                                      <div className="space-y-1">
-                                        <Label className="text-xs">Reps</Label>
-                                        <Input
-                                          value={exercise.reps}
-                                          onChange={(e) => updateExerciseInNewPlan(dayKey, exerciseIndex, { reps: e.target.value })}
-                                          placeholder="8-12"
-                                          className="h-8"
-                                        />
-                                      </div>
-                                      <div className="space-y-1">
-                                        <Label className="text-xs">Descanso (s)</Label>
-                                        <Input
-                                          type="number"
-                                          min="0"
-                                          value={exercise.restSeconds || ''}
-                                          onChange={(e) => updateExerciseInNewPlan(dayKey, exerciseIndex, { restSeconds: parseInt(e.target.value) || undefined })}
-                                          placeholder="60"
-                                          className="h-8"
-                                        />
-                                      </div>
-                                    </div>
-
-                                    <div className="space-y-1">
-                                      <Label className="text-xs">Notas</Label>
-                                      <Input
-                                        value={exercise.notes || ''}
-                                        onChange={(e) => updateExerciseInNewPlan(dayKey, exerciseIndex, { notes: e.target.value })}
-                                        placeholder="Notas del ejercicio..."
-                                        className="h-8 text-sm"
-                                      />
-                                    </div>
-                                  </div>
-                                ))}
-
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="w-full"
-                                  onClick={() => addExerciseToNewPlan(dayKey)}
-                                >
-                                  <Plus className="h-4 w-4 mr-1" />
-                                  Agregar ejercicio
-                                </Button>
-                              </div>
+                  {generatedPlan.plan?.weeklyPlan && Object.entries(generatedPlan.plan.weeklyPlan).map(([dayKey, workout]) => (
+                    <AccordionItem key={dayKey} value={dayKey}>
+                      <AccordionTrigger className="text-sm">
+                        <span className="flex items-center gap-2">
+                          <Dumbbell className="h-4 w-4" />
+                          {workout.dayName}
+                          <Badge variant="outline" className="ml-2">
+                            {workout.exercises?.length || 0} ejercicios
+                          </Badge>
+                        </span>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <div className="space-y-2 pt-2">
+                          {/* Muscle groups */}
+                          {workout.muscleGroups && workout.muscleGroups.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mb-3">
+                              {workout.muscleGroups.map(mg => (
+                                <Badge key={mg} variant="secondary" className="text-xs">
+                                  {mg}
+                                </Badge>
+                              ))}
                             </div>
+                          )}
+
+                          {/* Exercises list */}
+                          <div className="space-y-2">
+                            {workout.exercises?.map((exercise, idx) => (
+                              <div key={idx} className="flex items-center justify-between px-3 py-2 bg-muted/50 rounded-lg">
+                                <span className="text-sm font-medium">{exercise.name}</span>
+                                <span className="text-sm text-muted-foreground font-mono">
+                                  {exercise.sets} x {exercise.reps}
+                                </span>
+                              </div>
+                            ))}
                           </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    );
-                  })}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
                 </Accordion>
               </div>
-            )}
-          </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleCreatePlan}
-              disabled={!createForm.clientId || !createForm.programName || createPlan.isPending}
-            >
-              {createPlan.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Crear Plan
-            </Button>
-          </DialogFooter>
+              <DialogFooter>
+                <Button variant="outline" onClick={handleRegeneratePlan}>
+                  <RotateCcw className="mr-2 h-4 w-4" />
+                  Regenerar
+                </Button>
+                <Button onClick={handleSaveGeneratedPlan}>
+                  <Check className="mr-2 h-4 w-4" />
+                  Guardar Plan
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
 

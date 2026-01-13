@@ -1299,10 +1299,10 @@ const AIWorkoutPlans: React.FC = () => {
                         </span>
                       </AccordionTrigger>
                       <AccordionContent>
-                        <div className="space-y-2 pt-2">
+                        <div className="space-y-3 pt-2">
                           {/* Muscle groups */}
                           {workout.muscleGroups && workout.muscleGroups.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mb-3">
+                            <div className="flex flex-wrap gap-1">
                               {workout.muscleGroups.map(mg => (
                                 <Badge key={mg} variant="secondary" className="text-xs">
                                   {mg}
@@ -1311,8 +1311,40 @@ const AIWorkoutPlans: React.FC = () => {
                             </div>
                           )}
 
+                          {/* Warmup - Structured format */}
+                          {workout.warmup && typeof workout.warmup === 'object' && !Array.isArray(workout.warmup) && (
+                            <div className="space-y-2 p-3 bg-orange-50 rounded-lg border border-orange-100">
+                              <div className="text-xs font-semibold text-orange-700 uppercase">Entrada en Calor</div>
+
+                              {/* Cardio */}
+                              {workout.warmup.cardio && (
+                                <div className="text-sm">
+                                  <span className="text-orange-600">Cardio:</span>{' '}
+                                  {workout.warmup.cardio.duration} min - {workout.warmup.cardio.description}
+                                </div>
+                              )}
+
+                              {/* Mobility */}
+                              {workout.warmup.mobility && workout.warmup.mobility.length > 0 && (
+                                <div className="text-sm">
+                                  <span className="text-blue-600">Movilidad:</span>{' '}
+                                  {workout.warmup.mobility.map((ex: any) => ex.name).join(', ')}
+                                </div>
+                              )}
+
+                              {/* Activation */}
+                              {workout.warmup.activation && workout.warmup.activation.length > 0 && (
+                                <div className="text-sm">
+                                  <span className="text-yellow-600">Activacion:</span>{' '}
+                                  {workout.warmup.activation.map((ex: any) => ex.name).join(', ')}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
                           {/* Exercises list */}
                           <div className="space-y-2">
+                            <div className="text-xs font-semibold text-muted-foreground uppercase">Ejercicios</div>
                             {workout.exercises?.map((exercise, idx) => (
                               <div key={idx} className="flex items-center justify-between px-3 py-2 bg-muted/50 rounded-lg">
                                 <span className="text-sm font-medium">{exercise.name}</span>

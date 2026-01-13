@@ -32,6 +32,7 @@ import { useTenant } from '@/context/TenantContext';
 import { useTenantInfo } from '@/hooks/useTenantInfo';
 import { useAuth } from '@/hooks/useAuth';
 import { gymConsoleClient } from '@/api/gymConsoleClient';
+import { useAdminService } from '@/api/adminService';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 const TrainerSettings = () => {
@@ -39,6 +40,7 @@ const TrainerSettings = () => {
   const [copiedCode, setCopiedCode] = useState(false);
   const [showRegisterDialog, setShowRegisterDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [tenantBusinessName, setTenantBusinessName] = useState('');
   const [registerForm, setRegisterForm] = useState({
     businessName: '',
     specialty: '',
@@ -54,10 +56,11 @@ const TrainerSettings = () => {
   });
 
   const { orgId } = useTenant();
-  const { data: tenantInfo, isLoading: tenantLoading } = useTenantInfo();
+  const { data: tenantInfo, isLoading: tenantLoading, refetch: refetchTenantInfo } = useTenantInfo();
   const tenantId = tenantInfo?.id; // UUID format (e.g., "2f686ec6-...")
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { selfRegisterTenant } = useAdminService();
 
   const { useTrainer } = useGymWorkoutPlans();
   const { data: trainer, isLoading: trainerLoading, error } = useTrainer();
@@ -137,6 +140,32 @@ const TrainerSettings = () => {
     },
   });
 
+  // Mutation for tenant self-registration
+  const tenantRegisterMutation = useMutation({
+    mutationFn: async () => {
+      if (!tenantBusinessName.trim()) throw new Error('Ingresa el nombre de tu negocio');
+      return await selfRegisterTenant({ business_name: tenantBusinessName.trim() });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: data.created ? 'Cuenta creada' : 'Cuenta existente',
+        description: data.created
+          ? 'Tu cuenta de trainer ha sido configurada.'
+          : 'Ya tienes una cuenta configurada.',
+      });
+      // Refresh tenant info to get the new tenant
+      refetchTenantInfo();
+      queryClient.invalidateQueries({ queryKey: ['tenantInfo'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error al registrar',
+        description: error.response?.data?.detail || error.message || 'No se pudo completar el registro',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const isTrainer = !!trainer && !error;
 
   // Start editing with current values
@@ -175,8 +204,8 @@ const TrainerSettings = () => {
     );
   }
 
-  // No tenant selected (need both Auth0 org_id and mapped UUID tenant_id)
-  if (!orgId || !tenantId) {
+  // No org_id in token at all
+  if (!orgId) {
     return (
       <DashboardLayout>
         <div className="max-w-2xl mx-auto space-y-6">
@@ -184,23 +213,74 @@ const TrainerSettings = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 text-yellow-600" />
-                Sin organizacion seleccionada
+                Sin organizacion
               </CardTitle>
               <CardDescription>
-                No se detecta un tenant/organizacion asociado a tu cuenta.
+                No se detecta una organizacion en tu cuenta.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
               <p className="text-sm text-muted-foreground">
-                Tu token de Auth0 debe incluir un <code>org_id</code> o <code>tenant_id</code>.
+                Tu token de Auth0 debe incluir un <code>org_id</code>.
                 Contacta al administrador si crees que esto es un error.
               </p>
-              {orgId && (
-                <p className="text-xs text-muted-foreground">
-                  Auth0 org_id: <code>{orgId}</code> (no se pudo mapear a UUID)
-                </p>
-              )}
             </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Has org_id but no tenant - show self-registration form
+  if (!tenantId) {
+    return (
+      <DashboardLayout>
+        <div className="max-w-2xl mx-auto space-y-6">
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">Completa tu registro</h1>
+            <p className="text-muted-foreground">
+              Configura tu cuenta de trainer para comenzar a gestionar clientes
+            </p>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Informacion de tu negocio
+              </CardTitle>
+              <CardDescription>
+                Solo necesitamos el nombre de tu negocio para comenzar
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="tenantBusinessName">Nombre del negocio *</Label>
+                <Input
+                  id="tenantBusinessName"
+                  value={tenantBusinessName}
+                  onChange={(e) => setTenantBusinessName(e.target.value)}
+                  placeholder="Ej: FitCoach Pro, Entrenamiento Personal Juan..."
+                  disabled={tenantRegisterMutation.isPending}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Este nombre aparecera en la app de tus clientes
+                </p>
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col gap-4">
+              <Button
+                className="w-full"
+                onClick={() => tenantRegisterMutation.mutate()}
+                disabled={tenantRegisterMutation.isPending || !tenantBusinessName.trim()}
+              >
+                {tenantRegisterMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Comenzar
+              </Button>
+              <p className="text-xs text-muted-foreground text-center">
+                Auth0 org_id: <code>{orgId}</code>
+              </p>
+            </CardFooter>
           </Card>
         </div>
       </DashboardLayout>

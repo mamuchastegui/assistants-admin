@@ -60,6 +60,17 @@ export interface TenantUpdate {
   owner_email?: string;
 }
 
+// Self-registration types
+export interface SelfRegisterRequest {
+  business_name: string;
+}
+
+export interface SelfRegisterResponse {
+  tenant: Tenant;
+  message: string;
+  created: boolean;
+}
+
 export interface TenantsResponse {
   tenants: Tenant[];
   total: number;
@@ -163,6 +174,11 @@ export const useAdminService = () => {
     await authApiClient.delete(`/admin/tenants/${id}`);
   };
 
+  const selfRegisterTenant = async (data: SelfRegisterRequest): Promise<SelfRegisterResponse> => {
+    const response = await authApiClient.post<SelfRegisterResponse>('/admin/tenants/self-register', data);
+    return response.data;
+  };
+
   const fetchTenantUsers = async (tenantId: string): Promise<TenantUsersResponse> => {
     const { data } = await authApiClient.get<TenantUsersResponse>(`/admin/tenants/${tenantId}/users`);
     return data;
@@ -202,6 +218,7 @@ export const useAdminService = () => {
     createTenant,
     updateTenant,
     deleteTenant,
+    selfRegisterTenant,
     fetchTenantUsers,
     // Assistants
     fetchAssistants,

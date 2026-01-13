@@ -49,9 +49,12 @@ import {
 import { MemberForm } from '@/components/gym/MemberForm';
 import { MemberSubscriptionCard } from '@/components/gym/MemberSubscriptionCard';
 import { SubscriptionStatusBadge } from '@/components/gym/SubscriptionStatusBadge';
+import { TrainingStatusBadge } from '@/components/gym/TrainingStatusBadge';
+import { CreateSubscriptionDialog } from '@/components/gym/CreateSubscriptionDialog';
+import { MemberPaymentsSection } from '@/components/gym/MemberPaymentsSection';
 import { useToast } from '@/components/ui/use-toast';
 import { useGymMembers } from '@/hooks/gym/useGymMembers';
-import { useGymSubscriptions, type GymSubscription } from '@/hooks/gym/useGymSubscriptions';
+import { useGymSubscriptions, type GymSubscription, type CanCheckinResponse } from '@/hooks/gym/useGymSubscriptions';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -65,6 +68,8 @@ const Members = () => {
   const [editingMember, setEditingMember] = useState<any>(null);
   const [draftFormData, setDraftFormData] = useState<any>(null);
   const [viewingMember, setViewingMember] = useState<any>(null);
+  const [showCreateSubscription, setShowCreateSubscription] = useState(false);
+  const [subscriptionMember, setSubscriptionMember] = useState<any>(null);
   const { toast } = useToast();
 
   const {
@@ -81,7 +86,8 @@ const Members = () => {
   const {
     useSubscriptionStats,
     usePastDueSubscriptions,
-    useGetMemberActiveSubscription
+    useGetMemberActiveSubscription,
+    useCanMemberCheckin
   } = useGymSubscriptions();
 
   // Fetch members with filters
@@ -105,6 +111,25 @@ const Members = () => {
   const { data: viewingMemberSubscription } = useGetMemberActiveSubscription(
     viewingMember?.member_id || ''
   );
+
+  // Get check-in status for viewing member
+  const { data: viewingMemberCheckinStatus } = useCanMemberCheckin(
+    viewingMember?.member_id || ''
+  );
+
+  // Helper component to show training status for a member in the table
+  const MemberTrainingStatus = ({ memberId }: { memberId: string }) => {
+    const { data, isLoading } = useCanMemberCheckin(memberId);
+
+    return (
+      <TrainingStatusBadge
+        canTrain={data?.can_checkin || false}
+        reason={data?.reason}
+        subscriptionStatus={data?.subscription_status as any}
+        isLoading={isLoading}
+      />
+    );
+  };
 
   // Mutations
   const createMember = useCreateMember();
@@ -196,6 +221,11 @@ const Members = () => {
         variant: 'destructive',
       });
     }
+  };
+
+  const handleCreateSubscription = (member: any) => {
+    setSubscriptionMember(member);
+    setShowCreateSubscription(true);
   };
 
   const handleCreateMember = useCallback(async (data: any) => {
@@ -432,19 +462,18 @@ const Members = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Nombre</TableHead>
+                      <TableHead>Acceso</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Teléfono</TableHead>
-                      <TableHead>Estado</TableHead>
                       <TableHead>Vencimiento</TableHead>
                       <TableHead>Check-ins</TableHead>
-                      <TableHead>Último Check-in</TableHead>
                       <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {members.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                           No se encontraron miembros
                         </TableCell>
                       </TableRow>
@@ -454,9 +483,11 @@ const Members = () => {
                           <TableCell className="font-medium">
                             {member.full_name || `${member.first_name} ${member.last_name}`}
                           </TableCell>
+                          <TableCell>
+                            <MemberTrainingStatus memberId={member.member_id} />
+                          </TableCell>
                           <TableCell>{member.email || '-'}</TableCell>
                           <TableCell>{member.phone || '-'}</TableCell>
-                          <TableCell>{getStatusBadge(member.status)}</TableCell>
                           <TableCell>
                             {member.membership_end_date ? (
                               <div className="flex flex-col">
@@ -474,7 +505,6 @@ const Members = () => {
                             )}
                           </TableCell>
                           <TableCell>{member.total_check_ins || 0}</TableCell>
-                          <TableCell>{formatDateTime(member.last_check_in)}</TableCell>
                           <TableCell>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -496,7 +526,9 @@ const Members = () => {
                                 <DropdownMenuItem onClick={() => handleCheckIn(member.member_id)}>
                                   Registrar Check-in
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>Renovar membresía</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleCreateSubscription(member)}>
+                                  Crear suscripcion
+                                </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 {member.status === 'suspended' ? (
                                   <DropdownMenuItem
@@ -664,15 +696,35 @@ const Members = () => {
                   </div>
                 </div>
 
+                {/* Training Status Banner */}
+                {viewingMemberCheckinStatus && !viewingMemberCheckinStatus.can_checkin && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="h-5 w-5 text-red-600" />
+                      <div>
+                        <p className="font-medium text-red-700">No puede entrenar</p>
+                        <p className="text-sm text-red-600">{viewingMemberCheckinStatus.reason}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {viewingMemberCheckinStatus && viewingMemberCheckinStatus.can_checkin && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <div>
+                        <p className="font-medium text-green-700">Puede entrenar</p>
+                        <p className="text-sm text-green-600">Suscripcion activa</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Subscription Info */}
                 <MemberSubscriptionCard
                   subscription={viewingMemberSubscription || null}
-                  onRenew={() => {
-                    toast({
-                      title: 'Proximamente',
-                      description: 'La funcionalidad de renovacion estara disponible pronto.',
-                    });
-                  }}
+                  onRenew={() => handleCreateSubscription(viewingMember)}
                 />
 
                 {/* Legacy Membership Info (for reference) */}
@@ -719,6 +771,9 @@ const Members = () => {
                   </div>
                 </div>
 
+                {/* Payments Section */}
+                <MemberPaymentsSection memberId={viewingMember.member_id} />
+
                 {/* Notes */}
                 {viewingMember.notes && (
                   <div className="space-y-4">
@@ -747,6 +802,17 @@ const Members = () => {
             )}
           </SheetContent>
         </Sheet>
+
+        {/* Create Subscription Dialog */}
+        <CreateSubscriptionDialog
+          open={showCreateSubscription}
+          onOpenChange={setShowCreateSubscription}
+          memberId={subscriptionMember?.member_id || ''}
+          memberName={subscriptionMember?.full_name || `${subscriptionMember?.first_name || ''} ${subscriptionMember?.last_name || ''}`}
+          onSuccess={() => {
+            refetch();
+          }}
+        />
       </div>
     </DashboardLayout>
   );

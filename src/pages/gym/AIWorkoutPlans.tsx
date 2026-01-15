@@ -228,6 +228,7 @@ const AIWorkoutPlans: React.FC = () => {
       splitType: 'push_pull_legs',
       focusAreas: ['hypertrophy'],
       equipmentAvailable: ['dumbbells', 'barbell', 'machines'],
+      preferredDays: [],
       notes: '',
     });
     setCreateDialogState('config');

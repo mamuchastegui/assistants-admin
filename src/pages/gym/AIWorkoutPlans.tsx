@@ -938,6 +938,17 @@ const AIWorkoutPlans: React.FC = () => {
                       </AccordionTrigger>
                       <AccordionContent>
                         <div className="space-y-4 pt-2">
+                          {/* Day Name */}
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">Nombre del día</Label>
+                            <Input
+                              value={day.dayName || ''}
+                              onChange={(e) => updateDayName(dayKey, e.target.value)}
+                              placeholder="Ej: Tren superior A"
+                              className="h-8"
+                            />
+                          </div>
+
                           {/* Warmup Section */}
                           {isWarmupBlock(day.warmup) ? (
                             <div className="space-y-2">

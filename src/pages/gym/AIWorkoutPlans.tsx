@@ -369,6 +369,20 @@ const AIWorkoutPlans: React.FC = () => {
     }));
   };
 
+  // Update day name
+  const updateDayName = (dayKey: string, newName: string) => {
+    setEditForm(prev => ({
+      ...prev,
+      weeklyPlan: {
+        ...prev.weeklyPlan,
+        [dayKey]: {
+          ...prev.weeklyPlan[dayKey],
+          dayName: newName,
+        },
+      },
+    }));
+  };
+
   const handleSaveEdit = async () => {
     if (!editingPlan) return;
 

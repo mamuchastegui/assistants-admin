@@ -138,6 +138,7 @@ const AIWorkoutPlans: React.FC = () => {
     splitType: 'full_body' | 'upper_lower' | 'push_pull_legs' | 'bro_split';
     focusAreas: string[];
     equipmentAvailable: string[];
+    preferredDays: string[];
     notes: string;
   }>({
     clientId: '',
@@ -147,6 +148,7 @@ const AIWorkoutPlans: React.FC = () => {
     splitType: 'push_pull_legs',
     focusAreas: ['hypertrophy'],
     equipmentAvailable: ['dumbbells', 'barbell', 'machines'],
+    preferredDays: [],
     notes: '',
   });
 
@@ -247,6 +249,7 @@ const AIWorkoutPlans: React.FC = () => {
         splitType: createForm.splitType,
         focusAreas: createForm.focusAreas,
         equipmentAvailable: createForm.equipmentAvailable,
+        preferredDays: createForm.preferredDays.length > 0 ? createForm.preferredDays : undefined,
         notes: createForm.notes || undefined,
       });
 
@@ -1127,6 +1130,38 @@ const AIWorkoutPlans: React.FC = () => {
                       >
                         {n} días
                       </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Preferred Days */}
+                <div className="space-y-2">
+                  <Label>Días preferidos <span className="text-muted-foreground text-xs font-normal">(opcional)</span></Label>
+                  <p className="text-xs text-muted-foreground">Si no seleccionas, la IA elegirá los mejores días</p>
+                  <div className="flex flex-wrap gap-3">
+                    {[
+                      { value: 'monday', label: 'Lun' },
+                      { value: 'tuesday', label: 'Mar' },
+                      { value: 'wednesday', label: 'Mié' },
+                      { value: 'thursday', label: 'Jue' },
+                      { value: 'friday', label: 'Vie' },
+                      { value: 'saturday', label: 'Sáb' },
+                      { value: 'sunday', label: 'Dom' },
+                    ].map(day => (
+                      <label key={day.value} className="flex items-center gap-1.5 cursor-pointer">
+                        <Checkbox
+                          checked={createForm.preferredDays.includes(day.value)}
+                          onCheckedChange={(checked) => {
+                            setCreateForm(prev => ({
+                              ...prev,
+                              preferredDays: checked
+                                ? [...prev.preferredDays, day.value]
+                                : prev.preferredDays.filter(d => d !== day.value)
+                            }));
+                          }}
+                        />
+                        <span className="text-sm">{day.label}</span>
+                      </label>
                     ))}
                   </div>
                 </div>

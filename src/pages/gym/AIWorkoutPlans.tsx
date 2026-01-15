@@ -995,8 +995,9 @@ const AIWorkoutPlans: React.FC = () => {
                                       <Input
                                         value={exercise.reps}
                                         onChange={(e) => updateExercise(dayKey, exerciseIndex, { reps: e.target.value })}
-                                        placeholder="8-12"
+                                        placeholder="10, 10, 8, 8"
                                         className="h-8"
+                                        title="Ej: 10 | 8-12 | 10, 10, 8, 8"
                                       />
                                     </div>
                                     <div className="space-y-1">
@@ -1127,7 +1128,12 @@ const AIWorkoutPlans: React.FC = () => {
                         type="button"
                         variant={createForm.daysPerWeek === n ? 'default' : 'outline'}
                         size="sm"
-                        onClick={() => setCreateForm(prev => ({ ...prev, daysPerWeek: n }))}
+                        onClick={() => setCreateForm(prev => ({
+                          ...prev,
+                          daysPerWeek: n,
+                          // Clear preferred days if they exceed the new limit
+                          preferredDays: prev.preferredDays.length > n ? [] : prev.preferredDays
+                        }))}
                       >
                         {n} días
                       </Button>
@@ -1137,8 +1143,12 @@ const AIWorkoutPlans: React.FC = () => {
 
                 {/* Preferred Days */}
                 <div className="space-y-2">
-                  <Label>Días preferidos <span className="text-muted-foreground text-xs font-normal">(opcional)</span></Label>
-                  <p className="text-xs text-muted-foreground">Si no seleccionas, la IA elegirá los mejores días</p>
+                  <Label>Días preferidos <span className="text-muted-foreground text-xs font-normal">(opcional, máx {createForm.daysPerWeek})</span></Label>
+                  <p className="text-xs text-muted-foreground">
+                    {createForm.preferredDays.length === 0
+                      ? 'Si no seleccionas, la IA elegirá los mejores días'
+                      : `${createForm.preferredDays.length} de ${createForm.daysPerWeek} seleccionados`}
+                  </p>
                   <div className="flex flex-wrap gap-3">
                     {[
                       { value: 'monday', label: 'Lun' },
@@ -1148,22 +1158,27 @@ const AIWorkoutPlans: React.FC = () => {
                       { value: 'friday', label: 'Vie' },
                       { value: 'saturday', label: 'Sáb' },
                       { value: 'sunday', label: 'Dom' },
-                    ].map(day => (
-                      <label key={day.value} className="flex items-center gap-1.5 cursor-pointer">
-                        <Checkbox
-                          checked={createForm.preferredDays.includes(day.value)}
-                          onCheckedChange={(checked) => {
-                            setCreateForm(prev => ({
-                              ...prev,
-                              preferredDays: checked
-                                ? [...prev.preferredDays, day.value]
-                                : prev.preferredDays.filter(d => d !== day.value)
-                            }));
-                          }}
-                        />
-                        <span className="text-sm">{day.label}</span>
-                      </label>
-                    ))}
+                    ].map(day => {
+                      const isChecked = createForm.preferredDays.includes(day.value);
+                      const isDisabled = !isChecked && createForm.preferredDays.length >= createForm.daysPerWeek;
+                      return (
+                        <label key={day.value} className={`flex items-center gap-1.5 ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+                          <Checkbox
+                            checked={isChecked}
+                            disabled={isDisabled}
+                            onCheckedChange={(checked) => {
+                              setCreateForm(prev => ({
+                                ...prev,
+                                preferredDays: checked
+                                  ? [...prev.preferredDays, day.value]
+                                  : prev.preferredDays.filter(d => d !== day.value)
+                              }));
+                            }}
+                          />
+                          <span className="text-sm">{day.label}</span>
+                        </label>
+                      );
+                    })}
                   </div>
                 </div>
 

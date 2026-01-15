@@ -175,7 +175,7 @@ export function WarmupEditor({ value, onChange }: WarmupEditorProps) {
                 placeholder="Buscar ejercicio de movilidad..."
                 exerciseType="mobility"
               />
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
                   <Label className="text-xs">Series</Label>
                   <Input
@@ -193,18 +193,7 @@ export function WarmupEditor({ value, onChange }: WarmupEditorProps) {
                     value={exercise.reps ?? ''}
                     onChange={(e) => updateMobilityExercise(index, { reps: e.target.value })}
                     className="h-8"
-                    placeholder="30s"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Duracion (s)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={exercise.duration ?? ''}
-                    onChange={(e) => updateMobilityExercise(index, { duration: parseInt(e.target.value) || undefined })}
-                    className="h-8"
-                    placeholder="30"
+                    placeholder="30s o 10 cada lado"
                   />
                 </div>
               </div>
@@ -248,7 +237,7 @@ export function WarmupEditor({ value, onChange }: WarmupEditorProps) {
                 placeholder="Buscar ejercicio de activacion..."
                 exerciseType="activation"
               />
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
                   <Label className="text-xs">Series</Label>
                   <Input
@@ -261,23 +250,12 @@ export function WarmupEditor({ value, onChange }: WarmupEditorProps) {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs">Reps</Label>
+                  <Label className="text-xs">Reps/Tiempo</Label>
                   <Input
                     value={exercise.reps ?? ''}
                     onChange={(e) => updateActivationExercise(index, { reps: e.target.value })}
                     className="h-8"
-                    placeholder="12"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Duracion (s)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={exercise.duration ?? ''}
-                    onChange={(e) => updateActivationExercise(index, { duration: parseInt(e.target.value) || undefined })}
-                    className="h-8"
-                    placeholder="30"
+                    placeholder="12 o 30s"
                   />
                 </div>
               </div>
